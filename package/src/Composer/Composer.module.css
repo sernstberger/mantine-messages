@@ -1,0 +1,22 @@
+.root {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--mantine-spacing-xs);
+  padding: 4px 4px 4px var(--mantine-spacing-md);
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: calc(var(--mantine-radius-xl) * 1.5);
+  background-color: var(--mantine-color-body);
+
+  &:focus-within {
+    border-color: var(--mantine-primary-color-filled);
+  }
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+}
+
+.send {
+  flex-shrink: 0;
+}

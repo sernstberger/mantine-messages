@@ -1,0 +1,87 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  padding: var(--mantine-spacing-xs);
+  gap: 2px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-md);
+
+  @mixin hover {
+    @mixin light {
+      background-color: var(--mantine-color-gray-0);
+    }
+
+    @mixin dark {
+      background-color: var(--mantine-color-dark-6);
+    }
+  }
+
+  /* not :where(), and :hover too, so it beats the hover backgrounds above */
+  &[data-active],
+  &[data-active]:hover {
+    background-color: var(--mantine-primary-color-light);
+  }
+}
+
+.avatar {
+  flex-shrink: 0;
+}
+
+.body {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: var(--mantine-spacing-xs);
+  align-items: baseline;
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  overflow: hidden;
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  :where([data-unread]) & {
+    font-weight: 700;
+  }
+}
+
+.time {
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-dimmed);
+}
+
+.preview {
+  overflow: hidden;
+  font-size: var(--mantine-font-size-sm);
+  color: var(--mantine-color-dimmed);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  :where([data-unread]) & {
+    color: var(--mantine-color-text);
+  }
+}
+
+.unread {
+  align-self: center;
+
+  :where([data-muted]) & {
+    background-color: var(--mantine-color-gray-filled);
+  }
+}
+
+.empty {
+  padding: var(--mantine-spacing-xl) var(--mantine-spacing-md);
+  font-size: var(--mantine-font-size-sm);
+  color: var(--mantine-color-dimmed);
+  text-align: center;
+}

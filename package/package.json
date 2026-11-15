@@ -1,0 +1,46 @@
+{
+  "name": "mantine-messages",
+  "version": "0.0.0",
+  "description": "Messaging components for Mantine: inbox, thread and composer for people talking to people",
+  "homepage": "https://sernstberger.github.io/mantine-messages/",
+  "packageManager": "yarn@4.0.1",
+  "license": "MIT",
+  "author": "Steve Ernstberger",
+  "keywords": [
+    "chat",
+    "conversation",
+    "inbox",
+    "mantine",
+    "messages",
+    "messaging",
+    "react"
+  ],
+  "sideEffects": [
+    "*.css"
+  ],
+  "main": "./dist/cjs/index.cjs",
+  "module": "./dist/esm/index.mjs",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/types/index.d.mts",
+        "default": "./dist/esm/index.mjs"
+      },
+      "require": {
+        "types": "./dist/types/index.d.ts",
+        "default": "./dist/cjs/index.cjs"
+      }
+    },
+    "./styles.css": "./dist/styles.css",
+    "./styles.layer.css": "./dist/styles.layer.css"
+  },
+  "repository": "https://github.com/sernstberger/mantine-messages.git",
+  "peerDependencies": {
+    "@mantine/core": ">=9.0.0",
+    "@mantine/hooks": ">=9.0.0",
+    "react": "^18.x || ^19.x",
+    "react-dom": "^18.x || ^19.x"
+  },
+  "bugs": "https://github.com/sernstberger/mantine-messages/issues"
+}

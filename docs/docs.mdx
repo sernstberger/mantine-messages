@@ -1,0 +1,37 @@
+import { InstallScript } from './components/InstallScript/InstallScript';
+import * as demos from './demos';
+
+## Installation
+
+<InstallScript packages="mantine-messages" />
+
+Import the styles once, next to Mantine's:
+
+```tsx
+import '@mantine/core/styles.css';
+import 'mantine-messages/styles.css';
+```
+
+## Usage
+
+`Inbox`, `Thread` and `Composer` share one set of types: `Conversation`, `Message` and
+`MessagesUser`. You bring the data; the components never fetch anything.
+
+<Demo data={demos.messenger} />
+
+## Thread
+
+`Thread` takes messages oldest first. Consecutive messages from one person within
+`groupWindow` (5 minutes by default) share one group, each new day gets a divider, and the
+messages of `currentUserId` sit on the right. The status of your last message shows under it.
+
+## Inbox
+
+`Inbox` lists conversations with a preview of the last message, its time and an unread count.
+Use `value` and `onChange` to control which one is open, or `defaultValue` to leave it to the
+component.
+
+## Composer
+
+`Composer` grows with its text up to `maxRows`. Enter sends, Shift+Enter adds a line, and the
+text is trimmed before `onSend` gets it.

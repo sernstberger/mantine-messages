@@ -1,0 +1,91 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-sm);
+  padding: var(--mantine-spacing-md);
+}
+
+.divider {
+  align-self: center;
+  padding: 2px var(--mantine-spacing-sm);
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 500;
+  color: var(--mantine-color-dimmed);
+}
+
+.group {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--mantine-spacing-xs);
+  max-width: 80%;
+
+  &:where([data-own]) {
+    align-self: flex-end;
+  }
+}
+
+.avatar {
+  flex-shrink: 0;
+}
+
+.messages {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+
+  :where([data-own]) > & {
+    align-items: flex-end;
+  }
+}
+
+.author {
+  padding-inline: var(--mantine-spacing-sm);
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-dimmed);
+}
+
+.bubble {
+  padding: 6px 12px;
+  border-radius: var(--mantine-radius-lg);
+  font-size: var(--mantine-font-size-sm);
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--mantine-color-text);
+
+  @mixin light {
+    background-color: var(--mantine-color-gray-1);
+  }
+
+  @mixin dark {
+    background-color: var(--mantine-color-dark-5);
+  }
+
+  /* not :where(), so it beats the light and dark backgrounds above */
+  &[data-own] {
+    background-color: var(--mantine-primary-color-filled);
+    color: var(--mantine-primary-color-contrast);
+  }
+
+  &:where([data-status='sending']) {
+    opacity: 0.6;
+  }
+
+  &:where([data-status='failed']) {
+    outline: 1px solid var(--mantine-color-error);
+  }
+}
+
+.meta {
+  padding-inline: var(--mantine-spacing-sm);
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-dimmed);
+}
+
+.status {
+  &:where([data-status='failed']) {
+    color: var(--mantine-color-error);
+  }
+}
