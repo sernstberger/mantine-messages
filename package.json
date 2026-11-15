@@ -21,7 +21,7 @@
     "format:write": "oxfmt -c oxfmt.config.mjs --write \"**/*.{ts,tsx,css}\"",
     "typecheck": "tsc --noEmit && cd docs && npm run typecheck",
     "lint": "npm run oxlint && npm run stylelint",
-    "oxlint": "oxlint -c oxlint.config.mjs .",
+    "oxlint": "oxlint -c oxlint.config.mjs --deny-warnings .",
     "stylelint": "stylelint '**/*.css' --cache",
     "jest": "jest",
     "coverage": "jest --coverage",
