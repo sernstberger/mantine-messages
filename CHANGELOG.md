@@ -90,6 +90,12 @@ will be 0.1.0.
 - `AssistantThread`: screen readers hear `labels.thinking` once when an answer starts (the status
   region was silent until the answer finished), the streaming answer is `aria-busy`, and the
   Thinking indicator is an image with a name (its label sat on an element without a role)
+- `Inbox`: rows are memoized and sections are filled in one pass, so typing in the search box no
+  longer renders every row or scans the sections once per conversation per section
+- `Inbox`: an unread badge is read as `labels.unread(count)` ("3 unread") instead of a bare
+  number, muted conversations say `labels.muted`, and while the search filters the list a polite
+  status region says `labels.results(count)` (or `labels.noResults`) once typing pauses. New
+  labels: `unread`, `muted`, `results`
 - Every component passes Mantine's `attributes` prop to its Styles API, so
   `attributes={{ root: {...}, item: {...} }}` reaches the root and inner parts instead of leaking
   onto the root element

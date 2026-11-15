@@ -313,6 +313,13 @@ component.
 messages from `pinned` and `kind`, or pass `{ id, label, match }` objects; each conversation goes in
 the first section that matches. Channels show a `#`.
 
+Screen readers hear an unread count as words (`labels.unread(count)`, "3 unread") instead of the
+badge's bare number, and "Muted" (`labels.muted`) after a muted conversation. While the search
+filters the list, a visually hidden status region says how many conversations match
+(`labels.results(count)`, or `labels.noResults`) once typing pauses for 300ms. Rows are memoized,
+so typing in the search box renders no row again; keep `conversations` and `sections` the same
+objects between renders.
+
 ## Composer
 
 `Composer` grows with its text up to `maxRows`. Enter sends, Shift+Enter adds a line. `onSend`
