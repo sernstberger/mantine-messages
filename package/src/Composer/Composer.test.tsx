@@ -202,6 +202,29 @@ describe('Composer', () => {
     expect(onCancelReply).toHaveBeenCalledTimes(2);
   });
 
+  it('moves focus to the text box when the cancel button is used', async () => {
+    render(
+      <Composer
+        replyTo={{ id: 'm1', authorName: 'Maya', body: 'Hi' }}
+        labels={{ cancelReply: 'Stop replying' }}
+      />
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Stop replying' }));
+    expect(screen.getByRole('textbox')).toHaveFocus();
+  });
+
+  it('merges className and style from textareaProps with the Styles API', () => {
+    render(
+      <Composer
+        textareaProps={{ className: 'mine', style: { color: 'red' } }}
+        classNames={{ input: 'theirs' }}
+      />
+    );
+    const box = screen.getByRole('textbox').closest('.mine')!;
+    expect(box).toHaveClass('mantine-Composer-input', 'theirs', 'mine');
+    expect(box).toHaveStyle({ color: 'red' });
+  });
+
   it('ignores Escape when not replying', async () => {
     const onCancelReply = jest.fn();
     render(<Composer onCancelReply={onCancelReply} />);

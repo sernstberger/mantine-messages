@@ -1,7 +1,8 @@
 import { render, screen, tests } from '@mantine-tests/core';
 import { DirectionProvider } from '@mantine/core';
-import { fireEvent, waitFor } from '@testing-library/react';
+import { act, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { axe } from 'jest-axe';
 import React from 'react';
 import { MessageActions, MessageActionsProps, MessageActionsStylesNames } from './MessageActions';
 import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
@@ -27,6 +28,70 @@ describe('MessageActions', () => {
     props: defaultProps,
     name: 'MessageActions',
     selector: 'action',
+  });
+
+  const menuProps: MessageActionsProps = {
+    text: 'Hi',
+    maxVisible: 1,
+    onReact: () => {},
+    onEdit: () => {},
+    actions: ['react', 'edit'],
+  };
+
+  tests.axe([
+    <MessageActions {...defaultProps} />,
+    <MessageActions {...menuProps} author="Maya" />,
+  ]);
+
+  it('has no axe violations with the menu open', async () => {
+    render(<MessageActions {...menuProps} />);
+    await userEvent.click(screen.getByRole('button', { name: 'More actions' }));
+    await screen.findByRole('menuitem', { name: 'Edit' });
+    // Mantine's Menu puts a role="presentation" focus sentinel inside role="menu"
+    let results: Awaited<ReturnType<typeof axe>>;
+    await act(async () => {
+      results = await axe(document.body, {
+        rules: { 'aria-required-children': { enabled: false }, region: { enabled: false } },
+      });
+    });
+    expect(results!.violations).toEqual([]);
+  });
+
+  it('moves the tab stop to the button that took focus or a click', async () => {
+    render(<MessageActions {...defaultProps} onReact={() => {}} actions={['reply', 'react']} />);
+    const reply = screen.getByRole('button', { name: 'Reply: Hi' });
+    const react = screen.getByRole('button', { name: 'React: Hi' });
+    await userEvent.click(react);
+    expect(react).toHaveAttribute('tabindex', '0');
+    expect(reply).toHaveAttribute('tabindex', '-1');
+    fireEvent.focus(reply);
+    expect(reply).toHaveAttribute('tabindex', '0');
+  });
+
+  it('keeps the menu button in the arrow key order after the menu mounts', async () => {
+    render(
+      <MessageActions
+        {...menuProps}
+        maxVisible={2}
+        actions={['react', 'edit', 'reply']}
+        onReply={() => {}}
+      />
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'More actions' }));
+    await userEvent.keyboard('{Escape}');
+    const more = screen.getByRole('button', { name: 'More actions' });
+    await waitFor(() => expect(more).toHaveFocus());
+    await userEvent.keyboard('{ArrowLeft}');
+    expect(screen.getByRole('button', { name: 'React: Hi' })).toHaveFocus();
+    await userEvent.keyboard('{ArrowRight}');
+    expect(more).toHaveFocus();
+  });
+
+  it('passes keys pressed on the toolbar itself to onKeyDown', () => {
+    const onKeyDown = jest.fn();
+    render(<MessageActions {...defaultProps} onKeyDown={onKeyDown} />);
+    fireEvent.keyDown(screen.getByRole('toolbar'), { key: 'End' });
+    expect(onKeyDown).toHaveBeenCalledTimes(1);
   });
 
   it('shows built-ins only with a handler, labelled with the message', async () => {

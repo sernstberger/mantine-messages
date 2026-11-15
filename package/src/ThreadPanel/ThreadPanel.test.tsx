@@ -131,6 +131,15 @@ describe('ThreadPanel', () => {
     expect(screen.getByRole('complementary', { name: 'Replies' })).toBeInTheDocument();
   });
 
+  it('styles the title and subtitle through the Styles API, with the theme focus class on the title', () => {
+    const { container } = render(<ThreadPanel {...defaultProps} />);
+    const title = container.querySelector('.mantine-ThreadPanel-title')!;
+    const subtitle = container.querySelector('.mantine-ThreadPanel-subtitle')!;
+    expect(title).toHaveClass('mantine-focus-auto');
+    expect(title.getAttribute('style')).not.toMatch(/(^|;\s*)line-height:/);
+    expect(subtitle.getAttribute('style') ?? '').not.toMatch(/(^|;\s*)color:/);
+  });
+
   it('closes with its button and takes a custom close label; thread labels go to Replies', async () => {
     const onClose = jest.fn();
     render(

@@ -14,7 +14,7 @@ import {
   useProps,
   useStyles,
 } from '@mantine/core';
-import { useClipboard } from '@mantine/hooks';
+import { mergeRefs, useClipboard, useRovingIndex } from '@mantine/hooks';
 import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   CheckIcon,
@@ -75,7 +75,7 @@ export interface MessageActionsProps
   text: string;
 
   /**
-   * Plain text for button labels when `text` is markdown; `text` by default. A function is called
+   * Plain text for button labels when `text` is markdown, `text` when not set. A function is called
    * only when a button shows, so a thread skips stripping markdown for rows without actions
    */
   preview?: string | (() => string);
@@ -85,12 +85,20 @@ export interface MessageActionsProps
 
   /** The current user wrote the message, for the labels of the toolbar and the menu button */
   own?: boolean;
+
+  /** Called when the user clicks Reply; the built-in `'reply'` button shows only when this is set */
   onReply?: () => void;
+
+  /** Called when the user clicks React; the built-in `'react'` button shows only when this is set */
   onReact?: () => void;
+
+  /** Called when the user clicks Reply in thread; the built-in `'thread'` button shows only when this is set */
   onOpenThread?: () => void;
+
+  /** Called when the user clicks Edit; the built-in `'edit'` button shows only when this is set */
   onEdit?: () => void;
 
-  /** Buttons shown before the rest go in a menu, 3 by default */
+  /** Buttons shown before the rest go in a menu @default 3 */
   maxVisible?: number;
 
   /** Text, for translation */
@@ -150,14 +158,6 @@ function WithClipboard({ children }: { children: (clipboard: Clipboard) => React
   return children(useClipboard({ timeout: 1500 }));
 }
 
-// `step` is -1 in right-to-left layouts
-const KEYS: Record<string, (index: number, count: number, step: number) => number> = {
-  ArrowRight: (index, count, step) => (index + step + count) % count,
-  ArrowLeft: (index, count, step) => (index - step + count) % count,
-  Home: () => 0,
-  End: (_index, count) => count - 1,
-};
-
 /**
  * Buttons for one message, as a toolbar: one tab stop, arrow keys move between the buttons and
  * Home and End jump to the ends (the WAI-ARIA toolbar pattern). Built-ins show when their handler
@@ -212,7 +212,6 @@ export const MessageActions = factory<MessageActionsFactory>((_props) => {
   const { dir } = useDirection();
   const [menuMounted, setMenuMounted] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [active, setActive] = useState(0);
   const moreRef = useRef<HTMLButtonElement>(null);
 
   // The menu replaces the trigger on first click: focus the new one so the menu returns focus to it
@@ -251,6 +250,11 @@ export const MessageActions = factory<MessageActionsFactory>((_props) => {
       .filter((action) => action !== null);
   }, [actions, onReply, onReact, onOpenThread, onEdit, reply, react, thread, edit]);
 
+  const { getItemProps, setFocusedIndex } = useRovingIndex({
+    total: Math.min(resolved.length, maxVisible),
+    dir,
+  });
+
   if (resolved.length === 0) {
     return null;
   }
@@ -273,32 +277,53 @@ export const MessageActions = factory<MessageActionsFactory>((_props) => {
     const overflow = items.length > maxVisible;
     const visible = overflow ? items.slice(0, maxVisible - 1) : items;
     const rest = overflow ? items.slice(maxVisible - 1) : [];
-    const count = visible.length + (overflow ? 1 : 0);
 
-    const current = Math.min(active, count - 1);
-    const stop = (index: number) => ({
-      tabIndex: index === current ? 0 : -1,
-      onFocus: () => setActive(index),
-    });
+    const stop = (index: number, onClick?: () => void) => {
+      const { onKeyDown: onItemKeyDown, ...item } = getItemProps({ index, onClick });
+
+      return {
+        ...item,
+        onFocus: () => setFocusedIndex(index),
+        onKeyDown: (event: React.KeyboardEvent<HTMLButtonElement>) => {
+          onItemKeyDown(event);
+
+          if (event.isPropagationStopped()) {
+            onKeyDown?.(event as unknown as React.KeyboardEvent<HTMLDivElement>);
+          }
+        },
+      };
+    };
 
     const menu = getStyles('menu');
     const menuItem = getStyles('menuItem');
 
-    const moreButton = (extra: React.ComponentPropsWithRef<'button'>) => (
-      <ActionIcon
-        variant={variant}
-        color={color}
-        size={size}
-        radius={radius ?? 'xl'}
-        unstyled={unstyled}
-        aria-label={allLabels.more(owner)}
-        {...stop(visible.length)}
-        {...getStyles('action')}
-        {...extra}
-      >
-        <DotsIcon />
-      </ActionIcon>
-    );
+    const moreButton = ({
+      ref: extraRef,
+      onClick,
+      ...extra
+    }: React.ComponentPropsWithRef<'button'>) => {
+      const { ref: rovingRef, ...roving } = stop(
+        visible.length,
+        onClick as (() => void) | undefined
+      );
+
+      return (
+        <ActionIcon
+          variant={variant}
+          color={color}
+          size={size}
+          radius={radius ?? 'xl'}
+          unstyled={unstyled}
+          aria-label={allLabels.more(owner)}
+          {...roving}
+          ref={mergeRefs(rovingRef, extraRef)}
+          {...getStyles('action')}
+          {...extra}
+        >
+          <DotsIcon />
+        </ActionIcon>
+      );
+    };
 
     return (
       <Box
@@ -308,18 +333,7 @@ export const MessageActions = factory<MessageActionsFactory>((_props) => {
         mod={[{ 'menu-open': menuOpen }, mod]}
         variant={variant}
         size={size}
-        onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
-          const buttons = Array.from(event.currentTarget.children) as HTMLElement[];
-          const index = buttons.indexOf(event.target as HTMLElement);
-          const move = KEYS[event.key];
-
-          if (index !== -1 && move) {
-            event.preventDefault();
-            buttons[move(index, buttons.length, dir === 'rtl' ? -1 : 1)].focus();
-          }
-
-          onKeyDown?.(event);
-        }}
+        onKeyDown={onKeyDown}
         {...getStyles('root')}
         {...others}
       >
@@ -332,8 +346,7 @@ export const MessageActions = factory<MessageActionsFactory>((_props) => {
             radius={radius ?? 'xl'}
             unstyled={unstyled}
             aria-label={`${action.label}: ${short}`}
-            onClick={action.onClick}
-            {...stop(index)}
+            {...stop(index, action.onClick)}
             {...getStyles('action')}
           >
             {action.icon}
