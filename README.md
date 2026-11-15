@@ -13,6 +13,9 @@ Mantine Styles API, light and dark themes, and keyboard and screen reader suppor
 | `Inbox` | Conversation list: avatar, last message preview, time, unread count, muted state, selection |
 | `ChatThread` | Messages grouped by author and time, date dividers, your messages on the right, status of your last message |
 | `Composer` | Text box that grows, Enter to send, Shift+Enter for a new line |
+| `TeamThread` | Slack-style rows: compact follow-ups, event lines, internal notes, "12 replies" thread summaries, reactions and files |
+| `ThreadPanel` | A thread beside the channel: the parent, a reply count, the replies and your composer |
+| `Message` | The parts of a row (`Message.Avatar`, `Message.Body`, `Message.Meta`) for your own layouts |
 
 All three share the `Conversation`, `ChatMessage` and `MessagesUser` types. You bring the data; the
 components never fetch anything.

@@ -4,28 +4,35 @@ import type {
   ComposerFactory,
   InboxFactory,
   MessageActionsFactory,
+  MessageFactory,
   MessageListFactory,
   ReactionsFactory,
+  TeamThreadFactory,
+  ThreadPanelFactory,
 } from 'mantine-messages';
 import type { StylesApiData } from '../components/styles-api.types';
 
 export const InboxStylesApi: StylesApiData<InboxFactory> = {
   selectors: {
     root: 'Root element',
+    search: 'Search box, with `withSearch`',
+    section: 'One section: a heading and its conversations',
+    sectionLabel: 'Heading of a section',
     item: 'Button for one conversation',
-    avatar: 'Conversation avatar',
+    avatar: 'Conversation avatar; a # for channels',
     body: 'Grid holding the title, time, preview and unread count',
     title: 'Conversation title',
     time: 'Time of the last message',
     preview: 'Text of the last message',
     unread: 'Unread count badge',
-    empty: 'Shown when there are no conversations',
+    empty: 'Shown when there are no conversations or the search matches none',
   },
   vars: {},
   modifiers: [
     { modifier: 'data-active', selector: 'item', condition: 'The conversation is open' },
     { modifier: 'data-unread', selector: 'item', condition: '`unreadCount` is above 0' },
     { modifier: 'data-muted', selector: 'item', condition: '`muted` is set on the conversation' },
+    { modifier: 'data-channel', selector: 'item', condition: '`kind` is `channel`' },
   ],
 };
 
@@ -116,11 +123,79 @@ export const AttachmentsStylesApi: StylesApiData<AttachmentsFactory> = {
 export const ComposerStylesApi: StylesApiData<ComposerFactory> = {
   selectors: {
     root: 'Root element',
+    modes: 'SegmentedControl that picks the mode, with `modes`',
     reply: 'Bar above the text box while replying, with a cancel button',
     replyText: 'Who and what the reply answers',
     field: 'Row with the text box and the send button',
     input: 'Textarea that grows with its text',
     send: 'Send button',
+  },
+  vars: {},
+  modifiers: [
+    { modifier: 'data-mode', selector: 'root', condition: '`value` of the chosen mode' },
+    { modifier: 'data-note', selector: 'root', condition: 'The chosen mode has `note: true`' },
+  ],
+};
+
+export const MessageStylesApi: StylesApiData<MessageFactory> = {
+  selectors: {
+    root: 'Root element: an avatar column and a content column',
+    avatar: '`Message.Avatar`',
+    body: '`Message.Body`, the content column',
+    meta: '`Message.Meta`: name and time, or a time in the avatar column shown on hover',
+  },
+  vars: {},
+  modifiers: [{ modifier: 'data-compact', selector: 'root', condition: '`compact` is set' }],
+};
+
+export const TeamThreadStylesApi: StylesApiData<TeamThreadFactory> = {
+  selectors: {
+    root: 'Root element, a Mantine ScrollArea',
+    list: 'Column of rows, a live log',
+    divider: 'Date divider',
+    unread: '"New messages" line',
+    loader: 'Loader at the top while older messages load',
+    item: 'Wrapper of one row, scrolled to by jumps',
+    row: 'One message, a `Message`',
+    avatar: 'Avatar on the first message of a group',
+    gutterTime: 'Time beside a follow-up message, shown on hover',
+    body: 'Name, text, files, reactions and thread summary',
+    meta: 'Name and time on the first message of a group',
+    author: 'Name of the author',
+    time: 'Time of the message',
+    noteLabel: '"Internal note" above an internal note',
+    text: 'Text of the message',
+    edited: '"(edited)" after an edited message',
+    actions: 'MessageActions toolbar, shown on hover and focus',
+    attachments: 'Attachments under the text',
+    reactions: 'Reactions under the text',
+    threadSummary: '"12 replies" with who answered and when; opens the thread',
+    repliesDivider: 'Divider with the reply count after the parent, with `threadParentId`',
+    event: 'A system event, such as "Maya joined"',
+  },
+  vars: {},
+  modifiers: [
+    { modifier: 'data-compact', selector: 'row', condition: 'A follow-up message of a group' },
+    { modifier: 'data-internal', selector: 'row', condition: '`visibility` is `internal`' },
+    { modifier: 'data-selected', selector: 'row', condition: 'The message is `selectedId`' },
+    {
+      modifier: 'data-highlighted',
+      selector: 'row',
+      condition: 'For 1.6 seconds after a jump to the message',
+    },
+  ],
+};
+
+export const ThreadPanelStylesApi: StylesApiData<ThreadPanelFactory> = {
+  selectors: {
+    root: 'Root element, a complementary region named by the title',
+    header: 'Title, subtitle and close button',
+    heading: 'Title and subtitle',
+    title: 'Title, "Thread" by default',
+    subtitle: 'Subtitle, for example the channel',
+    close: 'Close button, with `onClose`',
+    thread: 'The TeamThread: parent, replies divider and replies',
+    composer: 'Wrapper of `children`, usually a Composer',
   },
   vars: {},
 };
@@ -133,4 +208,7 @@ export const STYLES_API_DATA = {
   MessageActions: MessageActionsStylesApi,
   Reactions: ReactionsStylesApi,
   Attachments: AttachmentsStylesApi,
+  Message: MessageStylesApi,
+  TeamThread: TeamThreadStylesApi,
+  ThreadPanel: ThreadPanelStylesApi,
 };

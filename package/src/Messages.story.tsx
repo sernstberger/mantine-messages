@@ -220,6 +220,13 @@ const firstItems = (conversation: Conversation): TeamThreadItem[] =>
       ];
 
 /** Slack-style: channels with sections and search, a channel, and a thread beside it */
+const channelTopics: Record<string, string> = {
+  launch: 'Ship it Thursday',
+  general: 'Announcements and anything for the whole company',
+  design: 'Crits every Thursday at 2pm',
+  random: 'Lunch plans, pets and everything else',
+};
+
 export function Team() {
   const [channelId, setChannelId] = useState('launch');
   const [openId, setOpenId] = useState<string | null>(null);
@@ -320,7 +327,7 @@ export function Team() {
           <Box px="md" py="sm" style={{ borderBottom: border }}>
             <Text fw={700}>{nameOf(channel)}</Text>
             <Text size="xs" c="dimmed">
-              {channel.kind === 'channel' ? 'Ship it Thursday' : 'Direct message'}
+              {channel.kind === 'channel' ? channelTopics[channel.id] : 'Direct message'}
             </Text>
           </Box>
           <TeamThread

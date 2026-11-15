@@ -18,3 +18,9 @@ will be 0.1.0.
 - `MessageList` and `useMessageList`: the engine for any message layout
 - `MessageActions`, `Reactions`, `Attachments`
 - `ChatThread`: actions, reactions, attachments, a "New messages" line, loading older messages
+- `TeamThread`: Slack-style rows with compact follow-ups, event rows, internal notes, "(edited)",
+  thread summaries that call `onOpenThread`, and a hover toolbar
+- `ThreadPanel`: a thread beside the channel, with a slot for a `Composer`
+- `Message`, `Message.Avatar`, `Message.Body`, `Message.Meta`: building blocks for message rows
+- `Composer`: `modes` with `draft.mode`, and note styling for a mode with `note: true`
+- `Inbox`: a search box (`withSearch`), sections (`sections`), and a `#` on channels
