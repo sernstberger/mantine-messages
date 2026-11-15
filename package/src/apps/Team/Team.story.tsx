@@ -149,87 +149,83 @@ export function Team() {
   const border = '1px solid var(--mantine-color-default-border)';
 
   return (
-    <Box p="xl">
-      <MessagesShell
-        withBorder
-        radius="lg"
-        h={640}
-        asideOpened={parent !== undefined}
-        onAsideOpenedChange={(opened) => !opened && setOpenId(null)}
-      >
-        <MessagesShell.List w={260} aria-label="Channels">
-          <Text fw={800} px="md" py="sm" style={{ borderBottom: border }}>
-            Acme
-          </Text>
-          <ScrollArea style={{ flex: 1 }}>
-            <Inbox
-              conversations={sampleChannels}
-              value={channelId}
-              onChange={(id) => {
-                setChannelId(id);
-                setOpenId(null);
-              }}
-              withSearch
-              sections
-            />
-          </ScrollArea>
-        </MessagesShell.List>
-        <MessagesShell.Main aria-label="Channel">
-          <Box px="md" py="sm" style={{ borderBottom: border }}>
-            <Text fw={700}>{nameOf(channel)}</Text>
-            <Text size="xs" c="dimmed">
-              {channel.kind === 'channel' ? channelTopics[channel.id] : 'Direct message'}
-            </Text>
-          </Box>
-          <TeamThread
-            items={channelItems}
-            users={sampleUsers}
-            currentUserId="me"
-            unreadAfterId={channelId === 'launch' ? 'team-m4' : null}
-            selectedId={openId}
-            onOpenThread={(message) => setOpenId(message.id)}
-            onReact={(message) => toggle(message.id, '👀')}
-            onToggleReaction={(message, emoji) => toggle(message.id, emoji)}
-            onEdit={() => {}}
-            style={{ flex: 1 }}
+    <MessagesShell
+      h="100dvh"
+      asideOpened={parent !== undefined}
+      onAsideOpenedChange={(opened) => !opened && setOpenId(null)}
+    >
+      <MessagesShell.List w={260} aria-label="Channels">
+        <Text fw={800} px="md" py="sm" style={{ borderBottom: border }}>
+          Acme
+        </Text>
+        <ScrollArea style={{ flex: 1 }}>
+          <Inbox
+            conversations={sampleChannels}
+            value={channelId}
+            onChange={(id) => {
+              setChannelId(id);
+              setOpenId(null);
+            }}
+            withSearch
+            sections
           />
-          <Box p="sm">
-            <Composer
-              key={channelId}
-              modes={teamModes}
-              placeholder={`Message ${nameOf(channel)}`}
-              onSend={(draft) => post(draft)}
+        </ScrollArea>
+      </MessagesShell.List>
+      <MessagesShell.Main aria-label="Channel">
+        <Box px="md" py="sm" style={{ borderBottom: border }}>
+          <Text fw={700}>{nameOf(channel)}</Text>
+          <Text size="xs" c="dimmed">
+            {channel.kind === 'channel' ? channelTopics[channel.id] : 'Direct message'}
+          </Text>
+        </Box>
+        <TeamThread
+          items={channelItems}
+          users={sampleUsers}
+          currentUserId="me"
+          unreadAfterId={channelId === 'launch' ? 'team-m4' : null}
+          selectedId={openId}
+          onOpenThread={(message) => setOpenId(message.id)}
+          onReact={(message) => toggle(message.id, '👀')}
+          onToggleReaction={(message, emoji) => toggle(message.id, emoji)}
+          onEdit={() => {}}
+          style={{ flex: 1 }}
+        />
+        <Box p="sm">
+          <Composer
+            key={channelId}
+            modes={teamModes}
+            placeholder={`Message ${nameOf(channel)}`}
+            onSend={(draft) => post(draft)}
+          />
+        </Box>
+      </MessagesShell.Main>
+      {parent && (
+        <MessagesShell.Aside w={360} aria-label="Thread pane">
+          <ThreadPanel
+            role="region"
+            style={{ flex: 1 }}
+            subtitle={nameOf(channel)}
+            onClose={() => setOpenId(null)}
+          >
+            <ThreadPanel.Replies
+              parent={parent}
+              replies={replies}
+              users={sampleUsers}
+              currentUserId="me"
+              onReact={(message) => toggle(message.id, '👀')}
+              onToggleReaction={(message, emoji) => toggle(message.id, emoji)}
             />
-          </Box>
-        </MessagesShell.Main>
-        {parent && (
-          <MessagesShell.Aside w={360} aria-label="Thread pane">
-            <ThreadPanel
-              role="region"
-              style={{ flex: 1 }}
-              subtitle={nameOf(channel)}
-              onClose={() => setOpenId(null)}
-            >
-              <ThreadPanel.Replies
-                parent={parent}
-                replies={replies}
-                users={sampleUsers}
-                currentUserId="me"
-                onReact={(message) => toggle(message.id, '👀')}
-                onToggleReaction={(message, emoji) => toggle(message.id, emoji)}
+            <ThreadPanel.Footer>
+              <Composer
+                key={parent.id}
+                placeholder="Reply…"
+                onSend={(draft) => post(draft, parent.id)}
               />
-              <ThreadPanel.Footer>
-                <Composer
-                  key={parent.id}
-                  placeholder="Reply…"
-                  onSend={(draft) => post(draft, parent.id)}
-                />
-              </ThreadPanel.Footer>
-            </ThreadPanel>
-          </MessagesShell.Aside>
-        )}
-      </MessagesShell>
-    </Box>
+            </ThreadPanel.Footer>
+          </ThreadPanel>
+        </MessagesShell.Aside>
+      )}
+    </MessagesShell>
   );
 }
 

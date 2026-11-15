@@ -1,4 +1,4 @@
-import { Box, Button, Paper, Text } from '@mantine/core';
+import { Button, Paper, Text } from '@mantine/core';
 import React, { useState } from 'react';
 import { ChatThread } from './ChatThread';
 import { Composer } from '../Composer/Composer';
@@ -21,9 +21,9 @@ export default {
 
 export function Usage() {
   return (
-    <Box p="xl" maw={480}>
+    <div style={{ padding: 40, maxWidth: 480 }}>
       <ChatThread messages={sampleMessages} users={sampleUsers} currentUserId="me" />
-    </Box>
+    </div>
   );
 }
 
@@ -50,7 +50,7 @@ export function LongThread() {
   };
 
   return (
-    <Box p="xl" maw={480}>
+    <div style={{ padding: 40, maxWidth: 480 }}>
       <Paper withBorder radius="lg" h={500} style={{ display: 'flex', flexDirection: 'column' }}>
         <ChatThread
           messages={messages}
@@ -76,7 +76,7 @@ export function LongThread() {
           }
         />
       </Paper>
-    </Box>
+    </div>
   );
 }
 
@@ -109,7 +109,7 @@ const markdownMessages: ChatMessage[] = [
 /** Markdown messages through renderBody and MarkdownBody; plain ones stay plain */
 export function WithMarkdown() {
   return (
-    <Box p="xl" maw={520}>
+    <div style={{ padding: 40, maxWidth: 520 }}>
       <Paper withBorder radius="lg" h={520} style={{ display: 'flex', flexDirection: 'column' }}>
         <ChatThread
           messages={markdownMessages}
@@ -125,7 +125,7 @@ export function WithMarkdown() {
           }
         />
       </Paper>
-    </Box>
+    </div>
   );
 }
 
@@ -146,7 +146,7 @@ export function Composition() {
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
 
   return (
-    <Box p="xl" maw={520}>
+    <div style={{ padding: 40, maxWidth: 520 }}>
       <Paper withBorder radius="lg" h={560} style={{ display: 'flex', flexDirection: 'column' }}>
         <ChatThread
           messages={customChatMessages}
@@ -181,6 +181,6 @@ export function Composition() {
           </Text>
         )}
       </Paper>
-    </Box>
+    </div>
   );
 }

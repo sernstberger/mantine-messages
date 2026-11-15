@@ -1,4 +1,4 @@
-import { Badge, Box, Paper } from '@mantine/core';
+import { Badge, Paper } from '@mantine/core';
 import React from 'react';
 import { sampleTeamItems, sampleUsers } from '../sample-data';
 import { TeamThread } from './TeamThread';
@@ -21,7 +21,7 @@ export function Usage() {
   const items = sampleTeamItems.filter((item) => 'kind' in item || !item.threadId);
 
   return (
-    <Box p="xl" maw={640}>
+    <div style={{ padding: 40, maxWidth: 640 }}>
       <Paper withBorder radius="md" h={560} style={{ display: 'flex', flexDirection: 'column' }}>
         <TeamThread
           items={items}
@@ -32,7 +32,7 @@ export function Usage() {
           onOpenThread={() => {}}
         />
       </Paper>
-    </Box>
+    </div>
   );
 }
 
@@ -41,7 +41,7 @@ export function Composition() {
   const items = sampleTeamItems.filter((item) => 'kind' in item || !item.threadId);
 
   return (
-    <Box p="xl" maw={640}>
+    <div style={{ padding: 40, maxWidth: 640 }}>
       <Paper withBorder radius="md" h={560} style={{ display: 'flex', flexDirection: 'column' }}>
         <TeamThread
           items={items}
@@ -80,6 +80,6 @@ export function Composition() {
           }
         />
       </Paper>
-    </Box>
+    </div>
   );
 }

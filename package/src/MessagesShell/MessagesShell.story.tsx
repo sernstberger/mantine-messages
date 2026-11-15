@@ -15,7 +15,7 @@ function Shell({ width }: { width?: number }) {
   const conversation = sampleConversations.find((c) => c.id === selected)!;
 
   return (
-    <Box p="xl" w={width}>
+    <div style={{ padding: 40, width }}>
       <MessagesShell withBorder radius="lg" h={600}>
         <MessagesShell.List aria-label="Conversations">
           <ScrollArea style={{ flex: 1 }}>
@@ -47,7 +47,7 @@ function Shell({ width }: { width?: number }) {
           </Stack>
         </MessagesShell.Aside>
       </MessagesShell>
-    </Box>
+    </div>
   );
 }
 

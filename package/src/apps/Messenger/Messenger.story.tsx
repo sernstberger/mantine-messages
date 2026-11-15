@@ -80,48 +80,46 @@ export function Messenger() {
   };
 
   return (
-    <Box p="xl">
-      <MessagesShell withBorder radius="lg" h={600}>
-        <MessagesShell.List w={300} aria-label="Conversations">
-          <ScrollArea style={{ flex: 1 }}>
-            <Inbox conversations={sampleConversations} value={selected} onChange={setSelected} />
-          </ScrollArea>
-        </MessagesShell.List>
-        <MessagesShell.Main aria-label="Conversation">
-          <Text
-            fw={600}
-            px="md"
-            py="sm"
-            style={{ borderBottom: '1px solid var(--mantine-color-default-border)' }}
-          >
-            {title}
-          </Text>
-          <ChatThread
-            messages={messages}
-            users={sampleUsers}
-            currentUserId="me"
-            onReply={setReplyTo}
-            onReact={(message) => toggle(message.id, '❤️')}
-            onToggleReaction={(message, emoji) => toggle(message.id, emoji)}
-            unreadAfterId="m4"
-            style={{ flex: 1 }}
-          />
-          <Box p="sm">
-            <Composer
-              onSend={send}
-              replyTo={
-                replyTo && {
-                  id: replyTo.id,
-                  authorName: sampleUsers.find((user) => user.id === replyTo.authorId)!.name,
-                  body: replyTo.body,
-                }
+    <MessagesShell h="100dvh">
+      <MessagesShell.List w={300} aria-label="Conversations">
+        <ScrollArea style={{ flex: 1 }}>
+          <Inbox conversations={sampleConversations} value={selected} onChange={setSelected} />
+        </ScrollArea>
+      </MessagesShell.List>
+      <MessagesShell.Main aria-label="Conversation">
+        <Text
+          fw={600}
+          px="md"
+          py="sm"
+          style={{ borderBottom: '1px solid var(--mantine-color-default-border)' }}
+        >
+          {title}
+        </Text>
+        <ChatThread
+          messages={messages}
+          users={sampleUsers}
+          currentUserId="me"
+          onReply={setReplyTo}
+          onReact={(message) => toggle(message.id, '❤️')}
+          onToggleReaction={(message, emoji) => toggle(message.id, emoji)}
+          unreadAfterId="m4"
+          style={{ flex: 1 }}
+        />
+        <Box p="sm">
+          <Composer
+            onSend={send}
+            replyTo={
+              replyTo && {
+                id: replyTo.id,
+                authorName: sampleUsers.find((user) => user.id === replyTo.authorId)!.name,
+                body: replyTo.body,
               }
-              onCancelReply={() => setReplyTo(null)}
-            />
-          </Box>
-        </MessagesShell.Main>
-      </MessagesShell>
-    </Box>
+            }
+            onCancelReply={() => setReplyTo(null)}
+          />
+        </Box>
+      </MessagesShell.Main>
+    </MessagesShell>
   );
 }
 

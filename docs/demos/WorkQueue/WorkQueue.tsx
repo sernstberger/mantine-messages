@@ -1,4 +1,4 @@
-import { Paper, ScrollArea } from '@mantine/core';
+import { type MantineRadius, Paper, ScrollArea } from '@mantine/core';
 import React, { useState } from 'react';
 import { BulkActions } from './BulkActions';
 import { QueueFilters } from './QueueFilters';
@@ -16,21 +16,33 @@ export interface WorkQueueProps {
 
   /** Height of the app, 640 by default */
   h?: number | string;
+
+  /** Draws the border around the app, `true` by default; `false` for a full-page app */
+  withBorder?: boolean;
+
+  /** Corner radius of the app, `'lg'` by default */
+  radius?: MantineRadius;
 }
 
 /**
  * A support work queue built from mantine-messages: a triage table, and a ticket with its mixed
  * timeline, a Reply / Internal note composer and actions
  */
-export function WorkQueue({ now: nowProp, defaultTicketId, h = 640 }: WorkQueueProps) {
+export function WorkQueue({
+  now: nowProp,
+  defaultTicketId,
+  h = 640,
+  withBorder = true,
+  radius = 'lg',
+}: WorkQueueProps) {
   const queue = useWorkQueue(nowProp);
   const [openId, setOpenId] = useState<string | null>(defaultTicketId ?? null);
   const open = queue.tickets.find((ticket) => ticket.id === openId);
 
   return (
     <Paper
-      withBorder
-      radius="lg"
+      withBorder={withBorder}
+      radius={radius}
       h={h}
       style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
     >

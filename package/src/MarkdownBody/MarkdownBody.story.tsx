@@ -1,4 +1,3 @@
-import { Box } from '@mantine/core';
 import React from 'react';
 import { markdownAdapter } from '../../../.storybook/markdown-adapter';
 import { MarkdownAdapterProvider } from './MarkdownAdapterProvider';
@@ -20,8 +19,8 @@ const markdown =
 
 export function Usage() {
   return (
-    <Box p="xl" maw={480}>
+    <div style={{ padding: 40, maxWidth: 480 }}>
       <MarkdownBody>{markdown}</MarkdownBody>
-    </Box>
+    </div>
   );
 }

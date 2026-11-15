@@ -1,4 +1,4 @@
-import { Box, EmptyState, ScrollArea } from '@mantine/core';
+import { Box, EmptyState, type MantineRadius, ScrollArea } from '@mantine/core';
 import { type MessageListHandlers, MessagesShell } from 'mantine-messages';
 import React, { useEffect, useRef, useState } from 'react';
 import { BulkActions } from './BulkActions';
@@ -18,13 +18,25 @@ export interface WorkQueueSplitProps {
 
   /** Height of the app, 640 by default */
   h?: number | string;
+
+  /** Draws the border around the app, `true` by default; `false` for a full-page app */
+  withBorder?: boolean;
+
+  /** Corner radius of the app, `'lg'` by default */
+  radius?: MantineRadius;
 }
 
 /**
  * The work queue as an email client, on `MessagesShell`: the ticket list, the open ticket's
  * conversation, and its details. Below 960px of width the details open from the ticket header
  */
-export function WorkQueueSplit({ now: nowProp, defaultTicketId, h = 640 }: WorkQueueSplitProps) {
+export function WorkQueueSplit({
+  now: nowProp,
+  defaultTicketId,
+  h = 640,
+  withBorder = true,
+  radius = 'lg',
+}: WorkQueueSplitProps) {
   const queue = useWorkQueue(nowProp);
   const { dispatch } = queue;
   const timeline = useRef<MessageListHandlers>(null);
@@ -41,8 +53,8 @@ export function WorkQueueSplit({ now: nowProp, defaultTicketId, h = 640 }: WorkQ
 
   return (
     <MessagesShell
-      withBorder
-      radius="lg"
+      withBorder={withBorder}
+      radius={radius}
       h={h}
       asideOpened={detailsOpened}
       onAsideOpenedChange={setDetailsOpened}

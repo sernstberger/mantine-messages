@@ -1,4 +1,4 @@
-import { Box, Button, Group, Paper, Text } from '@mantine/core';
+import { Button, Group, Paper, Text } from '@mantine/core';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import React, { useImperativeHandle, useRef, useState } from 'react';
 import { ChatThread } from '../ChatThread/ChatThread';
@@ -17,11 +17,11 @@ const renderItem = (item: ChatMessage) => (
 
 export function Usage() {
   return (
-    <Box p="xl" maw={480}>
+    <div style={{ padding: 40, maxWidth: 480 }}>
       <Paper withBorder radius="lg" h={420} style={{ display: 'flex', flexDirection: 'column' }}>
         <MessageList items={sampleMessages} renderItem={renderItem} style={{ flex: 1 }} />
       </Paper>
-    </Box>
+    </div>
   );
 }
 
@@ -97,7 +97,7 @@ function TenThousand({ windowed }: { windowed: boolean }) {
   };
 
   return (
-    <Box p="xl" maw={520}>
+    <div style={{ padding: 40, maxWidth: 520 }}>
       <Group mb="sm" gap="xs">
         <Button size="xs" variant="default" onClick={() => handlers.current?.jumpTo('m-1501')}>
           Jump to message 1501
@@ -129,7 +129,7 @@ function TenThousand({ windowed }: { windowed: boolean }) {
           }
         />
       </Paper>
-    </Box>
+    </div>
   );
 }
 

@@ -1,4 +1,3 @@
-import { Box } from '@mantine/core';
 import React from 'react';
 import { Attachments } from './Attachments';
 
@@ -6,7 +5,7 @@ export default { title: 'Attachments' };
 
 export function Usage() {
   return (
-    <Box p="xl" maw={480}>
+    <div style={{ padding: 40, maxWidth: 480 }}>
       <Attachments
         attachments={[
           {
@@ -19,6 +18,6 @@ export function Usage() {
           { id: 'a2', name: 'menu-options.docx', url: '#', size: 48200 },
         ]}
       />
-    </Box>
+    </div>
   );
 }

@@ -1,6 +1,5 @@
-import { Box } from '@mantine/core';
 import React from 'react';
-// The example app lives in the docs; .storybook/main.ts points its 'mantine-messages' imports here
+// The example app lives in the docs; .storybook/repo-vite.ts points its 'mantine-messages' imports here
 import { WorkQueueSplit as App } from '../../../../docs/demos/WorkQueue/WorkQueueSplit';
 
 export default {
@@ -17,11 +16,7 @@ export default {
 };
 
 export function WorkQueueSplit() {
-  return (
-    <Box p="md">
-      <App h={720} />
-    </Box>
-  );
+  return <App h="100dvh" withBorder={false} radius={0} />;
 }
 
 /** Same as the title's last part, so Storybook shows the app as one sidebar item */

@@ -1,4 +1,3 @@
-import { Box } from '@mantine/core';
 import React from 'react';
 import { Message } from './Message';
 
@@ -6,7 +5,7 @@ export default { title: 'Message' };
 
 export function Usage() {
   return (
-    <Box p="xl" maw={480}>
+    <div style={{ padding: 40, maxWidth: 480 }}>
       <Message>
         <Message.Avatar name="Maya Lindqvist" />
         <Message.Body>
@@ -14,6 +13,6 @@ export function Usage() {
           Did the venue confirm for Saturday?
         </Message.Body>
       </Message>
-    </Box>
+    </div>
   );
 }

@@ -208,7 +208,7 @@ export function Usage() {
   const { messages, streaming, fail, setFail, send, stop, regenerate, edit } = useFakeAssistant();
 
   return (
-    <Box p="xl">
+    <div style={{ padding: 40 }}>
       <Paper
         withBorder
         radius="lg"
@@ -255,7 +255,7 @@ export function Usage() {
           </Text>
         </Box>
       </Paper>
-    </Box>
+    </div>
   );
 }
 
@@ -281,11 +281,11 @@ export function States() {
   ];
 
   return (
-    <Box p="xl" maw={900} mx="auto">
+    <div style={{ padding: 40, maxWidth: 900, marginInline: 'auto' }}>
       <Paper withBorder radius="lg" h={560} style={{ display: 'flex', flexDirection: 'column' }}>
         <AssistantThread messages={messages} onRegenerate={() => {}} style={{ flex: 1 }} />
         <Composer m="md" streaming onStop={() => {}} />
       </Paper>
-    </Box>
+    </div>
   );
 }

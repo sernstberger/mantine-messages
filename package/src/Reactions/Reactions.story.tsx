@@ -1,4 +1,3 @@
-import { Box } from '@mantine/core';
 import React, { useState } from 'react';
 import type { MessageReaction } from '../types';
 import { Reactions } from './Reactions';
@@ -26,8 +25,8 @@ export function Usage() {
     );
 
   return (
-    <Box p="xl">
+    <div style={{ padding: 40 }}>
       <Reactions reactions={reactions} currentUserId="me" onToggleReaction={toggle} />
-    </Box>
+    </div>
   );
 }

@@ -1,4 +1,4 @@
-import { Box, Paper } from '@mantine/core';
+import { Paper } from '@mantine/core';
 import React from 'react';
 import { Composer } from '../Composer/Composer';
 import { sampleTeamItems, sampleUsers } from '../sample-data';
@@ -13,7 +13,7 @@ const replies = messages.filter((message) => message.threadId === parent.id);
 
 export function Usage() {
   return (
-    <Box p="xl" maw={400}>
+    <div style={{ padding: 40, maxWidth: 400 }}>
       <Paper withBorder radius="lg" h={560} style={{ display: 'flex', flexDirection: 'column' }}>
         <ThreadPanel style={{ flex: 1 }} subtitle="#launch" onClose={() => {}}>
           <ThreadPanel.Replies
@@ -27,6 +27,6 @@ export function Usage() {
           </ThreadPanel.Footer>
         </ThreadPanel>
       </Paper>
-    </Box>
+    </div>
   );
 }
