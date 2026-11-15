@@ -271,6 +271,20 @@ types; the package knows nothing about them.
 
 <Demo data={demos.workQueue} />
 
+The same app as an email client, built on `MessagesShell`: the ticket list, the open ticket's
+conversation and its details side by side. Both layouts share one hook (`useWorkQueue`) for the
+tickets, filters, sort, selection and bulk actions.
+
+- List: one row per ticket with the customer and the time of the newest message, the subject, a
+  preview of the newest email, chat message or note, then priority, SLA and assignee. Unread
+  tickets are bold with a dot; opening one reads it. Arrow keys move between rows
+- Toolbar: search, sort and a Filters popover over the view switch; while rows are selected
+  (checkboxes show on hover and focus) a compact bar to assign, tag or close takes its place
+- The open ticket stays open when you close or snooze it, until you pick another. Below 960px the
+  details collapse behind a Details button in the ticket header
+
+<Demo data={demos.workQueueSplit} />
+
 ## Inbox
 
 `Inbox` lists conversations with a preview of the last message, its time and an unread count.

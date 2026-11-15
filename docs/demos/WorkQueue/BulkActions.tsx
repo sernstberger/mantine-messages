@@ -1,4 +1,4 @@
-import { Button, Group, Menu, Text } from '@mantine/core';
+import { Button, CloseButton, Group, Menu, Text } from '@mantine/core';
 import React from 'react';
 import type { Agent } from './types';
 
@@ -10,6 +10,9 @@ export interface BulkActionsProps {
   onClose: () => void;
   onTag: (tag: string) => void;
   onClear: () => void;
+
+  /** Short labels and an icon to clear, to fit a narrow pane */
+  compact?: boolean;
 }
 
 /** Shown while tickets are selected: assign, close or tag them all at once */
@@ -21,6 +24,7 @@ export function BulkActions({
   onClose,
   onTag,
   onClear,
+  compact,
 }: BulkActionsProps) {
   return (
     <Group gap="xs" px="sm" py={6} h="100%" bg="var(--mantine-primary-color-light)">
@@ -58,11 +62,15 @@ export function BulkActions({
         </Menu.Dropdown>
       </Menu>
       <Button size="compact-sm" variant="default" onClick={onClose}>
-        Close tickets
+        {compact ? 'Close' : 'Close tickets'}
       </Button>
-      <Button size="compact-sm" variant="subtle" onClick={onClear}>
-        Clear selection
-      </Button>
+      {compact ? (
+        <CloseButton size="sm" aria-label="Clear selection" onClick={onClear} />
+      ) : (
+        <Button size="compact-sm" variant="subtle" onClick={onClear}>
+          Clear selection
+        </Button>
+      )}
     </Group>
   );
 }

@@ -19,7 +19,18 @@ export interface TicketViewProps {
   agents: Agent[];
   now: Date;
   dispatch: (action: QueueAction) => void;
-  onBack: () => void;
+
+  /** Shows "← Queue" in the header */
+  onBack?: () => void;
+
+  /** The timeline's control, for a sidebar the layout draws elsewhere; one of its own by default */
+  controlRef?: React.RefObject<MessageListControl | null>;
+
+  /** Draws the sidebar beside the timeline, true by default */
+  withSidebar?: boolean;
+
+  /** At the end of the header, for example a toggle for details drawn elsewhere */
+  headerSection?: React.ReactNode;
 }
 
 const MODES: ComposerMode[] = [
@@ -34,8 +45,19 @@ const MODES: ComposerMode[] = [
 ];
 
 /** One ticket: its timeline and composer, with the actions beside them */
-export function TicketView({ ticket, users, agents, now, dispatch, onBack }: TicketViewProps) {
-  const timeline = useRef<MessageListControl>(null);
+export function TicketView({
+  ticket,
+  users,
+  agents,
+  now,
+  dispatch,
+  onBack,
+  controlRef,
+  withSidebar = true,
+  headerSection,
+}: TicketViewProps) {
+  const ownTimeline = useRef<MessageListControl>(null);
+  const timeline = controlRef ?? ownTimeline;
   const [email, setEmail] = useState<EmailItem | null>(null);
   const nameOf = nameGetter(users);
 
@@ -51,9 +73,11 @@ export function TicketView({ ticket, users, agents, now, dispatch, onBack }: Tic
         wrap="nowrap"
         style={{ borderBottom: '1px solid var(--mantine-color-default-border)' }}
       >
-        <Button variant="subtle" size="compact-sm" onClick={onBack}>
-          ← Queue
-        </Button>
+        {onBack && (
+          <Button variant="subtle" size="compact-sm" onClick={onBack}>
+            ← Queue
+          </Button>
+        )}
         <Box style={{ minWidth: 0, flex: 1 }}>
           <Text fw={700} truncate>
             {ticket.subject}
@@ -65,6 +89,7 @@ export function TicketView({ ticket, users, agents, now, dispatch, onBack }: Tic
         <Badge variant="light" color={STATUS_COLORS[ticket.status]}>
           {STATUS_LABELS[ticket.status]}
         </Badge>
+        {headerSection}
       </Group>
       <Box style={{ display: 'flex', flex: 1, minHeight: 0 }}>
         <Box style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
@@ -76,17 +101,19 @@ export function TicketView({ ticket, users, agents, now, dispatch, onBack }: Tic
           />
           <Composer m="sm" modes={MODES} onSend={send} />
         </Box>
-        <Box
-          style={{ borderLeft: '1px solid var(--mantine-color-default-border)', display: 'flex' }}
-        >
-          <TicketSidebar
-            ticket={ticket}
-            agents={agents}
-            now={now}
-            dispatch={dispatch}
-            onJumpTo={(id) => timeline.current!.jumpTo(id)}
-          />
-        </Box>
+        {withSidebar && (
+          <Box
+            style={{ borderLeft: '1px solid var(--mantine-color-default-border)', display: 'flex' }}
+          >
+            <TicketSidebar
+              ticket={ticket}
+              agents={agents}
+              now={now}
+              dispatch={dispatch}
+              onJumpTo={(id) => timeline.current!.jumpTo(id)}
+            />
+          </Box>
+        )}
       </Box>
       <EmailModal email={email} onClose={() => setEmail(null)} />
     </Box>

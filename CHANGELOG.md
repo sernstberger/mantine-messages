@@ -43,3 +43,6 @@ will be 0.1.0.
 - Work queue example in the docs and Storybook: a triage table (sort, filter, search, bulk
   assign, close and tag), one timeline per ticket mixing emails, chat, internal notes and events,
   Reply and Internal note from one composer, and assign, status, priority and snooze
+- Work queue split view in the docs and Storybook, on `MessagesShell`: email-client ticket rows
+  with previews and unread state, the conversation, and the ticket details beside it (collapsed
+  behind a Details button below 960px); shares its state with the table layout
