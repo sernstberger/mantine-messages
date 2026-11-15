@@ -497,7 +497,7 @@ export function CustomChatRows() {
   );
 }
 
-/** renderMessage with the parts: a Pinned badge, markdown text, and react and copy only */
+/** renderMessage with the parts: a Pinned badge, markdown for markdown messages, and react and copy only */
 export function CustomTeamRows() {
   const items = sampleTeamItems.filter((item) => 'kind' in item || !item.threadId);
 
@@ -521,13 +521,17 @@ export function CustomTeamRows() {
                 actions={<TeamThread.Actions actions={['react', 'copy']} />}
               >
                 <TeamThread.Author />
-                {item.thread && (
+                {item.id === 'team-m1' && (
                   <Badge size="xs" variant="light" mb={4}>
                     Pinned
                   </Badge>
                 )}
                 <TeamThread.Text>
-                  <MarkdownBody>{item.body}</MarkdownBody>
+                  {item.format === 'markdown' ? (
+                    <MarkdownBody>{item.body}</MarkdownBody>
+                  ) : (
+                    item.body
+                  )}
                 </TeamThread.Text>
                 <TeamThread.Attachments />
                 <TeamThread.Reactions />
