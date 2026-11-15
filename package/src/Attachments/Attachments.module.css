@@ -7,8 +7,8 @@
 
 .image {
   display: block;
-  max-width: rem(240px);
-  border-radius: var(--mantine-radius-md);
+  max-width: var(--attachments-image-max-width, rem(240px));
+  border-radius: var(--attachments-radius, var(--mantine-radius-md));
   overflow: hidden;
 
   /* width and height attributes keep the aspect ratio while it scales */
@@ -21,10 +21,18 @@
   display: inline-flex;
   align-items: center;
   gap: var(--mantine-spacing-xs);
-  max-width: rem(280px);
+  max-width: var(--attachments-file-max-width, rem(280px));
   padding: rem(6px) rem(10px);
   border: 1px solid var(--mantine-color-default-border);
-  border-radius: var(--mantine-radius-md);
+  border-radius: var(--attachments-radius, var(--mantine-radius-md));
   color: var(--mantine-color-text);
   background-color: var(--mantine-color-body);
+}
+
+.fileIcon {
+  display: inline-flex;
+}
+
+.fileSize {
+  color: var(--mantine-color-dimmed);
 }

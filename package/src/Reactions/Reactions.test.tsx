@@ -2,6 +2,7 @@ import { render, screen, tests } from '@mantine-tests/core';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Reactions, ReactionsProps, ReactionsStylesNames } from './Reactions';
+import { itHasStaticVarsResolver } from '../../../test-utils/it-has-static-vars-resolver';
 import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
 
 const reactions = [
@@ -11,7 +12,12 @@ const reactions = [
 ];
 const defaultProps: ReactionsProps = { reactions, currentUserId: 'me' };
 
+const getRoot = (container: HTMLElement) =>
+  container.querySelector<HTMLElement>('.mantine-Reactions-root')!;
+
 describe('Reactions', () => {
+  tests.axe([<Reactions {...defaultProps} />, <Reactions {...defaultProps} onToggle={() => {}} />]);
+
   tests.itSupportsSystemProps<ReactionsProps, ReactionsStylesNames>({
     component: Reactions,
     props: defaultProps,
@@ -22,7 +28,7 @@ describe('Reactions', () => {
     classes: true,
     refType: HTMLDivElement,
     displayName: 'Reactions',
-    stylesApiSelectors: ['root', 'reaction'],
+    stylesApiSelectors: ['root', 'reaction', 'emoji', 'count'],
   });
 
   itSupportsAttributes({
@@ -59,5 +65,44 @@ describe('Reactions', () => {
       <Reactions reactions={[{ emoji: '😂', userIds: [] }]} currentUserId="me" />
     );
     expect(container.querySelector('.mantine-Reactions-root')).not.toBeInTheDocument();
+  });
+
+  itHasStaticVarsResolver({ component: Reactions });
+
+  it('sets no theming variables by default', () => {
+    const { container } = render(<Reactions {...defaultProps} />);
+    const root = getRoot(container);
+    for (const name of ['radius', 'active-bg', 'active-color', 'active-border']) {
+      expect(root.style.getPropertyValue(`--reactions-${name}`)).toBe('');
+    }
+  });
+
+  it('sets the radius and the colors of your reactions from props', () => {
+    const { container } = render(<Reactions {...defaultProps} radius="xs" color="teal" />);
+    const root = getRoot(container);
+    expect(root.style.getPropertyValue('--reactions-radius')).toBe('var(--mantine-radius-xs)');
+    expect(root.style.getPropertyValue('--reactions-active-bg')).toBe(
+      'var(--mantine-color-teal-light)'
+    );
+    expect(root.style.getPropertyValue('--reactions-active-color')).toBe(
+      'var(--mantine-color-teal-light-color)'
+    );
+    expect(root.style.getPropertyValue('--reactions-active-border')).toBe(
+      'var(--mantine-color-teal-filled)'
+    );
+  });
+
+  it('sets variables from vars', () => {
+    const { container } = render(
+      <Reactions {...defaultProps} vars={() => ({ root: { '--reactions-radius': '3px' } })} />
+    );
+    expect(getRoot(container).style.getPropertyValue('--reactions-radius')).toBe('3px');
+  });
+
+  it('passes unstyled to the buttons', () => {
+    render(<Reactions {...defaultProps} onToggle={() => {}} unstyled />);
+    for (const element of screen.getAllByRole('button')) {
+      expect([...element.classList].filter((name) => !name.startsWith('mantine-'))).toEqual([]);
+    }
   });
 });
