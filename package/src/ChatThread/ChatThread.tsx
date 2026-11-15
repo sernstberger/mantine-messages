@@ -137,8 +137,8 @@ export interface ChatThreadProps
   withAuthors?: boolean;
 
   /**
-   * Renders the body of a message, for example markdown with `MarkdownBody` from
-   * `mantine-messages/markdown`; the plain `body` by default
+   * Renders the body of a message, for example markdown with `MarkdownBody` (set up with
+   * `MarkdownAdapterProvider`); the plain `body` by default
    */
   renderBody?: (message: ChatMessage) => React.ReactNode;
 
