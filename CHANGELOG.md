@@ -5,6 +5,8 @@ will be 0.1.0 (`npm run release:minor` from 0.0.0), when "Unreleased" becomes "0
 
 ## Unreleased
 
+<!-- next: 0.1.0 -->
+
 ### Added
 
 Components
