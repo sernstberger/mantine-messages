@@ -44,6 +44,34 @@ the user is at the bottom, or when they sent the message. While they read older 
 put, and loading older messages at the top never moves the view. Set `autoScroll={false}` to turn
 this off.
 
+### Custom messages
+
+`renderMessage` draws a whole message from the parts of `ChatThread`: `ChatThread.Message` (the
+row, with the avatar and the author's name), `ChatThread.Quote`, `ChatThread.Bubble`,
+`ChatThread.Actions`, `ChatThread.Attachments`, `ChatThread.Reactions` and `ChatThread.Meta`. It
+gets the message and where it sits (`own`, `groupStart`, `groupEnd`, `highlighted`, `lastOwn`,
+`original` and `jumpTo`). Each part takes its data from the row, keeps the screen reader text of
+the default, and is styled by the thread's Styles API, so `classNames` and the theme reach custom
+rows too. Without children, `ChatThread.Message` renders the default row; `avatar` and the
+bubble's `actions` take a part or `null`. For the body alone, `renderBody` is shorter.
+
+```tsx
+<ChatThread
+  messages={messages}
+  users={users}
+  currentUserId="me"
+  renderMessage={(message, context) => (
+    <ChatThread.Message message={message} context={context} avatar={null}>
+      <ChatThread.Quote />
+      <ChatThread.Bubble actions={<ChatThread.Actions actions={['copy']} />}>
+        <MarkdownBody>{message.body}</MarkdownBody>
+      </ChatThread.Bubble>
+      <ChatThread.Meta />
+    </ChatThread.Message>
+  )}
+/>
+```
+
 ## Replies
 
 A message with `replyToId` shows the message it answers above its bubble: a caption such as
@@ -122,7 +150,7 @@ item each time.
 
 `ChatThread` and `TeamThread` do this for you: their rows render again only when their message,
 group or status changes. Handlers such as `onReply` may be new arrows on every render; they are
-always called in their newest form. Keep `renderBody`, `actions`, `labels`, `users` and the Styles
+always called in their newest form. Keep `renderBody`, `renderMessage`, `actions`, `labels`, `users` and the Styles
 API objects stable (or defined outside the component), since a change to one of them renders
 every row.
 
@@ -222,6 +250,36 @@ const replies = messages.filter((message) => message.threadId === open?.id);
     </ThreadPanel.Footer>
   </ThreadPanel>
 )}
+```
+
+### Custom team messages
+
+`TeamThread` takes `renderBody` for the text of a message, and `renderMessage` for whole items.
+`renderMessage` gets messages and events alike: render events (items with `kind`) with
+`TeamThread.Event` and messages with `TeamThread.Message`, the row with the avatar or the hover
+time. Its parts are `TeamThread.Author`, `TeamThread.Text`, `TeamThread.Attachments`,
+`TeamThread.Reactions`, `TeamThread.ThreadSummary` and `TeamThread.Actions` (the `actions` slot of
+the row, `null` for none); they share the thread's Styles API and labels.
+
+```tsx
+<TeamThread
+  items={items}
+  users={users}
+  currentUserId="me"
+  renderMessage={(item, context) =>
+    'kind' in item ? (
+      <TeamThread.Event event={item} />
+    ) : (
+      <TeamThread.Message message={item} context={context}>
+        <TeamThread.Author />
+        <TeamThread.Text>
+          <MarkdownBody>{item.body}</MarkdownBody>
+        </TeamThread.Text>
+        <TeamThread.ThreadSummary />
+      </TeamThread.Message>
+    )
+  }
+/>
 ```
 
 ## Message parts

@@ -51,6 +51,13 @@ will be 0.1.0.
 - Work queue split view in the docs and Storybook, on `MessagesShell`: email-client ticket rows
   with previews and unread state, the conversation, and the ticket details beside it (collapsed
   behind a Details button below 960px); shares its state with the table layout
+- `ChatThread`: `renderMessage` and the parts `ChatThread.Message`, `ChatThread.Avatar`,
+  `ChatThread.Quote`, `ChatThread.Bubble`, `ChatThread.Actions`, `ChatThread.Attachments`,
+  `ChatThread.Reactions` and `ChatThread.Meta`, styled by the thread's Styles API, for custom
+  message rows; the default row is built from them
+- `TeamThread`: `renderBody`, so team chat can show markdown, and `renderMessage` with the parts
+  `TeamThread.Message`, `TeamThread.Author`, `TeamThread.Text`, `TeamThread.Attachments`,
+  `TeamThread.Reactions`, `TeamThread.ThreadSummary`, `TeamThread.Actions` and `TeamThread.Event`
 - Release readiness: a `files` allowlist, types bundled per entry for ESM and CJS (checked with `npm run check:exports`), no empty source maps, peers narrowed to Mantine ^9.8.0 and React ^19.2.0, and `docgen.json` documents `Message`, its parts and `MessagesShell`
 
 ### Changed
