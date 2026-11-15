@@ -85,7 +85,7 @@ export type ThreadPanelFactory = Factory<{
   stylesNames: ThreadPanelStylesNames;
 }>;
 
-const defaultProps: Partial<ThreadPanelProps> = { titleOrder: 2 };
+const defaultProps = { titleOrder: 2 } satisfies Partial<ThreadPanelProps>;
 
 const defaultLabels = { title: 'Thread', close: 'Close thread' };
 

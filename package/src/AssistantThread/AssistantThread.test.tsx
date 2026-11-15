@@ -125,6 +125,10 @@ describe('AssistantThread', () => {
 
     const tool = screen.getByRole('button', { name: /search_docs/ });
     expect(tool).toHaveTextContent('Done');
+    // A logical margin, so the badge sits at the far end in RTL too
+    expect(screen.getByText('Done').closest('.mantine-Badge-root')).toHaveStyle({
+      marginInlineStart: 'auto',
+    });
     await userEvent.click(tool);
     expect(await screen.findByText(/"query": "debounce"/)).toBeInTheDocument();
     expect(screen.getByText(/"hits": 2/)).toBeInTheDocument();

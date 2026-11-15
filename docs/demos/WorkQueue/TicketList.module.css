@@ -9,11 +9,12 @@
   border-bottom: 1px solid var(--mantine-color-default-border);
 }
 
-/* The left gutter holds the unread dot, or the checkbox on hover, focus and while selecting */
+/* The start gutter holds the unread dot, or the checkbox on hover, focus and while selecting */
 .button {
   display: block;
   width: 100%;
-  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm) var(--mantine-spacing-xs) 36px;
+  padding-block: var(--mantine-spacing-xs);
+  padding-inline: 36px var(--mantine-spacing-sm);
   outline-offset: -2px;
 
   @mixin hover {
@@ -29,12 +30,16 @@
 .row[data-open] .button {
   background-color: var(--mantine-primary-color-light);
   box-shadow: inset 3px 0 0 var(--mantine-primary-color-filled);
+
+  @mixin rtl {
+    box-shadow: inset -3px 0 0 var(--mantine-primary-color-filled);
+  }
 }
 
 .check {
   position: absolute;
   top: 11px;
-  left: 10px;
+  inset-inline-start: 10px;
   z-index: 1;
   opacity: 0;
 }
@@ -42,7 +47,7 @@
 .dot {
   position: absolute;
   top: 15px;
-  left: 14px;
+  inset-inline-start: 14px;
   width: 8px;
   height: 8px;
   border-radius: 50%;

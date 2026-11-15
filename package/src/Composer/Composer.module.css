@@ -32,7 +32,8 @@
   align-items: center;
   gap: var(--mantine-spacing-xs);
   margin: 6px 6px 0;
-  padding: 4px 4px 4px 10px;
+  padding-block: 4px;
+  padding-inline: 10px 4px;
   border-inline-start: 3px solid var(--mantine-primary-color-filled);
   border-radius: var(--mantine-radius-md);
 
@@ -54,7 +55,8 @@
   display: flex;
   align-items: flex-end;
   gap: var(--mantine-spacing-xs);
-  padding: 4px 4px 4px var(--mantine-spacing-md);
+  padding-block: 4px;
+  padding-inline: var(--mantine-spacing-md) 4px;
 }
 
 .input {

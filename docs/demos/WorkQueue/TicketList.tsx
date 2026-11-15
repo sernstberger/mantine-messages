@@ -102,7 +102,7 @@ function Row({ ticket, now, nameOf, open, checked, onOpen, onToggle }: RowProps)
             <Text size="xs" fw={500} c={sla.color}>
               {sla.label}
             </Text>
-            <Text size="xs" c="dimmed" truncate ml="auto">
+            <Text size="xs" c="dimmed" truncate ms="auto">
               {ticket.assigneeId ? nameOf(ticket.assigneeId) : 'Unassigned'}
             </Text>
           </Group>

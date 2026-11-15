@@ -31,7 +31,8 @@
   align-items: center;
   justify-content: space-between;
   min-height: 28px;
-  padding: 2px 4px 2px 12px;
+  padding-block: 2px;
+  padding-inline: 12px 4px;
   border-bottom: 1px solid var(--mantine-color-default-border);
 
   @mixin light {

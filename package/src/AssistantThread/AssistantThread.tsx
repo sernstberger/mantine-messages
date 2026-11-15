@@ -385,7 +385,7 @@ export const AssistantThread = factory<AssistantThreadFactory>((_props) => {
             size="xs"
             variant="light"
             color={toolColors[part.state]}
-            ml="auto"
+            ms="auto"
             leftSection={part.state === 'running' ? <Loader size={8} color="blue" /> : null}
           >
             {toolLabels[part.state]}

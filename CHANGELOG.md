@@ -53,3 +53,7 @@ will be 0.1.0.
 - `Inbox`, `TeamThread`: row hover uses the theme's `--mantine-color-default-hover` (in dark mode
   this is `dark-5`, a step lighter than before); `AssistantThread` step headers use
   `@mixin hover`, so the hover background no longer sticks after a tap on touch screens
+- Right-to-left layouts: `TeamThread`'s hover toolbar and internal-note bar, the `Composer` reply
+  bar and field, `MarkdownBody` code headers, thread summaries, `MessagesShell` pane borders and
+  overlay aside, and the `AssistantThread` tool badge use logical sides, so they mirror under
+  `dir="rtl"`
