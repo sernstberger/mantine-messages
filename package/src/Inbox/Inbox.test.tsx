@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import type { Conversation } from '../types';
 import { Inbox, InboxProps, InboxStylesNames } from './Inbox';
-import { within } from '@testing-library/react';
+import { waitFor, within } from '@testing-library/react';
 import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
 
 const conversations: Conversation[] = [
@@ -65,6 +65,48 @@ describe('Inbox', () => {
     expect(screen.getByText('Nothing yet')).toBeInTheDocument();
   });
 
+  it('reads unread counts and muted state as words, not a bare number', () => {
+    render(<Inbox {...defaultProps} />);
+    expect(
+      screen.getByRole('button', { name: /Design crit\W+140 unread\W+Muted$/ })
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Priya Raman\W+2 unread$/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /See you then$/ })).toBeInTheDocument();
+    expect(screen.getByText('99+').closest('.mantine-Inbox-unread')).toHaveAttribute(
+      'aria-hidden',
+      'true'
+    );
+  });
+
+  it('takes the unread and muted text from labels', () => {
+    render(
+      <Inbox
+        {...defaultProps}
+        labels={{ unread: (count) => `${count} non lus`, muted: 'En sourdine' }}
+      />
+    );
+    expect(screen.getByRole('button', { name: /140 non lus\W+En sourdine$/ })).toBeInTheDocument();
+  });
+
+  it('renders only the rows that changed when a conversation opens', async () => {
+    let reads = 0;
+    const counted = conversations.map((conversation) => {
+      const copy = { ...conversation };
+      Object.defineProperty(copy, 'lastMessage', {
+        get: () => {
+          reads += 1;
+          return conversation.lastMessage;
+        },
+      });
+      return copy;
+    });
+    render(<Inbox conversations={counted} defaultValue="maya" labels={{ muted: 'Quiet' }} />);
+    reads = 0;
+    await userEvent.click(screen.getByRole('button', { name: /Priya/ }));
+    // Maya (no longer active) and Priya (now active) render again; Design crit does not
+    expect(reads).toBe(2 * 3);
+  });
+
   it('previews markdown as plain text', () => {
     render(
       <Inbox
@@ -100,9 +142,59 @@ describe('Inbox search and sections', () => {
   });
 
   it('filters with a controlled search and says when nothing matches', () => {
-    render(<Inbox conversations={team} search="zzz" labels={{ noResults: 'Nothing here' }} />);
-    expect(screen.getByText('Nothing here')).toBeInTheDocument();
+    const { container } = render(
+      <Inbox conversations={team} search="zzz" labels={{ noResults: 'Nothing here' }} />
+    );
+    expect(container.querySelector('.mantine-Inbox-empty')).toHaveTextContent('Nothing here');
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+  });
+
+  it('renders no row again while typing in the search box', async () => {
+    let reads = 0;
+    const counted = team.map((conversation) => {
+      const copy = { ...conversation };
+      Object.defineProperty(copy, 'lastMessage', {
+        get: () => {
+          reads += 1;
+          return undefined;
+        },
+      });
+      return copy;
+    });
+    render(<Inbox conversations={counted} withSearch sections />);
+    reads = 0;
+    await userEvent.type(screen.getByRole('textbox', { name: 'Search' }), 'a');
+    // "a" is in every title, so every row stays and none renders again
+    expect(screen.getAllByRole('button')).toHaveLength(5);
+    expect(reads).toBe(0);
+  });
+
+  it('announces how many conversations match once typing pauses', async () => {
+    render(<Inbox conversations={team} withSearch labels={{ noResults: 'Nothing here' }} />);
+    const status = screen.getByRole('status');
+    const box = screen.getByRole('textbox', { name: 'Search' });
+    expect(status).toBeEmptyDOMElement();
+
+    await userEvent.type(box, 'l');
+    // Not per keystroke: the count comes a moment later
+    expect(status).toBeEmptyDOMElement();
+    await waitFor(() => expect(status).toHaveTextContent('4 conversations'));
+
+    await userEvent.type(box, 'au');
+    await waitFor(() => expect(status).toHaveTextContent('1 conversation'));
+
+    await userEvent.type(box, 'z');
+    await waitFor(() => expect(status).toHaveTextContent('Nothing here'));
+
+    await userEvent.clear(box);
+    await waitFor(() => expect(status).toBeEmptyDOMElement());
+  });
+
+  it('takes the result count text from labels', async () => {
+    render(
+      <Inbox conversations={team} search="maya" labels={{ results: (n) => `${n} résultat` }} />
+    );
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('1 résultat'));
   });
 
   it('groups into Pinned, Channels and Direct messages', () => {

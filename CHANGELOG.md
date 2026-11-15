@@ -115,6 +115,35 @@ will be 0.1.0.
 - `MessageList` stays at the bottom when its size changes without a render, for example while
   the `Composer` below grows a line or an image loads (a `ResizeObserver` on the viewport and its
   content); a long thread no longer opens a few pixels short of the newest message
+- `MarkdownBody` parses its text block by block and keeps each parsed block while its text is
+  unchanged, so a streamed answer no longer re-parses the whole answer on every token (a 4.5 kB
+  answer streamed in 909 tokens parsed 2.07M characters, now 42k), and a re-render with the same
+  text, `components` and `remarkPlugins` parses nothing. With `remarkPlugins`, or link reference
+  and footnote definitions in the text, the text is still parsed whole. Custom renderers get
+  `node` positions relative to their block. `npm run check:markdown` checks the blocks against
+  react-markdown
+- `AssistantThread`: answers and prompts are memoized, and inline `onRegenerate`, `onEdit` and
+  `labels` no longer break the memo, so a token renders only the streaming answer instead of
+  re-running `getAssistantText` and `stripMarkdown` for every answer in the thread
+- `AssistantThread`: after editing a prompt, Escape or Cancel returns focus to its Edit button and
+  sending focuses the prompt, ringed around its bubble (focus was lost to the page). The editor's
+  caret starts at the end of the text
+- `AssistantThread`: screen readers hear `labels.thinking` once when an answer starts (the status
+  region was silent until the answer finished), the streaming answer is `aria-busy`, and the
+  Thinking indicator is an image with a name (its label sat on an element without a role)
+- `Inbox`: rows are memoized and sections are filled in one pass, so typing in the search box no
+  longer renders every row or scans the sections once per conversation per section
+- `Inbox`: an unread badge is read as `labels.unread(count)` ("3 unread") instead of a bare
+  number, muted conversations say `labels.muted`, and while the search filters the list a polite
+  status region says `labels.results(count)` (or `labels.noResults`) once typing pauses. New
+  labels: `unread`, `muted`, `results`
+- `ThreadPanel`: focus moves to the title when the panel opens from a focused control and back to
+  that control when it closes (keyboard users were left on the opener and lost focus on close).
+  New prop `withFocusManagement`, `true` by default. The focused title shows the theme's focus
+  ring around its text. Escape still does not close it, by design
+- `Attachments`: images load lazily (`loading="lazy"`, `decoding="async"`), so a long history no
+  longer fetches every image at once. `MessageAttachment` takes optional `width` and `height`,
+  which reserve an image's box before it loads
 - Every component passes Mantine's `attributes` prop to its Styles API, so
   `attributes={{ root: {...}, item: {...} }}` reaches the root and inner parts instead of leaking
   onto the root element

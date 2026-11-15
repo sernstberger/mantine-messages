@@ -13,7 +13,8 @@ import {
   useProps,
   useStyles,
 } from '@mantine/core';
-import React from 'react';
+import { useIsomorphicEffect, useMergedRef } from '@mantine/hooks';
+import React, { useEffect, useRef } from 'react';
 import type { MessageListControl } from '../MessageList/MessageList';
 import type { MessageAction } from '../MessageActions/MessageActions';
 import { TeamThread, type TeamThreadLabels } from '../TeamThread/TeamThread';
@@ -67,6 +68,13 @@ export interface ThreadPanelProps
   /** Props of the close button */
   closeButtonProps?: CloseButtonProps & ElementProps<'button'>;
 
+  /**
+   * Moves focus to the title when the panel opens (or shows another thread) from a focused
+   * control, and back to that control when the panel closes with focus inside it, `true` by
+   * default
+   */
+  withFocusManagement?: boolean;
+
   /** Locale for times and date dividers, the browser's by default */
   locale?: string;
 
@@ -111,7 +119,10 @@ export type ThreadPanelFactory = Factory<{
   stylesNames: ThreadPanelStylesNames;
 }>;
 
-const defaultProps = { titleOrder: 2 } satisfies Partial<ThreadPanelProps>;
+const defaultProps = {
+  titleOrder: 2,
+  withFocusManagement: true,
+} satisfies Partial<ThreadPanelProps>;
 
 const defaultLabels = { title: 'Thread', close: 'Close thread' };
 
@@ -135,6 +146,7 @@ export const ThreadPanel = factory<ThreadPanelFactory>((_props) => {
     onClose,
     withCloseButton,
     closeButtonProps,
+    withFocusManagement,
     locale,
     actions,
     onReact,
@@ -168,11 +180,62 @@ export const ThreadPanel = factory<ThreadPanelFactory>((_props) => {
 
   const { title: titleLabel, close: closeLabel, ...threadLabels } = { ...defaultLabels, ...labels };
 
+  // Focus moves in from the control that opened the panel and goes back to it on close. Not when
+  // nothing had focus (the panel was open as the page loaded): that would scroll the page to it.
+  // Escape does not close the panel: it is not a dialog, and Escape in its composer belongs to
+  // the composer
+  const rootRef = useRef<HTMLDivElement>(null);
+  const mergedRef = useMergedRef(ref, rootRef);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const opener = useRef<HTMLElement | null>(null);
+  const manageFocus = useRef(withFocusManagement);
+  manageFocus.current = withFocusManagement;
+
+  useEffect(() => {
+    const active = document.activeElement as HTMLElement;
+
+    if (!withFocusManagement || active === document.body) {
+      return;
+    }
+
+    if (!rootRef.current!.contains(active)) {
+      opener.current = active;
+      titleRef.current!.focus();
+    }
+  }, [parent.id, withFocusManagement]);
+
+  // A layout effect: its cleanup runs while the panel is still in the document, so it can tell
+  // whether focus was inside
+  useIsomorphicEffect(() => {
+    const root = rootRef.current!;
+
+    return () => {
+      const target = opener.current;
+
+      if (manageFocus.current && target?.isConnected && root.contains(document.activeElement)) {
+        target.focus();
+      }
+    };
+  }, []);
+
   return (
-    <Box ref={ref} role="complementary" aria-label={titleLabel} {...getStyles('root')} {...others}>
+    <Box
+      ref={mergedRef}
+      role="complementary"
+      aria-label={titleLabel}
+      {...getStyles('root')}
+      {...others}
+    >
       <Box {...getStyles('header')}>
         <Box {...getStyles('heading')}>
-          <Title order={titleOrder} size="md" lh="md" {...getStyles('title')}>
+          <Title
+            ref={titleRef}
+            order={titleOrder}
+            size="md"
+            lh="md"
+            tabIndex={-1}
+            {...getStyles('title')}
+          >
             {titleLabel}
           </Title>
           {subtitle && (

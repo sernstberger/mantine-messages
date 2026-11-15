@@ -16,12 +16,13 @@ import {
   Text,
   Textarea,
   UnstyledButton,
+  useMantineTheme,
   useProps,
   useStyles,
   VisuallyHidden,
 } from '@mantine/core';
-import { useDisclosure, useId } from '@mantine/hooks';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useDisclosure, useId, useMergedRef } from '@mantine/hooks';
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronIcon, RegenerateIcon } from '../icons';
 import { MarkdownBody } from '../MarkdownBody/MarkdownBody';
 import { MessageActions, type MessageAction } from '../MessageActions/MessageActions';
@@ -261,6 +262,11 @@ function PromptEditor({
         minRows={1}
         maxRows={10}
         aria-label={labels.editPrompt}
+        // The caret starts at the end of the text, ready to add to it
+        onFocus={(event) => {
+          const end = event.currentTarget.value.length;
+          event.currentTarget.setSelectionRange(end, end);
+        }}
         value={value}
         onChange={(event) => setValue(event.currentTarget.value)}
         onKeyDown={(event) => {
@@ -287,6 +293,197 @@ function PromptEditor({
   );
 }
 
+/** A text part, or a reasoning or tool step, of an answer */
+function Part({
+  part,
+  labels,
+  getStyles,
+}: {
+  part: AssistantPart;
+  labels: AssistantThreadLabels;
+  getStyles: GetStyles;
+}) {
+  if (part.type === 'text') {
+    return (
+      <TextPart text={part.text} streaming={part.state === 'streaming'} getStyles={getStyles} />
+    );
+  }
+
+  if (part.type === 'reasoning') {
+    return (
+      <Step
+        label={part.state === 'streaming' ? labels.thinking : labels.thoughts}
+        getStyles={getStyles}
+      >
+        {part.text}
+      </Step>
+    );
+  }
+
+  const toolLabels = { running: labels.running, done: labels.done, error: labels.failed };
+
+  return (
+    <Step
+      getStyles={getStyles}
+      label={
+        <Text component="span" inherit ff="monospace">
+          {part.name}
+        </Text>
+      }
+      badge={
+        <Badge
+          size="xs"
+          variant="light"
+          color={toolColors[part.state]}
+          ms="auto"
+          leftSection={part.state === 'running' ? <Loader size={8} color="blue" /> : null}
+        >
+          {toolLabels[part.state]}
+        </Badge>
+      }
+    >
+      <ToolDetails part={part} labels={labels} getStyles={getStyles} />
+    </Step>
+  );
+}
+
+interface AnswerProps {
+  message: AssistantMessage;
+  labels: AssistantThreadLabels;
+  getStyles: GetStyles;
+
+  /** Set on the last answer when the thread has `onRegenerate` */
+  onRegenerate?: (message: AssistantMessage) => void;
+}
+
+/**
+ * One answer. Memoized, and the thread keeps every prop stable, so while an answer streams the
+ * finished answers above it do not render again
+ */
+const Answer = memo(function Answer({ message, labels, getStyles, onRegenerate }: AnswerProps) {
+  const streaming = message.status === 'streaming';
+  const text = useMemo(() => getAssistantText(message), [message]);
+  const preview = useMemo(() => stripMarkdown(text), [text]);
+  const actions: MessageAction[] = ['copy'];
+
+  if (onRegenerate) {
+    actions.push({
+      id: 'regenerate',
+      label: labels.regenerate,
+      icon: <RegenerateIcon />,
+      onClick: () => onRegenerate(message),
+    });
+  }
+
+  return (
+    <Box
+      mod={{ role: 'assistant', status: message.status }}
+      aria-busy={streaming || undefined}
+      {...getStyles('turn')}
+    >
+      <Box {...getStyles('answer')}>
+        {message.parts.map((part, index) => (
+          <Part key={index} part={part} labels={labels} getStyles={getStyles} />
+        ))}
+        {streaming && message.parts.length === 0 && (
+          <Loader
+            type="dots"
+            size="sm"
+            role="img"
+            aria-label={labels.thinking}
+            {...getStyles('thinking')}
+          />
+        )}
+      </Box>
+      {message.status === 'error' && (
+        <Alert color="red" variant="light" title={labels.error} {...getStyles('error')}>
+          {message.error}
+          {onRegenerate && (
+            <Button
+              display="block"
+              mt="xs"
+              size="xs"
+              variant="light"
+              color="red"
+              onClick={() => onRegenerate(message)}
+            >
+              {labels.retry}
+            </Button>
+          )}
+        </Alert>
+      )}
+      {!streaming && (
+        <MessageActions
+          actions={actions}
+          text={text}
+          preview={preview}
+          labels={{ copy: labels.copy, copied: labels.copied }}
+          {...getStyles('actions')}
+        />
+      )}
+    </Box>
+  );
+});
+
+interface PromptProps {
+  message: AssistantMessage;
+  editing: boolean;
+  labels: AssistantThreadLabels;
+  getStyles: GetStyles;
+
+  /** Set when the prompt can be edited now: the thread has `onEdit` and is not streaming */
+  onStartEdit?: (message: AssistantMessage) => void;
+  onCancel: (message: AssistantMessage) => void;
+  onSubmit: (message: AssistantMessage, text: string) => void;
+}
+
+/** One prompt, or its editor. Memoized like `Answer` */
+const Prompt = memo(function Prompt({
+  message,
+  editing,
+  labels,
+  getStyles,
+  onStartEdit,
+  onCancel,
+  onSubmit,
+}: PromptProps) {
+  const text = useMemo(() => getAssistantText(message), [message]);
+
+  return (
+    // Focusable from code only: focus comes here after an edit is sent
+    <Box mod={{ role: 'user' }} tabIndex={-1} {...getStyles('turn')}>
+      {editing ? (
+        <PromptEditor
+          defaultValue={text}
+          labels={labels}
+          getStyles={getStyles}
+          onCancel={() => onCancel(message)}
+          onSubmit={(next) => onSubmit(message, next)}
+        />
+      ) : (
+        <>
+          <Box {...getStyles('bubble')}>{text}</Box>
+          <MessageActions
+            actions={['copy', 'edit']}
+            text={text}
+            labels={{ copy: labels.copy, copied: labels.copied, edit: labels.edit }}
+            onEdit={onStartEdit && (() => onStartEdit(message))}
+            {...getStyles('actions')}
+          />
+        </>
+      )}
+    </Box>
+  );
+});
+
+/** Where focus goes once a prompt editor closes */
+interface FocusAfterEdit {
+  id: string;
+
+  /** The prompt's Edit button (after Cancel), or the prompt itself (after sending) */
+  target: 'edit' | 'prompt';
+}
+
 export const AssistantThread = factory<AssistantThreadFactory>((_props) => {
   const props = useProps('AssistantThread', defaultProps, _props);
   const {
@@ -309,6 +506,7 @@ export const AssistantThread = factory<AssistantThreadFactory>((_props) => {
     ...others
   } = props;
 
+  const theme = useMantineTheme();
   const getStyles = useStyles<AssistantThreadFactory>({
     name: 'AssistantThread',
     classes,
@@ -322,179 +520,95 @@ export const AssistantThread = factory<AssistantThreadFactory>((_props) => {
     attributes,
   });
 
-  const allLabels = { ...defaultLabels, ...labels };
-  const toolLabels = { running: allLabels.running, done: allLabels.done, error: allLabels.failed };
+  // Answers and prompts are memoized; what they get stays the same from one token to the next.
+  // getStyles is a new function on every render, but for the inner parts it returns only what
+  // these inputs decide (className and style go to the root alone)
+  const partStyles = useMemo(
+    () => getStyles,
+    [theme, classNames, styles, unstyled, vars, attributes]
+  );
+  const labelsKey = JSON.stringify(labels ?? {});
+  const allLabels = useMemo(() => ({ ...defaultLabels, ...labels }), [labelsKey]);
+
+  // The latest callbacks, called through stable functions, so callbacks written inline by the
+  // app do not render every answer again on every token
+  const latest = useRef({ onRegenerate, onEdit });
+  latest.current = { onRegenerate, onEdit };
+  const regenerate = useCallback(
+    (message: AssistantMessage) => latest.current.onRegenerate!(message),
+    []
+  );
+
   const [editingId, setEditingId] = useState<string | null>(null);
   const last = messages[messages.length - 1];
   const busy = last?.status === 'streaming';
 
-  // The log is aria-live="off", so tokens are not read out. When an answer finishes streaming its
-  // text goes to the status region and is read once; errors are read by the Alert (role="alert")
+  // When an edit closes, focus goes back to the prompt instead of falling to the page
+  const rootRef = useRef<HTMLDivElement>(null);
+  const mergedRef = useMergedRef(ref, rootRef);
+  const focusAfterEdit = useRef<FocusAfterEdit | null>(null);
+
+  const startEdit = useCallback((message: AssistantMessage) => setEditingId(message.id), []);
+  const cancelEdit = useCallback((message: AssistantMessage) => {
+    focusAfterEdit.current = { id: message.id, target: 'edit' };
+    setEditingId(null);
+  }, []);
+  const submitEdit = useCallback((message: AssistantMessage, text: string) => {
+    focusAfterEdit.current = { id: message.id, target: 'prompt' };
+    setEditingId(null);
+    latest.current.onEdit!(message, text);
+  }, []);
+
+  useEffect(() => {
+    const pending = focusAfterEdit.current;
+
+    if (!pending) {
+      return;
+    }
+
+    focusAfterEdit.current = null;
+    const prompts = Array.from(
+      rootRef.current!.querySelectorAll<HTMLElement>('[data-item-id] > [data-role="user"]')
+    );
+    // The edited prompt, or the newest one when the app replaced it with a new message
+    const prompt =
+      prompts.find((element) => element.parentElement!.dataset.itemId === pending.id) ??
+      prompts[prompts.length - 1];
+    const edit = Array.from(prompt?.querySelectorAll('button') ?? []).find((button) =>
+      String(button.getAttribute('aria-label')).startsWith(`${allLabels.edit}:`)
+    );
+    (pending.target === 'edit' && edit ? edit : prompt)?.focus();
+  });
+
+  // The log is aria-live="off", so tokens are not read out. The status region says "Thinking"
+  // once when an answer starts and reads the answer's text once when it finishes; errors are
+  // read by the Alert (role="alert")
   const [announcement, setAnnouncement] = useState('');
   const streamingId = useRef<string | null>(null);
 
   useEffect(() => {
     if (busy) {
-      streamingId.current = last.id;
+      if (streamingId.current !== last.id) {
+        streamingId.current = last.id;
+        setAnnouncement(allLabels.thinking);
+      }
+
       return;
     }
 
     if (last && last.id === streamingId.current) {
       streamingId.current = null;
-
-      if (last.status !== 'error') {
-        // Plain text: a screen reader would read markdown's asterisks and backticks aloud
-        setAnnouncement(stripMarkdown(getAssistantText(last)));
-      }
+      // Plain text: a screen reader would read markdown's asterisks and backticks aloud
+      setAnnouncement(last.status === 'error' ? '' : stripMarkdown(getAssistantText(last)));
     }
   });
-
-  const renderPart = (part: AssistantPart, index: number) => {
-    if (part.type === 'text') {
-      return (
-        <TextPart
-          key={index}
-          text={part.text}
-          streaming={part.state === 'streaming'}
-          getStyles={getStyles}
-        />
-      );
-    }
-
-    if (part.type === 'reasoning') {
-      return (
-        <Step
-          key={index}
-          label={part.state === 'streaming' ? allLabels.thinking : allLabels.thoughts}
-          getStyles={getStyles}
-        >
-          {part.text}
-        </Step>
-      );
-    }
-
-    return (
-      <Step
-        key={index}
-        getStyles={getStyles}
-        label={
-          <Text component="span" inherit ff="monospace">
-            {part.name}
-          </Text>
-        }
-        badge={
-          <Badge
-            size="xs"
-            variant="light"
-            color={toolColors[part.state]}
-            ms="auto"
-            leftSection={part.state === 'running' ? <Loader size={8} color="blue" /> : null}
-          >
-            {toolLabels[part.state]}
-          </Badge>
-        }
-      >
-        <ToolDetails part={part} labels={allLabels} getStyles={getStyles} />
-      </Step>
-    );
-  };
-
-  const renderPrompt = (message: AssistantMessage) => {
-    const text = getAssistantText(message);
-
-    if (message.id === editingId) {
-      return (
-        <Box mod={{ role: 'user' }} {...getStyles('turn')}>
-          <PromptEditor
-            defaultValue={text}
-            labels={allLabels}
-            getStyles={getStyles}
-            onCancel={() => setEditingId(null)}
-            onSubmit={(next) => {
-              setEditingId(null);
-              onEdit!(message, next);
-            }}
-          />
-        </Box>
-      );
-    }
-
-    return (
-      <Box mod={{ role: 'user' }} {...getStyles('turn')}>
-        <Box {...getStyles('bubble')}>{text}</Box>
-        <MessageActions
-          actions={['copy', 'edit']}
-          text={text}
-          labels={{ copy: allLabels.copy, copied: allLabels.copied, edit: allLabels.edit }}
-          onEdit={onEdit && !busy ? () => setEditingId(message.id) : undefined}
-          {...getStyles('actions')}
-        />
-      </Box>
-    );
-  };
-
-  const renderAnswer = (message: AssistantMessage) => {
-    const streaming = message.status === 'streaming';
-    const actions: MessageAction[] = ['copy'];
-
-    if (onRegenerate && message.id === last.id) {
-      actions.push({
-        id: 'regenerate',
-        label: allLabels.regenerate,
-        icon: <RegenerateIcon />,
-        onClick: () => onRegenerate(message),
-      });
-    }
-
-    return (
-      <Box mod={{ role: 'assistant', status: message.status }} {...getStyles('turn')}>
-        <Box {...getStyles('answer')}>
-          {message.parts.map(renderPart)}
-          {streaming && message.parts.length === 0 && (
-            <Loader
-              type="dots"
-              size="sm"
-              aria-label={allLabels.thinking}
-              {...getStyles('thinking')}
-            />
-          )}
-        </Box>
-        {message.status === 'error' && (
-          <Alert color="red" variant="light" title={allLabels.error} {...getStyles('error')}>
-            {message.error}
-            {onRegenerate && (
-              <Button
-                display="block"
-                mt="xs"
-                size="xs"
-                variant="light"
-                color="red"
-                onClick={() => onRegenerate(message)}
-              >
-                {allLabels.retry}
-              </Button>
-            )}
-          </Alert>
-        )}
-        {!streaming && (
-          <MessageActions
-            actions={actions}
-            text={getAssistantText(message)}
-            preview={stripMarkdown(getAssistantText(message))}
-            labels={{ copy: allLabels.copy, copied: allLabels.copied }}
-            {...getStyles('actions')}
-          />
-        )}
-      </Box>
-    );
-  };
 
   const listStyles = Object.fromEntries(listParts.map((part) => [part, getStyles(part)]));
 
   return (
     <>
       <MessageList<AssistantMessage>
-        ref={ref}
+        ref={mergedRef}
         controlRef={controlRef}
         items={messages}
         isOwn={(message) => message.role === 'user'}
@@ -507,7 +621,24 @@ export const AssistantThread = factory<AssistantThreadFactory>((_props) => {
         {...getStyles('root')}
         {...others}
         renderItem={(message) =>
-          message.role === 'user' ? renderPrompt(message) : renderAnswer(message)
+          message.role === 'user' ? (
+            <Prompt
+              message={message}
+              editing={message.id === editingId}
+              labels={allLabels}
+              getStyles={partStyles}
+              onStartEdit={onEdit && !busy ? startEdit : undefined}
+              onCancel={cancelEdit}
+              onSubmit={submitEdit}
+            />
+          ) : (
+            <Answer
+              message={message}
+              labels={allLabels}
+              getStyles={partStyles}
+              onRegenerate={onRegenerate && message.id === last.id ? regenerate : undefined}
+            />
+          )
         }
       />
       <VisuallyHidden role="status" aria-live="polite">

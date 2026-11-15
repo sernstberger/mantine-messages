@@ -10,6 +10,8 @@ const source = 'See [the docs](https://mantine.dev) and `useState`.\n\n```tsx\nc
 
 const defaultProps: MarkdownBodyProps = { children: source };
 
+// The render of @mantine-tests/core wraps the first element in a fragment: rerender the same way,
+// or React mounts a new tree
 beforeEach(() => {
   markdownRenders.length = 0;
 });
@@ -38,17 +40,83 @@ describe('MarkdownBody', () => {
   it('renders GitHub flavoured markdown and offers no way to turn raw HTML into elements', () => {
     render(<MarkdownBody>{source}</MarkdownBody>);
     const options = markdownRenders.at(-1)!;
-    expect(options.children).toBe(source);
     expect(options.remarkPlugins).toEqual([remarkGfm]);
     expect('rehypePlugins' in options).toBe(false);
     expect('skipHtml' in options).toBe(false);
     expect('urlTransform' in options).toBe(false);
   });
 
-  it('runs the app’s remark plugins after remark-gfm', () => {
+  it('runs the app’s remark plugins after remark-gfm, on the whole text', () => {
     const plugin = () => undefined;
-    render(<MarkdownBody remarkPlugins={[plugin]}>x</MarkdownBody>);
-    expect(markdownRenders.at(-1)!.remarkPlugins).toEqual([remarkGfm, plugin]);
+    render(<MarkdownBody remarkPlugins={[plugin]}>{source}</MarkdownBody>);
+    expect(markdownRenders).toHaveLength(1);
+    expect(markdownRenders[0].remarkPlugins).toEqual([remarkGfm, plugin]);
+    expect(markdownRenders[0].children).toBe(source);
+  });
+
+  it('parses the text block by block, with a newline between blocks as one parse gives', () => {
+    const { container } = render(<MarkdownBody>{source}</MarkdownBody>);
+    expect(markdownRenders.map((options) => options.children)).toEqual([
+      'See [the docs](https://mantine.dev) and `useState`.\n\n',
+      '```tsx\nconst a = 1;\n```\n',
+    ]);
+    const root = container.querySelector('.mantine-MarkdownBody-root')!;
+    expect(Array.from(root.childNodes, (node) => node.nodeName)).toEqual(['DIV', '#text', 'DIV']);
+    expect(root.childNodes[1].textContent).toBe('\n');
+  });
+
+  it('parses nothing again when it renders with the same text, plugins and components', () => {
+    const { rerender } = render(<MarkdownBody>{source}</MarkdownBody>);
+    markdownRenders.length = 0;
+    rerender(
+      <>
+        <MarkdownBody labels={{ copied: 'Done' }}>{source}</MarkdownBody>
+      </>
+    );
+    expect(markdownRenders).toHaveLength(0);
+  });
+
+  it('parses only the last block as text streams in', () => {
+    const first = 'Intro paragraph.\n\n- one\n- two\n\nThe answer';
+    const { rerender } = render(<MarkdownBody>{first}</MarkdownBody>);
+    // A list goes with the block above it (see split-blocks)
+    expect(markdownRenders).toHaveLength(2);
+    markdownRenders.length = 0;
+
+    rerender(
+      <>
+        <MarkdownBody>{`${first} grows`}</MarkdownBody>
+      </>
+    );
+    expect(markdownRenders.map((options) => options.children)).toEqual(['The answer grows']);
+
+    markdownRenders.length = 0;
+    rerender(
+      <>
+        <MarkdownBody>{`${first} grows\n\nNext block`}</MarkdownBody>
+      </>
+    );
+    expect(markdownRenders.map((options) => options.children)).toEqual([
+      'The answer grows\n\n',
+      'Next block',
+    ]);
+  });
+
+  it('parses again when the components change', () => {
+    const components = { b: () => null };
+    const { rerender } = render(<MarkdownBody components={components}>x</MarkdownBody>);
+    rerender(
+      <>
+        <MarkdownBody components={components}>x</MarkdownBody>
+      </>
+    );
+    expect(markdownRenders).toHaveLength(1);
+    rerender(
+      <>
+        <MarkdownBody components={{ ...components }}>x</MarkdownBody>
+      </>
+    );
+    expect(markdownRenders).toHaveLength(2);
   });
 
   it('opens links in a new tab without a referrer, and says so', () => {

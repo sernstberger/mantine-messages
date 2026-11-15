@@ -42,6 +42,31 @@ describe('Attachments', () => {
     expect(screen.getByRole('link', { name: 'notes' })).toBeInTheDocument();
   });
 
+  it('loads images lazily, with their size when known', () => {
+    render(
+      <Attachments
+        attachments={[
+          attachments[0],
+          {
+            id: '4',
+            name: 'map.jpg',
+            url: '/map.jpg',
+            mimeType: 'image/jpeg',
+            width: 800,
+            height: 600,
+          },
+        ]}
+      />
+    );
+    const menu = screen.getByRole('img', { name: 'menu.png' });
+    expect(menu).toHaveAttribute('loading', 'lazy');
+    expect(menu).toHaveAttribute('decoding', 'async');
+    expect(menu).not.toHaveAttribute('width');
+    const map = screen.getByRole('img', { name: 'map.jpg' });
+    expect(map).toHaveAttribute('width', '800');
+    expect(map).toHaveAttribute('height', '600');
+  });
+
   it('calls onOpen instead when given', async () => {
     const onOpen = jest.fn();
     render(<Attachments {...defaultProps} onOpen={onOpen} />);

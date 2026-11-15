@@ -20,6 +20,23 @@
   min-width: 0;
 }
 
+/* The title takes focus when the panel opens: the theme's focus ring, not the browser's */
+.title {
+  /* The ring hugs the text instead of the whole header */
+  width: fit-content;
+  max-width: 100%;
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mantine-primary-color-filled);
+    outline-offset: 1px;
+    border-radius: var(--mantine-radius-xs);
+  }
+}
+
 .thread {
   flex: 1;
   min-height: 0;

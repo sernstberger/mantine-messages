@@ -10,12 +10,15 @@ import {
   StylesApiProps,
   Text,
   TextInput,
+  GetStylesApi,
   UnstyledButton,
+  useMantineTheme,
   useProps,
   useStyles,
+  VisuallyHidden,
 } from '@mantine/core';
-import { useId, useUncontrolled } from '@mantine/hooks';
-import React from 'react';
+import { useDebouncedValue, useId, useUncontrolled } from '@mantine/hooks';
+import React, { memo, useCallback, useMemo, useRef } from 'react';
 import { HashIcon, SearchIcon } from '../icons';
 import type { Conversation } from '../types';
 import { formatShort } from '../utils/format';
@@ -63,6 +66,15 @@ export interface InboxLabels {
 
   /** Heading of the built-in section for everything else */
   direct: string;
+
+  /** Read after a conversation with unread messages, in place of the bare number on its badge */
+  unread: (count: number) => string;
+
+  /** Read after a muted conversation */
+  muted: string;
+
+  /** Announced politely a moment after the search text changes, while it filters the list */
+  results: (count: number) => string;
 }
 
 export interface InboxProps
@@ -117,6 +129,9 @@ const defaultLabels: InboxLabels = {
   pinned: 'Pinned',
   channels: 'Channels',
   direct: 'Direct messages',
+  unread: (count) => `${count} unread`,
+  muted: 'Muted',
+  results: (count) => (count === 1 ? '1 conversation' : `${count} conversations`),
 };
 
 // Pinned first, then channels, then everything else
@@ -129,6 +144,67 @@ const builtInSections = (labels: InboxLabels): InboxSection[] => [
   },
   { id: 'direct', label: labels.direct, match: () => true },
 ];
+
+type GetStyles = GetStylesApi<InboxFactory>;
+
+interface InboxRowProps {
+  conversation: Conversation;
+  active: boolean;
+  locale: string | undefined;
+  labels: InboxLabels;
+  getStyles: GetStyles;
+  onSelect: (id: string) => void;
+}
+
+/**
+ * One conversation. Memoized, and the inbox keeps every prop stable, so typing in the search box
+ * or opening a conversation renders only the rows that changed
+ */
+const InboxRow = memo(function InboxRow({
+  conversation,
+  active,
+  locale,
+  labels,
+  getStyles,
+  onSelect,
+}: InboxRowProps) {
+  const unread = conversation.unreadCount ?? 0;
+  const channel = conversation.kind === 'channel';
+
+  return (
+    <UnstyledButton
+      aria-current={active ? 'true' : undefined}
+      mod={{ active, unread: unread > 0, muted: conversation.muted, channel }}
+      onClick={() => onSelect(conversation.id)}
+      {...getStyles('item')}
+    >
+      <Avatar src={conversation.avatar} name={conversation.title} {...getStyles('avatar')}>
+        {channel && <HashIcon />}
+      </Avatar>
+      <Box {...getStyles('body')}>
+        <Text component="span" size="sm" truncate {...getStyles('title')}>
+          {conversation.title}
+        </Text>
+        {conversation.lastMessage && (
+          <Text component="span" size="xs" c="dimmed" {...getStyles('time')}>
+            {formatShort(conversation.lastMessage.createdAt, locale)}
+          </Text>
+        )}
+        <Text component="span" size="sm" truncate {...getStyles('preview')}>
+          {conversation.lastMessage && getPreview(conversation.lastMessage)}
+        </Text>
+        {unread > 0 && (
+          // The number alone reads as "3"; screen readers get labels.unread instead
+          <Badge size="sm" circle={unread < 10} aria-hidden {...getStyles('unread')}>
+            {unread > 99 ? '99+' : unread}
+          </Badge>
+        )}
+        {unread > 0 && <VisuallyHidden>, {labels.unread(unread)}</VisuallyHidden>}
+        {conversation.muted && <VisuallyHidden>, {labels.muted}</VisuallyHidden>}
+      </Box>
+    </UnstyledButton>
+  );
+});
 
 export const Inbox = factory<InboxFactory>((_props) => {
   const props = useProps('Inbox', {}, _props);
@@ -155,6 +231,7 @@ export const Inbox = factory<InboxFactory>((_props) => {
     ...others
   } = props;
 
+  const theme = useMantineTheme();
   const getStyles = useStyles<InboxFactory>({
     name: 'Inbox',
     classes,
@@ -181,58 +258,76 @@ export const Inbox = factory<InboxFactory>((_props) => {
     onChange: onSearchChange,
   });
   const sectionId = useId();
-  const allLabels = { ...defaultLabels, ...labels };
-  const needle = query.trim().toLocaleLowerCase();
-  const shown = conversations.filter((conversation) =>
-    conversation.title.toLocaleLowerCase().includes(needle)
+
+  // Rows are memoized; these keep their props the same while the search text changes. getStyles
+  // is a new function on every render, but for the rows it returns only what these inputs decide
+  const rowStyles = useMemo(
+    () => getStyles,
+    [theme, classNames, styles, unstyled, vars, attributes]
   );
-  const groups = sections === true ? builtInSections(allLabels) : sections || null;
+  const labelsKey = JSON.stringify(labels ?? {});
+  const allLabels = useMemo(
+    () => ({ ...defaultLabels, ...labels }),
+    [labelsKey, labels?.unread, labels?.results]
+  );
+  const select = useRef(setSelected);
+  select.current = setSelected;
+  const onSelect = useCallback((id: string) => select.current(id), []);
 
-  const renderConversation = (conversation: Conversation) => {
-    const unread = conversation.unreadCount ?? 0;
-    const active = conversation.id === selected;
-    const channel = conversation.kind === 'channel';
+  const needle = query.trim().toLocaleLowerCase();
+  const shown = useMemo(
+    () =>
+      conversations.filter((conversation) =>
+        conversation.title.toLocaleLowerCase().includes(needle)
+      ),
+    [conversations, needle]
+  );
+  const groups = useMemo(
+    () => (sections === true ? builtInSections(allLabels) : sections || null),
+    [sections, allLabels]
+  );
 
-    return (
-      <UnstyledButton
-        key={conversation.id}
-        aria-current={active ? 'true' : undefined}
-        mod={{ active, unread: unread > 0, muted: conversation.muted, channel }}
-        onClick={() => setSelected(conversation.id)}
-        {...getStyles('item')}
-      >
-        <Avatar src={conversation.avatar} name={conversation.title} {...getStyles('avatar')}>
-          {channel && <HashIcon />}
-        </Avatar>
-        <Box {...getStyles('body')}>
-          <Text component="span" size="sm" truncate {...getStyles('title')}>
-            {conversation.title}
-          </Text>
-          {conversation.lastMessage && (
-            <Text component="span" size="xs" c="dimmed" {...getStyles('time')}>
-              {formatShort(conversation.lastMessage.createdAt, locale)}
-            </Text>
-          )}
-          <Text component="span" size="sm" truncate {...getStyles('preview')}>
-            {conversation.lastMessage && getPreview(conversation.lastMessage)}
-          </Text>
-          {unread > 0 && (
-            <Badge size="sm" circle={unread < 10} {...getStyles('unread')}>
-              {unread > 99 ? '99+' : unread}
-            </Badge>
-          )}
-        </Box>
-      </UnstyledButton>
-    );
-  };
+  // Each conversation in the first section that matches, in one pass
+  const members = useMemo(() => {
+    const bySection = new Map<InboxSection, Conversation[]>();
+
+    if (groups) {
+      groups.forEach((section) => bySection.set(section, []));
+      shown.forEach((conversation) => {
+        const section = groups.find((candidate) => candidate.match(conversation));
+
+        if (section) {
+          bySection.get(section)!.push(conversation);
+        }
+      });
+    }
+
+    return bySection;
+  }, [groups, shown]);
+
+  // Said politely once typing pauses, not on every keystroke
+  const [announcement] = useDebouncedValue(
+    needle ? (shown.length === 0 ? allLabels.noResults : allLabels.results(shown.length)) : '',
+    300
+  );
+
+  const renderConversation = (conversation: Conversation) => (
+    <InboxRow
+      key={conversation.id}
+      conversation={conversation}
+      active={conversation.id === selected}
+      locale={locale}
+      labels={allLabels}
+      getStyles={rowStyles}
+      onSelect={onSelect}
+    />
+  );
 
   const renderSections = (list: InboxSection[]) =>
     list.map((section) => {
-      const members = shown.filter(
-        (conversation) => list.find((candidate) => candidate.match(conversation)) === section
-      );
+      const sectionMembers = members.get(section)!;
 
-      if (members.length === 0) {
+      if (sectionMembers.length === 0) {
         return null;
       }
 
@@ -243,7 +338,7 @@ export const Inbox = factory<InboxFactory>((_props) => {
           <Text id={labelId} size="xs" fw={600} c="dimmed" {...getStyles('sectionLabel')}>
             {section.label}
           </Text>
-          {members.map(renderConversation)}
+          {sectionMembers.map(renderConversation)}
         </Box>
       );
     });
@@ -270,6 +365,7 @@ export const Inbox = factory<InboxFactory>((_props) => {
         />
       )}
       {groups ? renderSections(groups) : shown.map(renderConversation)}
+      <VisuallyHidden role="status">{announcement}</VisuallyHidden>
     </Box>
   );
 });

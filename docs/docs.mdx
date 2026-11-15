@@ -71,6 +71,8 @@ const [replyTo, setReplyTo] = useState<Message | null>(null);
 `'edit'`, `'copy'`) show when their handler is set, and custom items `{ id, label, icon, onClick }`
 always show. After three, the rest go in a menu. Reactions and attachments on a message render
 under its bubble; pass `onToggleReaction` and `onOpenAttachment` to make them interactive.
+Image attachments load lazily; give them `width` and `height` (in pixels) when you know them, so
+their space is kept before they load and the thread does not jump.
 
 The buttons of a message form a toolbar with one tab stop: Tab reaches the first button (or the
 one used last), the arrow keys move between them, Home and End jump to the ends, and Tab moves on
@@ -188,6 +190,13 @@ is an `h2` heading; set `titleOrder` to fit your page's outline. The close butto
 `TeamThread`: `hasOlder`, `loadingOlder`, `onLoadOlder`, and `controlRef` to jump to a reply;
 `groupWindow` and `autoScroll` pass through too.
 
+Keyboard and screen readers: when the panel opens (or shows another thread) from a focused
+control, such as a thread summary, focus moves to its title, and when it closes with focus inside
+it, focus goes back to that control. Nothing moves when the panel is already open as the page
+loads. Turn this off with `withFocusManagement={false}` if your app moves focus itself. Escape does
+not close the panel: it is a side region next to the channel, not a dialog, and Escape inside its
+composer belongs to the composer. Add it with `onKeyDown` if your layout wants it.
+
 ```tsx
 const channelItems = items.filter((item) => 'kind' in item || !item.threadId);
 const replies = messages.filter((message) => message.threadId === open?.id);
@@ -255,6 +264,14 @@ Replace a built-in renderer with `components`, for example code blocks highlight
 `@mantine/code-highlight`: `<MarkdownBody components={{ pre: HighlightedPre }}>`. Add remark
 plugins with `remarkPlugins`; they run after remark-gfm.
 
+`MarkdownBody` parses its text block by block (blocks end at blank lines outside code fences, and
+lists stay whole) and keeps each parsed block while its text is the same. A streamed answer
+re-parses only its last block per token instead of the whole answer, and a re-render with the
+same text parses nothing. Keep `components` and `remarkPlugins` stable (module level or
+`useMemo`): a new object parses everything again. With `remarkPlugins` the text is parsed whole,
+since a plugin can change where blocks end; text with link reference or footnote definitions is
+parsed whole too.
+
 ## Assistant
 
 `AssistantThread` from `mantine-messages/assistant` is a chat with a model: prompts are compact
@@ -266,8 +283,10 @@ Each `AssistantMessage` has a `role` (`'user'` or `'assistant'`) and `parts`, re
 its state (running, done, failed) and, when opened, its input and output as JSON.
 
 To stream, set the answer's `status` to `'streaming'` and update its last part as tokens arrive.
-Finished parts are memoized, so only the streaming part renders again, and a cursor blinks at its
-end. The list follows the answer as it grows while the user is at the bottom. Finish with
+Answers and prompts are memoized on the message object, so a token renders only the streaming
+answer (which re-parses only its last markdown block), and a cursor blinks at its end. Replace a
+message with a new object when it changes, as below, rather than changing it in place. Inline
+`onRegenerate`, `onEdit` and `labels` are fine: they do not render finished answers again. The list follows the answer as it grows while the user is at the bottom. Finish with
 `'done'`, or `'error'` with an `error` text to show an alert with Retry.
 
 ```tsx
@@ -286,8 +305,10 @@ setMessages((current) => {
   after it and ask again
 
 Screen readers: the list is a `role="log"` with `aria-live="off"`, so tokens are not read out.
-When an answer finishes, its text goes to a visually hidden status region and is read once.
-Errors are read by their alert.
+When an answer starts, a visually hidden status region says `labels.thinking` once, and the answer
+is `aria-busy` while it streams; when it finishes, its text goes to the status region and is read
+once. Errors are read by their alert. After editing a prompt, Escape or Cancel returns focus to its
+Edit button, and sending focuses the prompt (or the newest prompt, when the app replaced it).
 
 <Demo data={demos.assistant} />
 
@@ -336,6 +357,13 @@ component.
 `onSearchChange` control it). `sections` groups the list: `true` gives Pinned, Channels and Direct
 messages from `pinned` and `kind`, or pass `{ id, label, match }` objects; each conversation goes in
 the first section that matches. Channels show a `#`.
+
+Screen readers hear an unread count as words (`labels.unread(count)`, "3 unread") instead of the
+badge's bare number, and "Muted" (`labels.muted`) after a muted conversation. While the search
+filters the list, a visually hidden status region says how many conversations match
+(`labels.results(count)`, or `labels.noResults`) once typing pauses for 300ms. Rows are memoized,
+so typing in the search box renders no row again; keep `conversations` and `sections` the same
+objects between renders.
 
 ## Composer
 
