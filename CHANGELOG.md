@@ -61,3 +61,9 @@ will be 0.1.0.
   `dir="rtl"`
 - Sizes in the CSS modules use `rem()`, so spacing follows the root font size and
   `theme.scale` (same pixels at the default 16px root); 1px borders and focus outlines stay in px
+
+### Fixed
+
+- Every component passes Mantine's `attributes` prop to its Styles API, so
+  `attributes={{ root: {...}, item: {...} }}` reaches the root and inner parts instead of leaking
+  onto the root element

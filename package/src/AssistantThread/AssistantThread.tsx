@@ -296,6 +296,7 @@ export const AssistantThread = factory<AssistantThreadFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
     ref,
     messages,
     autoScroll,
@@ -318,6 +319,7 @@ export const AssistantThread = factory<AssistantThreadFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
   });
 
   const allLabels = { ...defaultLabels, ...labels };

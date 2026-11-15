@@ -114,6 +114,7 @@ export const MessageListBase = factory<MessageListFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
     ref,
     items,
     renderItem,
@@ -143,6 +144,7 @@ export const MessageListBase = factory<MessageListFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
   });
 
   const last = items[items.length - 1];

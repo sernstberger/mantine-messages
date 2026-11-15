@@ -10,6 +10,7 @@ import {
   AssistantThreadProps,
   AssistantThreadStylesNames,
 } from './AssistantThread';
+import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
 
 const at = (minute: number) => new Date(2026, 10, 15, 9, minute);
 
@@ -83,6 +84,13 @@ describe('AssistantThread', () => {
       'stepHeader',
       'actions',
     ],
+  });
+
+  itSupportsAttributes({
+    component: AssistantThread,
+    props: defaultProps,
+    name: 'AssistantThread',
+    selector: 'turn',
   });
 
   it('shows prompts as bubbles and answers full width, in a log that does not read tokens', () => {

@@ -145,6 +145,7 @@ export const MarkdownBody = factory<MarkdownBodyFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
     ref,
     children,
     components,
@@ -163,6 +164,7 @@ export const MarkdownBody = factory<MarkdownBodyFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
   });
 
   return (

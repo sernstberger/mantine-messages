@@ -186,6 +186,7 @@ export const Composer = factory<ComposerFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
     ref,
     value,
     defaultValue,
@@ -218,6 +219,7 @@ export const Composer = factory<ComposerFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
   });
 
   const [text, setText] = useUncontrolled({ value, defaultValue, finalValue: '', onChange });

@@ -3,6 +3,7 @@ import { fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { MessageActions, MessageActionsProps, MessageActionsStylesNames } from './MessageActions';
+import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
 
 const defaultProps: MessageActionsProps = { actions: ['reply'], text: 'Hi', onReply: () => {} };
 
@@ -18,6 +19,13 @@ describe('MessageActions', () => {
     refType: HTMLDivElement,
     displayName: 'MessageActions',
     stylesApiSelectors: ['root', 'action'],
+  });
+
+  itSupportsAttributes({
+    component: MessageActions,
+    props: defaultProps,
+    name: 'MessageActions',
+    selector: 'action',
   });
 
   it('shows built-ins only with a handler, labelled with the message', async () => {

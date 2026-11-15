@@ -2,6 +2,7 @@ import { render, screen, tests } from '@mantine-tests/core';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Composer, ComposerProps, ComposerStylesNames } from './Composer';
+import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
 
 const defaultProps: ComposerProps = {};
 
@@ -17,6 +18,13 @@ describe('Composer', () => {
     refType: HTMLDivElement,
     displayName: 'Composer',
     stylesApiSelectors: ['root', 'send'],
+  });
+
+  itSupportsAttributes({
+    component: Composer,
+    props: defaultProps,
+    name: 'Composer',
+    selector: 'send',
   });
 
   it('sends trimmed text on Enter and clears', async () => {

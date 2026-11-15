@@ -2,6 +2,7 @@ import { render, screen, tests } from '@mantine-tests/core';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Attachments, AttachmentsProps, AttachmentsStylesNames } from './Attachments';
+import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
 
 const attachments = [
   { id: '1', name: 'menu.png', url: '/menu.png', mimeType: 'image/png' },
@@ -22,6 +23,13 @@ describe('Attachments', () => {
     refType: HTMLDivElement,
     displayName: 'Attachments',
     stylesApiSelectors: ['root', 'image', 'file'],
+  });
+
+  itSupportsAttributes({
+    component: Attachments,
+    props: defaultProps,
+    name: 'Attachments',
+    selector: 'file',
   });
 
   it('links to each file in a new tab without onOpen', () => {

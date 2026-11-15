@@ -9,6 +9,7 @@ import {
   MessageListProps,
   MessageListStylesNames,
 } from './MessageList';
+import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
 
 interface Note extends MessageBase {
   text: string;
@@ -54,6 +55,13 @@ describe('MessageList', () => {
     refType: HTMLDivElement,
     displayName: 'MessageList',
     stylesApiSelectors: ['root', 'list', 'divider', 'item'],
+  });
+
+  itSupportsAttributes({
+    component: MessageListBase,
+    props: { items, renderItem: (item: MessageBase) => item.id },
+    name: 'MessageList',
+    selector: 'item',
   });
 
   it('renders every item in a live log, wrapped with its id', () => {

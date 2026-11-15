@@ -142,6 +142,7 @@ export const Inbox = factory<InboxFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
     ref,
     conversations,
     value,
@@ -168,6 +169,7 @@ export const Inbox = factory<InboxFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
   });
 
   const [selected, setSelected] = useUncontrolled<string | null>({

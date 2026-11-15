@@ -4,6 +4,7 @@ import React from 'react';
 import type { Conversation } from '../types';
 import { Inbox, InboxProps, InboxStylesNames } from './Inbox';
 import { within } from '@testing-library/react';
+import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
 
 const conversations: Conversation[] = [
   {
@@ -30,6 +31,8 @@ describe('Inbox', () => {
     displayName: 'Inbox',
     stylesApiSelectors: ['root', 'item', 'avatar', 'body', 'title', 'time', 'preview', 'unread'],
   });
+
+  itSupportsAttributes({ component: Inbox, props: defaultProps, name: 'Inbox', selector: 'item' });
 
   it('lists conversations with previews and unread counts', () => {
     render(<Inbox {...defaultProps} />);

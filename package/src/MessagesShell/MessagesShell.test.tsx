@@ -3,6 +3,7 @@ import { fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React, { useState } from 'react';
 import { MessagesShell, MessagesShellProps, MessagesShellStylesNames } from './MessagesShell';
+import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
 
 const panes = (
   <>
@@ -60,6 +61,13 @@ describe('MessagesShell', () => {
     refType: HTMLDivElement,
     displayName: 'MessagesShell',
     stylesApiSelectors: ['root', 'list', 'main', 'aside'],
+  });
+
+  itSupportsAttributes({
+    component: MessagesShell,
+    props: defaultProps,
+    name: 'MessagesShell',
+    selector: 'list',
   });
 
   it('lays out labelled regions, with labels of your own', () => {

@@ -2,6 +2,7 @@ import { render, screen, tests } from '@mantine-tests/core';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Reactions, ReactionsProps, ReactionsStylesNames } from './Reactions';
+import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
 
 const reactions = [
   { emoji: '👍', userIds: ['me', 'maya'] },
@@ -22,6 +23,13 @@ describe('Reactions', () => {
     refType: HTMLDivElement,
     displayName: 'Reactions',
     stylesApiSelectors: ['root', 'reaction'],
+  });
+
+  itSupportsAttributes({
+    component: Reactions,
+    props: defaultProps,
+    name: 'Reactions',
+    selector: 'reaction',
   });
 
   it('shows counts, marks your own and skips empty ones', () => {

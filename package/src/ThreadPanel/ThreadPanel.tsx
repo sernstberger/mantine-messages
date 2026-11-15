@@ -98,6 +98,7 @@ export const ThreadPanel = factory<ThreadPanelFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
     ref,
     parent,
     replies,
@@ -128,6 +129,7 @@ export const ThreadPanel = factory<ThreadPanelFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
   });
 
   const { title: titleLabel, close: closeLabel, ...threadLabels } = { ...defaultLabels, ...labels };

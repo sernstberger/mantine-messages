@@ -176,6 +176,7 @@ export const TeamThread = factory<TeamThreadFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
     ref,
     items,
     users,
@@ -210,6 +211,7 @@ export const TeamThread = factory<TeamThreadFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
   });
 
   const usersById = useMemo(() => new Map(users.map((user) => [user.id, user])), [users]);

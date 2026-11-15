@@ -278,6 +278,7 @@ export const MessagesShell = factory<MessagesShellFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
     ref,
     withBorder,
     radius,
@@ -299,6 +300,7 @@ export const MessagesShell = factory<MessagesShellFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
     varsResolver,
   });
 

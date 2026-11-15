@@ -4,6 +4,7 @@ import React from 'react';
 import { Composer } from '../Composer/Composer';
 import type { ChatMessage, MessagesUser } from '../types';
 import { ThreadPanel, ThreadPanelProps, ThreadPanelStylesNames } from './ThreadPanel';
+import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
 
 const users: MessagesUser[] = [
   { id: 'me', name: 'You' },
@@ -57,6 +58,13 @@ describe('ThreadPanel', () => {
       'thread',
       'composer',
     ],
+  });
+
+  itSupportsAttributes({
+    component: ThreadPanel,
+    props: defaultProps,
+    name: 'ThreadPanel',
+    selector: 'header',
   });
 
   it('is a labelled panel with the parent, a replies divider, the replies and the composer', () => {

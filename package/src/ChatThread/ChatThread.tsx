@@ -166,6 +166,7 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
     ref,
     messages,
     users,
@@ -200,6 +201,7 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
   });
 
   const usersById = useMemo(() => new Map(users.map((user) => [user.id, user])), [users]);

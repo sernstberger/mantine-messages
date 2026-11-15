@@ -53,6 +53,7 @@ export const Reactions = factory<ReactionsFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
     ref,
     reactions,
     currentUserId,
@@ -71,6 +72,7 @@ export const Reactions = factory<ReactionsFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
   });
 
   const allLabels = { ...defaultLabels, ...labels };

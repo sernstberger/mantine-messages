@@ -149,8 +149,19 @@ export type MessageFactory = Factory<{
 /** One message as a row: an avatar column and a content column */
 export const Message = factory<MessageFactory>((_props) => {
   const props = useProps('Message', {}, _props);
-  const { classNames, className, style, styles, unstyled, vars, ref, compact, mod, ...others } =
-    props;
+  const {
+    classNames,
+    className,
+    style,
+    styles,
+    unstyled,
+    vars,
+    attributes,
+    ref,
+    compact,
+    mod,
+    ...others
+  } = props;
 
   const getStyles = useStyles<MessageFactory>({
     name: 'Message',
@@ -162,6 +173,7 @@ export const Message = factory<MessageFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
   });
 
   return (

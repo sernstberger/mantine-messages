@@ -45,6 +45,7 @@ export const Attachments = factory<AttachmentsFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
     ref,
     attachments,
     onOpen,
@@ -62,6 +63,7 @@ export const Attachments = factory<AttachmentsFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
   });
 
   return (
