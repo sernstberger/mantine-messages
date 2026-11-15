@@ -15,6 +15,7 @@ export type {
   ComposerDraft,
   ComposerReply,
   ComposerLabels,
+  ComposerMode,
 } from './Composer/Composer';
 export { getPreview, stripMarkdown, truncate } from './utils/preview';
 export type * from './types';

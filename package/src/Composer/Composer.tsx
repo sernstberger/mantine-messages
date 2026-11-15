@@ -6,6 +6,8 @@ import {
   ElementProps,
   factory,
   Factory,
+  MantineColor,
+  SegmentedControl,
   StylesApiProps,
   Text,
   Textarea,
@@ -16,7 +18,14 @@ import { useUncontrolled } from '@mantine/hooks';
 import React, { useEffect, useRef } from 'react';
 import classes from './Composer.module.css';
 
-export type ComposerStylesNames = 'root' | 'reply' | 'replyText' | 'field' | 'input' | 'send';
+export type ComposerStylesNames =
+  | 'root'
+  | 'modes'
+  | 'reply'
+  | 'replyText'
+  | 'field'
+  | 'input'
+  | 'send';
 
 /** The message being answered, shown above the text box */
 export interface ComposerReply {
@@ -40,6 +49,22 @@ export interface ComposerDraft {
   replyToId?: string;
 }
 
+/** One choice of the mode switch, for example Reply or Internal note */
+export interface ComposerMode {
+  /** Sent as `draft.mode` */
+  value: string;
+  label: string;
+
+  /** Colour of the switch while this mode is chosen */
+  color?: MantineColor;
+
+  /** Placeholder while this mode is chosen, instead of the `placeholder` prop */
+  placeholder?: string;
+
+  /** An internal note: the composer gets `data-note` and the note styling */
+  note?: boolean;
+}
+
 export interface ComposerLabels {
   /** Accessible label of the send button */
   send: string;
@@ -49,6 +74,9 @@ export interface ComposerLabels {
 
   /** Accessible label of the button that cancels the reply */
   cancelReply: string;
+
+  /** Accessible label of the mode switch */
+  modes: string;
 }
 
 export interface ComposerProps
@@ -77,6 +105,18 @@ export interface ComposerProps
   /** Called when the user cancels the reply, with the close button or Escape */
   onCancelReply?: () => void;
 
+  /** Choices above the box, for example Reply and Internal note; the chosen one goes in the draft */
+  modes?: ComposerMode[];
+
+  /** `value` of the chosen mode, controlled */
+  mode?: string;
+
+  /** `value` of the mode chosen at first, uncontrolled; the first mode by default */
+  defaultMode?: string;
+
+  /** Called when the user picks a mode */
+  onModeChange?: (mode: string) => void;
+
   /** Text for buttons and the reply bar, for translation */
   labels?: Partial<ComposerLabels>;
 
@@ -102,6 +142,7 @@ const defaultLabels: ComposerLabels = {
   send: 'Send',
   replyingTo: 'Replying to',
   cancelReply: 'Cancel reply',
+  modes: 'Message type',
 };
 
 function SendIcon() {
@@ -136,9 +177,14 @@ export const Composer = factory<ComposerFactory>((_props) => {
     placeholder,
     replyTo,
     onCancelReply,
+    modes,
+    mode,
+    defaultMode,
+    onModeChange,
     labels,
     disabled,
     maxRows,
+    mod,
     ...others
   } = props;
 
@@ -155,6 +201,13 @@ export const Composer = factory<ComposerFactory>((_props) => {
   });
 
   const [text, setText] = useUncontrolled({ value, defaultValue, finalValue: '', onChange });
+  const [currentMode, setMode] = useUncontrolled<string>({
+    value: mode,
+    defaultValue: defaultMode,
+    finalValue: modes?.[0]?.value ?? '',
+    onChange: onModeChange,
+  });
+  const activeMode = modes?.find((item) => item.value === currentMode);
   const canSend = !disabled && text.trim().length > 0;
   const allLabels = { ...defaultLabels, ...labels };
 
@@ -172,6 +225,7 @@ export const Composer = factory<ComposerFactory>((_props) => {
         text: text.trim(),
         format: format!,
         attachments: [],
+        ...(activeMode && { mode: activeMode.value }),
         ...(replyTo && { replyToId: replyTo.id }),
       });
       setText('');
@@ -179,7 +233,25 @@ export const Composer = factory<ComposerFactory>((_props) => {
   };
 
   return (
-    <Box ref={ref} {...getStyles('root')} {...others}>
+    <Box
+      ref={ref}
+      mod={[{ mode: activeMode?.value, note: activeMode?.note }, mod]}
+      {...getStyles('root')}
+      {...others}
+    >
+      {modes && (
+        <SegmentedControl
+          size="xs"
+          radius="xl"
+          aria-label={allLabels.modes}
+          data={modes.map((item) => ({ value: item.value, label: item.label }))}
+          value={currentMode}
+          onChange={setMode}
+          color={activeMode?.color}
+          disabled={disabled}
+          {...getStyles('modes')}
+        />
+      )}
       {replyTo && (
         <Box {...getStyles('reply')}>
           <Box {...getStyles('replyText')}>
@@ -204,7 +276,7 @@ export const Composer = factory<ComposerFactory>((_props) => {
           maxRows={maxRows}
           variant="unstyled"
           aria-label={placeholder}
-          placeholder={placeholder}
+          placeholder={activeMode?.placeholder ?? placeholder}
           disabled={disabled}
           value={text}
           onChange={(event) => setText(event.currentTarget.value)}

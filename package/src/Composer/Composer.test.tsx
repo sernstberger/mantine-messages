@@ -111,3 +111,70 @@ describe('Composer', () => {
     });
   });
 });
+
+describe('Composer modes', () => {
+  const modes = [
+    { value: 'reply', label: 'Reply' },
+    {
+      value: 'note',
+      label: 'Note',
+      color: 'yellow',
+      note: true,
+      placeholder: 'Only teammates see notes',
+    },
+  ];
+
+  it('starts in the first mode and sends it with the draft', async () => {
+    const onSend = jest.fn();
+    const { container } = render(<Composer modes={modes} onSend={onSend} />);
+    expect(screen.getByRole('radio', { name: 'Reply' })).toBeChecked();
+    expect(container.querySelector('.mantine-Composer-root')).toHaveAttribute('data-mode', 'reply');
+    expect(container.querySelector('.mantine-Composer-root')).not.toHaveAttribute('data-note');
+
+    await userEvent.type(screen.getByRole('textbox', { name: 'Message' }), 'hi{Enter}');
+    expect(onSend).toHaveBeenCalledWith({
+      text: 'hi',
+      format: 'text',
+      attachments: [],
+      mode: 'reply',
+    });
+  });
+
+  it('switches to a note mode, with its placeholder and note styling', async () => {
+    const onModeChange = jest.fn();
+    const { container } = render(<Composer modes={modes} onModeChange={onModeChange} />);
+    await userEvent.click(screen.getByRole('radio', { name: 'Note' }));
+    expect(onModeChange).toHaveBeenCalledWith('note');
+
+    const root = container.querySelector('.mantine-Composer-root');
+    expect(root).toHaveAttribute('data-mode', 'note');
+    expect(root).toHaveAttribute('data-note');
+    expect(screen.getByRole('textbox', { name: 'Message' })).toHaveAttribute(
+      'placeholder',
+      'Only teammates see notes'
+    );
+  });
+
+  it('follows a controlled mode, and starts from defaultMode', async () => {
+    const { rerender } = render(<Composer modes={modes} mode="note" />);
+    await userEvent.click(screen.getByRole('radio', { name: 'Reply' }));
+    expect(screen.getByRole('radio', { name: 'Note' })).toBeChecked();
+
+    rerender(<Composer modes={modes} defaultMode="note" key="fresh" />);
+    expect(screen.getByRole('radio', { name: 'Note' })).toBeChecked();
+  });
+
+  it('labels the switch, for translation', () => {
+    render(<Composer modes={modes} labels={{ modes: 'Kind of message' }} />);
+    expect(screen.getByRole('radiogroup', { name: 'Kind of message' })).toBeInTheDocument();
+  });
+
+  it('sends no mode while the mode is not one of the modes', async () => {
+    const onSend = jest.fn();
+    const { container } = render(<Composer modes={modes} mode="other" onSend={onSend} />);
+    expect(container.querySelector('.mantine-Composer-root')).not.toHaveAttribute('data-mode');
+
+    await userEvent.type(screen.getByRole('textbox'), 'hi{Enter}');
+    expect(onSend).toHaveBeenCalledWith({ text: 'hi', format: 'text', attachments: [] });
+  });
+});
