@@ -1,7 +1,7 @@
 import { MantineProvider } from '@mantine/core';
 import { fireEvent, render } from '@testing-library/react';
 import React from 'react';
-import type { Message, MessagesUser } from '../types';
+import type { ChatMessage, MessagesUser } from '../types';
 import { Thread } from './Thread';
 
 const users: MessagesUser[] = [
@@ -9,7 +9,7 @@ const users: MessagesUser[] = [
   { id: 'maya', name: 'Maya' },
 ];
 
-const message = (id: string, authorId = 'maya'): Message => ({
+const message = (id: string, authorId = 'maya'): ChatMessage => ({
   id,
   authorId,
   body: id,
@@ -49,7 +49,7 @@ function setup(messages = start, props: Partial<React.ComponentProps<typeof Thre
   });
   const viewport = view.container.querySelector<HTMLDivElement>('.mantine-ScrollArea-viewport')!;
 
-  const rerender = (next: Message[]) =>
+  const rerender = (next: ChatMessage[]) =>
     view.rerender(<Thread messages={next} users={users} currentUserId="me" {...props} />);
 
   /** The user scrolls to `top` after the pinned time of the last automatic scroll */

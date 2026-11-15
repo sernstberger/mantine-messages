@@ -30,19 +30,53 @@ export interface MessageReaction {
 /** A value that `new Date()` accepts */
 export type MessageDate = Date | string | number;
 
-export interface Message {
+/** What every item in a message list has */
+export interface MessageBase {
   id: string;
 
-  /** `id` of the `MessagesUser` who wrote the message */
+  /** `id` of the `MessagesUser` who wrote it */
   authorId: string;
-  body: string;
   createdAt: MessageDate;
+}
+
+/** Replies in a Slack-style thread under a message */
+export interface MessageThreadSummary {
+  count: number;
+  lastReplyAt: MessageDate;
+  participantIds: string[];
+}
+
+/** A message people send each other, in ChatThread and TeamThread */
+export interface ChatMessage extends MessageBase {
+  body: string;
+
+  /** How `body` is written, `'text'` by default; markdown needs `mantine-messages/markdown` */
+  format?: 'text' | 'markdown';
+
+  /** Plain text for inbox previews, quotes and labels; derived from `body` when missing */
+  preview?: string;
   status?: MessageStatus;
 
   /** `id` of the message this one replies to */
   replyToId?: string;
+
+  /** `id` of the message whose thread this one belongs to */
+  threadId?: string;
+
+  /** Set on a message that has thread replies */
+  thread?: MessageThreadSummary;
   attachments?: MessageAttachment[];
   reactions?: MessageReaction[];
+  editedAt?: MessageDate;
+
+  /** `'internal'` for notes only teammates see, `'public'` by default */
+  visibility?: 'public' | 'internal';
+}
+
+/** Something that happened in a conversation, for example "Maya joined" */
+export interface SystemEvent extends MessageBase {
+  kind: 'event';
+  text: string;
 }
 
 /** One row of an inbox */
@@ -53,7 +87,9 @@ export interface Conversation {
   /** Image url; initials of the title are shown when it is missing */
   avatar?: string;
   participants?: MessagesUser[];
-  lastMessage?: Pick<Message, 'body' | 'createdAt' | 'authorId'>;
+  /** What the conversation is, for icons and grouping in an inbox */
+  kind?: 'direct' | 'group' | 'channel';
+  lastMessage?: Pick<ChatMessage, 'body' | 'format' | 'preview' | 'createdAt' | 'authorId'>;
   unreadCount?: number;
   muted?: boolean;
   pinned?: boolean;

@@ -16,7 +16,7 @@ import {
 } from '@mantine/core';
 import { useReducedMotion, useTimeout } from '@mantine/hooks';
 import React, { useMemo, useRef, useState } from 'react';
-import type { Message, MessageStatus, MessagesUser } from '../types';
+import type { ChatMessage, MessageStatus, MessagesUser } from '../types';
 import { formatDay, formatTime } from '../utils/format';
 import { groupMessages } from '../utils/group-messages';
 import classes from './Thread.module.css';
@@ -52,7 +52,7 @@ export interface ThreadLabels extends Record<MessageStatus, string> {
 
 export interface ThreadProps extends BoxProps, StylesApiProps<ThreadFactory>, ElementProps<'div'> {
   /** Messages, oldest first */
-  messages: Message[];
+  messages: ChatMessage[];
 
   /** Everyone who wrote a message, used for names and avatars */
   users: MessagesUser[];
@@ -76,7 +76,7 @@ export interface ThreadProps extends BoxProps, StylesApiProps<ThreadFactory>, El
   autoScroll?: boolean;
 
   /** Called when the user asks to reply to a message; shows a reply button beside each one */
-  onReply?: (message: Message) => void;
+  onReply?: (message: ChatMessage) => void;
 
   /** Text for statuses and buttons, for translation */
   labels?: Partial<ThreadLabels>;
@@ -190,7 +190,7 @@ export const Thread = factory<ThreadFactory>((_props) => {
   const nameOf = (userId: string) => usersById.get(userId)?.name ?? userId;
 
   // The answered message: a caption, then a faded copy tucked under the reply's bubble
-  const renderQuote = (message: Message) => {
+  const renderQuote = (message: ChatMessage) => {
     const original = messagesById.get(message.replyToId!);
 
     if (!original) {

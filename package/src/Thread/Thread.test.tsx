@@ -1,6 +1,6 @@
 import { render, screen, tests } from '@mantine-tests/core';
 import React from 'react';
-import type { Message, MessagesUser } from '../types';
+import type { ChatMessage, MessagesUser } from '../types';
 import { Thread, ThreadProps, ThreadStylesNames } from './Thread';
 
 const users: MessagesUser[] = [
@@ -8,7 +8,7 @@ const users: MessagesUser[] = [
   { id: 'maya', name: 'Maya Lindqvist' },
 ];
 
-const messages: Message[] = [
+const messages: ChatMessage[] = [
   { id: 'a', authorId: 'maya', body: 'Hi there', createdAt: new Date(2026, 10, 15, 9) },
   {
     id: 'b',

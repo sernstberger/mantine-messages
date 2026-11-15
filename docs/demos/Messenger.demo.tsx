@@ -1,6 +1,6 @@
 import { Box, Paper, ScrollArea } from '@mantine/core';
 import { MantineDemo } from '@mantinex/demo';
-import { Composer, Inbox, Message, Thread } from 'mantine-messages';
+import { Composer, Inbox, ChatMessage, Thread } from 'mantine-messages';
 import React, { useState } from 'react';
 import { conversations, messages as initialMessages, users } from './data';
 
@@ -36,7 +36,7 @@ function Demo() {
 
 function Demo() {
   const [selected, setSelected] = useState('maya');
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
 
   const send = (body: string) =>
     setMessages((current) => [

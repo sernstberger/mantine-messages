@@ -1,4 +1,4 @@
-import type { Conversation, Message, MessagesUser } from 'mantine-messages';
+import type { Conversation, ChatMessage, MessagesUser } from 'mantine-messages';
 
 const now = new Date();
 const at = (daysAgo: number, hours: number, minutes: number) =>
@@ -13,7 +13,7 @@ export const users: MessagesUser[] = [
   { id: 'sam', name: 'Sam Whitaker' },
 ];
 
-export const messages: Message[] = [
+export const messages: ChatMessage[] = [
   {
     id: 'm1',
     authorId: 'maya',

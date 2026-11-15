@@ -1,4 +1,4 @@
-import type { Message, MessageDate } from '../types';
+import type { ChatMessage, MessageDate } from '../types';
 
 export interface MessageGroup {
   type: 'group';
@@ -6,7 +6,7 @@ export interface MessageGroup {
   /** `id` of the first message, stable while messages are appended */
   key: string;
   authorId: string;
-  messages: Message[];
+  messages: ChatMessage[];
 }
 
 export interface DateDivider {
@@ -27,7 +27,7 @@ const startOfDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(),
  * Splits messages, oldest first, into date dividers and groups of consecutive messages from
  * one author. A gap longer than `groupWindow` milliseconds starts a new group.
  */
-export function groupMessages(messages: Message[], groupWindow = 5 * 60 * 1000): ThreadItem[] {
+export function groupMessages(messages: ChatMessage[], groupWindow = 5 * 60 * 1000): ThreadItem[] {
   const items: ThreadItem[] = [];
   let group: MessageGroup | null = null;
   let lastDay = -1;

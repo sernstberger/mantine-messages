@@ -4,18 +4,18 @@ import { Composer } from './Composer/Composer';
 import { Inbox } from './Inbox/Inbox';
 import { sampleConversations, sampleMessages, sampleUsers } from './sample-data';
 import { Thread } from './Thread/Thread';
-import type { Message } from './types';
+import type { ChatMessage } from './types';
 
 export default { title: 'Messages' };
 
 export function Messenger() {
   const [selected, setSelected] = useState('maya');
-  const [messages, setMessages] = useState<Message[]>(sampleMessages);
+  const [messages, setMessages] = useState<ChatMessage[]>(sampleMessages);
   const title = sampleConversations.find((c) => c.id === selected)?.title;
 
-  const [replyTo, setReplyTo] = useState<Message | null>(null);
+  const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
   const count = useRef(0);
-  const add = (message: Omit<Message, 'id' | 'createdAt'>) => {
+  const add = (message: Omit<ChatMessage, 'id' | 'createdAt'>) => {
     count.current += 1;
     const id = `new-${count.current}`;
     setMessages((current) => [...current, { ...message, id, createdAt: new Date() }]);
@@ -81,7 +81,7 @@ const replies = [
   'Can we do the vegetarian option for 12 of them?',
 ];
 
-const longThread: Message[] = Array.from({ length: 80 }, (_, index) => ({
+const longThread: ChatMessage[] = Array.from({ length: 80 }, (_, index) => ({
   id: `long-${index}`,
   authorId: index % 3 === 0 ? 'me' : 'maya',
   body: `Message ${index + 1} of 80`,

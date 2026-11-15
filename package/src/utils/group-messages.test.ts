@@ -1,7 +1,7 @@
-import type { Message } from '../types';
+import type { ChatMessage } from '../types';
 import { groupMessages } from './group-messages';
 
-const message = (id: string, authorId: string, createdAt: string): Message => ({
+const message = (id: string, authorId: string, createdAt: string): ChatMessage => ({
   id,
   authorId,
   body: id,

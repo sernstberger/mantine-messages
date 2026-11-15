@@ -1,4 +1,4 @@
-import type { Conversation, Message, MessagesUser } from './types';
+import type { Conversation, ChatMessage, MessagesUser } from './types';
 
 const now = new Date();
 const at = (daysAgo: number, hours: number, minutes: number) =>
@@ -13,7 +13,7 @@ export const sampleUsers: MessagesUser[] = [
   { id: 'sam', name: 'Sam Whitaker' },
 ];
 
-export const sampleMessages: Message[] = [
+export const sampleMessages: ChatMessage[] = [
   {
     id: 'm1',
     authorId: 'maya',

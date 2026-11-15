@@ -1,7 +1,7 @@
 import { MantineProvider } from '@mantine/core';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
-import type { Message, MessagesUser } from '../types';
+import type { ChatMessage, MessagesUser } from '../types';
 import { Thread } from './Thread';
 
 const users: MessagesUser[] = [
@@ -9,7 +9,7 @@ const users: MessagesUser[] = [
   { id: 'maya', name: 'Maya Lindqvist' },
 ];
 
-const messages: Message[] = [
+const messages: ChatMessage[] = [
   {
     id: 'a',
     authorId: 'maya',
