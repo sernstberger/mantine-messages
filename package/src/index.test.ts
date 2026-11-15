@@ -1,6 +1,15 @@
 import * as messages from './index';
-import type { ChatThread, Inbox, Message, MessagesShell, TeamThread, ThreadPanel } from './index';
-import type { MessageAvatarFactory, MessageBodyFactory, MessageMetaFactory } from './index';
+import type {
+  ChatThread,
+  Inbox,
+  Message,
+  MessageAvatarFactory,
+  MessageBodyFactory,
+  MessageMetaFactory,
+  MessagesShell,
+  TeamThread,
+  ThreadPanel,
+} from './index';
 
 describe('mantine-messages', () => {
   it('exports the components and helpers', () => {

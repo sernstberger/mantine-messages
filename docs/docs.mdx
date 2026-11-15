@@ -15,7 +15,7 @@ import 'mantine-messages/styles.css';
 `mantine-messages` has one entry and no dependency on a markdown library. To show markdown (in
 `MarkdownBody`, and in the answers of `AssistantThread`), install a markdown engine yourself and
 give it to the package through an adapter, as `@mantine/code-highlight` does for highlighters; see
-Markdown below. The examples use react-markdown and remark-gfm:
+Markdown adapter below. The examples use react-markdown and remark-gfm:
 
 <InstallScript packages="react-markdown remark-gfm" />
 
@@ -297,7 +297,7 @@ column. Its parts share one Styles API.
 </Message>
 ```
 
-## Markdown
+## Markdown adapter
 
 `MarkdownBody` renders markdown with Mantine `Typography` styles. The package does not bundle a
 markdown engine: an adapter turns the text into elements. Without one, `MarkdownBody` shows the
@@ -360,7 +360,7 @@ reference or footnote definitions is rendered whole too.
 
 `AssistantThread` is a chat with a model: prompts are compact bubbles on the right, answers are
 full width. It renders text with `MarkdownBody`, so answers show as plain text until you wrap the
-app in a `MarkdownAdapterProvider` (see Markdown above); the demo below does.
+app in a `MarkdownAdapterProvider` (see Markdown adapter above); the demo below does.
 
 Each `AssistantMessage` has a `role` (`'user'` or `'assistant'`) and `parts`, rendered in order:
 `text` (markdown), `reasoning` and `tool`. Reasoning and tools are collapsible steps; a tool shows
@@ -481,3 +481,117 @@ const inputRef = useRef<HTMLTextAreaElement>(null);
 
 <Composer inputRef={inputRef} textareaProps={{ maxLength: 2000, onPaste: attachPastedFiles }} />
 ```
+
+## Theming
+
+Every component reads its size, radius and colors from the Mantine theme, and the props below
+override them for one instance. `radius` takes a key of `theme.radius` or any CSS length;
+`color` takes a key of `theme.colors` or any CSS color; sizes take `xs` to `xl`, and where a
+pixel size makes sense (`avatarSize`) a CSS length or a number too.
+
+- `ChatThread`: `radius` (bubbles and quotes), `color` and `autoContrast` (your bubbles) and
+  `avatarSize`
+- `TeamThread` and `Message`: `avatarSize`; `Message` also takes `radius` for its avatar
+- `Inbox`: `radius`, `color`, `variant` and `autoContrast` (the open conversation, resolved like
+  Mantine's `NavLink`)
+- `Composer`: `size` and `radius`
+- `Reactions`: `radius` and `color`; `Attachments`, `AssistantThread` and `MessagesShell`: `radius`
+- `MessageActions`: `size`, `radius`, `variant` and `color`, passed to its buttons
+
+The demo below themes a thread and its composer with two controls.
+
+<Demo data={demos.theming} />
+
+The props set CSS variables on the root element, named `--<component>-<name>`: for example
+`--chat-thread-radius`, `--chat-thread-own-bg`, `--inbox-active-bg` and
+`--messages-shell-aside-width`. The Styles API tab of each component lists its variables. Set them
+with the `vars` prop (a function of the theme and the component's props), in a CSS file, or for
+every instance with `Component.extend({ vars })` in `createTheme`.
+
+```tsx
+import { createTheme, MantineProvider } from '@mantine/core';
+import { ChatThread, Inbox } from 'mantine-messages';
+
+const theme = createTheme({
+  components: {
+    ChatThread: ChatThread.extend({
+      defaultProps: { radius: 'md', color: 'teal' },
+    }),
+    Inbox: Inbox.extend({
+      vars: (theme, props) => ({ root: { '--inbox-radius': theme.radius.xs } }),
+    }),
+  },
+});
+```
+
+## Compound components
+
+The components that have many parts follow the compound pattern of `@mantine/lightbox` and
+`@mantine/core`: the parts are static members of the component, share its Styles API (`classNames`,
+`styles`, `unstyled` and `attributes` of the root reach them) and read their data from the nearest
+row or panel, so they work only inside it. Without children, the row and the panel render their
+default content.
+
+- `ChatThread.Message`, `.Avatar`, `.Quote`, `.Bubble`, `.Actions`, `.Attachments`, `.Reactions`
+  and `.Meta`, inside `renderMessage`
+- `TeamThread.Message`, `.Author`, `.Text`, `.Attachments`, `.Reactions`, `.ThreadSummary`,
+  `.Actions` and `.Event`, inside `renderMessage`
+- `ThreadPanel.Replies` and `ThreadPanel.Footer`, inside the `ThreadPanel` frame
+- `MessagesShell.List`, `.Main`, `.Aside` and `.AsideToggle`
+- `Message.Avatar`, `.Body` and `.Meta`
+
+Each part has its own props type, and every component has a type namespace, as in Mantine:
+`ChatThread.Props`, `ChatThread.StylesNames`, `ChatThread.Factory`, `ChatThread.CssVariables` and
+`ChatThread.Labels`, and for parts `ChatThread.Bubble.Props` and `ChatThread.Bubble.StylesNames`.
+The context given to `renderMessage` is typed `ChatThreadMessageContext` and
+`TeamThreadMessageContext`.
+
+```tsx
+import type { ChatThread, TeamThread } from 'mantine-messages';
+
+type BubbleProps = ChatThread.Bubble.Props;
+type ThreadSelectors = TeamThread.StylesNames;
+```
+
+## Labels
+
+Every text the package adds is a label, so an app in another language changes no component. Each
+component takes `labels`, a partial object that is merged over the English defaults: `Inbox`,
+`ChatThread`, `TeamThread`, `ThreadPanel`, `Composer`, `MessageList`, `MessageActions`,
+`Reactions`, `MarkdownBody` and `AssistantThread`. Keep the object stable (module level or
+`useMemo`), as noted above for long threads.
+
+Labels that depend on a number or a person are functions, so the translation can inflect them:
+`Inbox` `labels.unread(count)`, `TeamThread` `labels.replies(count)`, `ChatThread`
+`labels.repliedTo({ author, original, own, toOwn })` and `MessageActions` `labels.more({ author, own })`.
+Times and dates follow `locale` on the lists.
+
+```tsx
+<ChatThread
+  messages={messages}
+  users={users}
+  currentUserId="me"
+  locale="de"
+  labels={{ you: 'Du', log: 'Nachrichten', newMessages: 'Neue Nachrichten', failed: 'Nicht gesendet' }}
+/>
+```
+
+The types are `InboxLabels`, `ChatThreadLabels` and so on, or `Inbox.Labels`.
+
+## Keyboard
+
+Every action is reachable without a pointer.
+
+- Composer and AssistantThread editor: Enter sends, Shift+Enter adds a line, and Enter during an
+  IME composition does not send. Escape cancels a reply in `Composer` and an edit in
+  `AssistantThread`
+- Message actions: one tab stop per toolbar; the arrow keys, Home and End move between the buttons
+- Thread panel: focus moves to its title when it opens from a control and goes back when it
+  closes; Escape does not close it
+- Shell aside: while it is collapsed and open over `Main`, Escape closes it, from the aside or from
+  `MessagesShell.AsideToggle`
+- Quotes, thread summaries, conversations and reactions are buttons, so Enter and Space work
+
+`jumpTo` moves keyboard focus to the item it scrolls to, so screen readers read it and Tab
+continues from there.
+
