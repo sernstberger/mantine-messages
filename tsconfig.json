@@ -1,5 +1,5 @@
 {
-  "include": ["package", "scripts", "@types", "test-utils"],
+  "include": ["package", "scripts", "@types", "test-utils", "docs/demos/WorkQueue"],
   "compilerOptions": {
     "types": ["node", "jest", "@testing-library/jest-dom"],
     "target": "ES2015",

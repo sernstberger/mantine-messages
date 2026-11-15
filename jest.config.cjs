@@ -24,12 +24,17 @@ module.exports = {
     '!package/src/sample-data.ts',
     // Types only, no code runs
     '!package/src/types.ts',
+    // The work-queue example is tested like the package
+    'docs/demos/WorkQueue/**/*.{ts,tsx}',
+    '!docs/demos/WorkQueue/types.ts',
   ],
   setupFilesAfterEnv: ['./jsdom.mocks.cjs'],
   moduleNameMapper: {
     // react-markdown and remark-gfm are ESM only and Jest runs CommonJS: tests get stand-ins
     '^react-markdown$': '<rootDir>/test-utils/react-markdown.mock.tsx',
     '^remark-gfm$': '<rootDir>/test-utils/remark-gfm.mock.ts',
+    // The example imports the package by name, as an app does; tests run it against the source
+    '^mantine-messages$': '<rootDir>/package/src/index.ts',
     '\\.(css)$': 'identity-obj-proxy',
   },
 };
