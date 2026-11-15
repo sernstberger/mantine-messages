@@ -34,6 +34,7 @@ export interface ReactionsLabels {
 
 export interface ReactionsProps
   extends BoxProps, StylesApiProps<ReactionsFactory>, ElementProps<'div'> {
+  /** The reactions to show, in order */
   reactions: MessageReaction[];
 
   /** `id` of the person looking; their reactions are marked */

@@ -78,7 +78,8 @@ A message with `replyToId` shows the message it answers above its bubble: a capt
 "You replied to Maya" and a faded copy of the original. A click on the copy scrolls to the
 original and flashes it. Pass `onReply` to `ChatThread` to show a reply button beside each message,
 then give the chosen message to `Composer` as `replyTo`; it shows a "Replying to" bar, focuses the
-box, and calls `onCancelReply` on its close button or Escape.
+box, and calls `onCancelReply` on its close button or Escape; the close button hands focus back to
+the box.
 
 ```tsx
 const [replyTo, setReplyTo] = useState<Message | null>(null);
@@ -515,7 +516,8 @@ usual one.
 
 The text box is reachable like a Mantine input's: `inputRef` gets the `textarea` (to focus it after
 a click elsewhere), `textareaProps` goes to the `Textarea` (`name`, `maxLength`, `autoFocus`,
-`onPaste` and so on; its `onChange` and `onKeyDown` run after the composer's own), and `readOnly`
+`onPaste` and so on; its `onChange` and `onKeyDown` run after the composer's own, and its `className` and `style` are
+merged with the Styles API's `input`), and `readOnly`
 keeps the text selectable but stops editing and sending.
 
 ```tsx

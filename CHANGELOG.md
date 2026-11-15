@@ -163,7 +163,8 @@ Accessibility
   times are `<time datetime>` elements
 - `Composer`: focus stays in the text box after sending with the send button; the reply bar
   describes the text box (`aria-describedby`), and an `aria-describedby` in `textareaProps` now
-  reaches the text box instead of being replaced by Mantine's input wrapper
+  reaches the text box instead of being replaced by Mantine's input wrapper; the cancel button of
+  the reply bar hands focus to the text box when it goes away
 - `AssistantThread`: after editing a prompt, Escape or Cancel returns focus to its Edit button and
   sending focuses the prompt; the editor's caret starts at the end of the text. Screen readers
   hear `labels.thinking` once when an answer starts, the streaming answer is `aria-busy`, and the
@@ -172,12 +173,18 @@ Accessibility
   say `labels.muted`, and while the search filters the list a polite status region says
   `labels.results(count)` (or `labels.noResults`) once typing pauses
 - `ThreadPanel`: focus moves to the title when the panel opens from a focused control and back to
-  that control when it closes; the focused title shows the theme's focus ring around its text.
-  Escape still does not close it, by design
+  that control when it closes; the focused title shows the theme's focus ring (`theme.focusRing`
+  and `theme.focusClassName` apply) around its text. Escape still does not close it, by design
+- `MessageActions`: the toolbar's arrow keys, Home and End use Mantine's `useRovingIndex`, and a
+  button focused or clicked with the mouse becomes the toolbar's tab stop
 - `MessagesShell`: Escape on the `AsideToggle` or the open aside closes the collapsed aside
 
 Layout and styling
 
+- `Composer`: `className` and `style` in `textareaProps` are merged with the Styles API's `input`
+  class and style instead of being replaced
+- `ThreadPanel`: the title's `line-height` and the subtitle's color moved from style props to the
+  CSS module, so `classNames` and `styles` for `title` and `subtitle` take effect
 - `MessageList` stays at the bottom when its size changes without a render, for example while the
   `Composer` below grows a line or an image loads; a long thread no longer opens a few pixels short
   of the newest message
@@ -200,6 +207,8 @@ Layout and styling
 
 Performance
 
+- `MessagesProvider` keeps its context value while `locale`, `timeZone` and `now` are unchanged,
+  so an inline `settings` object no longer re-renders every component below it
 - `MarkdownBody` parses its text block by block and keeps each parsed block while its text is
   unchanged, so a streamed answer no longer re-parses the whole answer on every token (a 4.5 kB
   answer streamed in 909 tokens parsed 2.07M characters, now 42k). With an adapter that sets

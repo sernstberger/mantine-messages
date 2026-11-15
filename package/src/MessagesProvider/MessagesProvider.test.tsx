@@ -1,6 +1,6 @@
 import { MantineProvider } from '@mantine/core';
 import { render, renderHook, screen } from '@testing-library/react';
-import React from 'react';
+import React, { useContext } from 'react';
 import { Attachments } from '../Attachments/Attachments';
 import { ChatThread } from '../ChatThread/ChatThread';
 import { Inbox } from '../Inbox/Inbox';
@@ -10,6 +10,7 @@ import type { ChatMessage, MessageBase, MessagesUser } from '../types';
 import {
   MESSAGES_PROVIDER_DEFAULT_SETTINGS,
   MessagesProvider,
+  MessagesProviderContext,
   MessagesProviderSettings,
 } from './MessagesProvider';
 import { useMessagesContext } from './use-messages-context';
@@ -51,6 +52,17 @@ const renderList = (items: MessageBase[], settings?: MessagesProviderSettings, t
   );
 
 describe('MessagesProvider', () => {
+  it('keeps the context value while locale, time zone and now are unchanged', () => {
+    const { result, rerender } = renderHook(() => useContext(MessagesProviderContext), {
+      wrapper: ({ children }: { children: React.ReactNode }) => (
+        <MessagesProvider settings={{ locale: 'de' }}>{children}</MessagesProvider>
+      ),
+    });
+    const first = result.current;
+    rerender();
+    expect(result.current).toBe(first);
+  });
+
   it('gives the defaults without a provider', () => {
     const { result } = renderHook(() => useMessagesContext());
     expect(result.current).toMatchObject(MESSAGES_PROVIDER_DEFAULT_SETTINGS);

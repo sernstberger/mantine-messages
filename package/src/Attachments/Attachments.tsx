@@ -35,6 +35,7 @@ export type AttachmentsCssVariables = {
 
 export interface AttachmentsProps
   extends BoxProps, StylesApiProps<AttachmentsFactory>, ElementProps<'div'> {
+  /** The images and files to show, in order */
   attachments: MessageAttachment[];
 
   /** Called when the user opens a file; without it each file is a link to its `url` */
