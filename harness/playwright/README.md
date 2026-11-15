@@ -1,6 +1,6 @@
 # Browser tests for a Mantine lib (Playwright + Storybook)
 
-Real-browser tests for any library on the Mantine extension template (rollup, Storybook 8 on
+Real-browser tests for any library on the Mantine extension template (rollup, Storybook 10 on
 Vite, Jest + jsdom). They catch what jsdom cannot: layout shifts, scroll positions, focus, CSS
 that fails to load, and errors that show only in a real browser.
 
@@ -34,7 +34,7 @@ What you get:
 2. Dev dependency: `yarn add -D @playwright/test`, then `npx playwright install`.
 3. Root `package.json` scripts:
    ```json
-   "storybook:build": "storybook build -o storybook-static --quiet",
+   "storybook:build": "storybook build -o storybook-static --quiet --loglevel warn",
    "e2e": "npm run storybook:build && playwright test",
    "e2e:dev": "E2E_DEV=1 playwright test",
    "e2e:ui": "E2E_DEV=1 playwright test --ui"
