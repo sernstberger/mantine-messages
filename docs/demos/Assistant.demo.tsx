@@ -1,8 +1,19 @@
 import { Paper } from '@mantine/core';
 import { MantineDemo } from '@mantinex/demo';
-import { AssistantMessage, AssistantPart, Composer, ComposerDraft } from 'mantine-messages';
-import { AssistantThread } from 'mantine-messages/assistant';
+import {
+  AssistantMessage,
+  AssistantPart,
+  AssistantThread,
+  Composer,
+  ComposerDraft,
+  createReactMarkdownAdapter,
+  MarkdownAdapterProvider,
+} from 'mantine-messages';
 import React, { useEffect, useRef, useState } from 'react';
+import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
+const adapter = createReactMarkdownAdapter(Markdown, { remarkPlugins: [remarkGfm] });
 
 const reply = `Debounce the **value**, not the handler:
 
@@ -16,8 +27,18 @@ Then fetch when \`debounced\` changes. Mantine ships [useDebouncedValue](https:/
 const code = `
 import { useRef, useState } from 'react';
 import { Paper } from '@mantine/core';
-import { Composer, type AssistantMessage } from 'mantine-messages';
-import { AssistantThread } from 'mantine-messages/assistant';
+import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import {
+  AssistantThread,
+  Composer,
+  createReactMarkdownAdapter,
+  MarkdownAdapterProvider,
+  type AssistantMessage,
+} from 'mantine-messages';
+
+// Once, at module level: the adapter is what renders the markdown of every answer
+const adapter = createReactMarkdownAdapter(Markdown, { remarkPlugins: [remarkGfm] });
 
 function Demo() {
   const [messages, setMessages] = useState<AssistantMessage[]>([]);
@@ -28,31 +49,33 @@ function Demo() {
   const ask = (history: AssistantMessage[]) => streamAnswer(history, setMessages);
 
   return (
-    <Paper withBorder radius="lg" h={520} style={{ display: 'flex', flexDirection: 'column' }}>
-      <AssistantThread
-        messages={messages}
-        onRegenerate={(message) => ask(messages.slice(0, messages.indexOf(message)))}
-        onEdit={(message, text) =>
-          ask([
-            ...messages.slice(0, messages.indexOf(message)),
-            { ...message, parts: [{ type: 'text', text }] },
-          ])
-        }
-        style={{ flex: 1 }}
-      />
-      <Composer
-        m="sm"
-        placeholder="Ask anything"
-        streaming={streaming}
-        onStop={stopAnswer}
-        onSend={({ text }) =>
-          ask([
-            ...messages,
-            { id: crypto.randomUUID(), authorId: 'me', role: 'user', createdAt: new Date(), parts: [{ type: 'text', text }] },
-          ])
-        }
-      />
-    </Paper>
+    <MarkdownAdapterProvider adapter={adapter}>
+      <Paper withBorder radius="lg" h={520} style={{ display: 'flex', flexDirection: 'column' }}>
+        <AssistantThread
+          messages={messages}
+          onRegenerate={(message) => ask(messages.slice(0, messages.indexOf(message)))}
+          onEdit={(message, text) =>
+            ask([
+              ...messages.slice(0, messages.indexOf(message)),
+              { ...message, parts: [{ type: 'text', text }] },
+            ])
+          }
+          style={{ flex: 1 }}
+        />
+        <Composer
+          m="sm"
+          placeholder="Ask anything"
+          streaming={streaming}
+          onStop={stopAnswer}
+          onSend={({ text }) =>
+            ask([
+              ...messages,
+              { id: crypto.randomUUID(), authorId: 'me', role: 'user', createdAt: new Date(), parts: [{ type: 'text', text }] },
+            ])
+          }
+        />
+      </Paper>
+    </MarkdownAdapterProvider>
   );
 }
 `;
@@ -128,31 +151,33 @@ function Demo() {
   };
 
   return (
-    <Paper
-      withBorder
-      radius="lg"
-      h={520}
-      style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
-    >
-      <AssistantThread
-        messages={messages}
-        onRegenerate={(message) => ask(messages.slice(0, messages.indexOf(message)))}
-        onEdit={(message, text) =>
-          ask([
-            ...messages.slice(0, messages.indexOf(message)),
-            { ...message, parts: [{ type: 'text', text }] },
-          ])
-        }
-        style={{ flex: 1 }}
-      />
-      <Composer
-        m="sm"
-        placeholder="Ask how to debounce a search box"
-        streaming={messages[messages.length - 1]?.status === 'streaming'}
-        onStop={stop}
-        onSend={send}
-      />
-    </Paper>
+    <MarkdownAdapterProvider adapter={adapter}>
+      <Paper
+        withBorder
+        radius="lg"
+        h={520}
+        style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+      >
+        <AssistantThread
+          messages={messages}
+          onRegenerate={(message) => ask(messages.slice(0, messages.indexOf(message)))}
+          onEdit={(message, text) =>
+            ask([
+              ...messages.slice(0, messages.indexOf(message)),
+              { ...message, parts: [{ type: 'text', text }] },
+            ])
+          }
+          style={{ flex: 1 }}
+        />
+        <Composer
+          m="sm"
+          placeholder="Ask how to debounce a search box"
+          streaming={messages[messages.length - 1]?.status === 'streaming'}
+          onStop={stop}
+          onSend={send}
+        />
+      </Paper>
+    </MarkdownAdapterProvider>
   );
 }
 

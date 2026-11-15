@@ -3,21 +3,16 @@ import path from 'node:path';
 import signale from 'signale';
 
 /**
- * Fails when the root entry of the built package can reach a package other than its required
- * peers. Optional peers (react-markdown, remark-gfm) belong to the subpath entries only: an app
- * that never installs them must still build with `mantine-messages`, and bundlers fail on an
- * import() of a missing package too, so even lazy imports are caught.
+ * Fails when the built entry of the package can reach a package other than its peers. The package
+ * has one entry and no optional peers (the markdown engine comes through MarkdownAdapterProvider),
+ * so an import of anything else would break an app that installed only the peers.
  *
  *   tsx scripts/check-root-peers          checks package/dist
  *   tsx scripts/check-root-peers <dir>    checks another build, for example a fake one
  */
 const dist = path.resolve(process.argv[2] ?? 'package/dist');
 const packageJson = fs.readJsonSync(path.join(process.cwd(), 'package/package.json'));
-const meta: Record<string, { optional?: boolean }> = packageJson.peerDependenciesMeta ?? {};
-const optional = Object.keys(meta).filter((name) => meta[name].optional);
-const required = Object.keys(packageJson.peerDependencies).filter(
-  (name) => !optional.includes(name)
-);
+const required = Object.keys(packageJson.peerDependencies);
 
 const SPECIFIER = /(?:\bfrom\s*|\bimport\s*\(?\s*|\brequire\s*\(\s*)['"]([^'"]+)['"]/g;
 
@@ -50,13 +45,6 @@ function reachablePackages(entry: string) {
         found.set(packageName(specifier), path.relative(dist, file));
       }
     }
-
-    // An import() built from a template string has no plain specifier, but the name still shows
-    for (const name of optional) {
-      if (code.includes(name)) {
-        found.set(name, path.relative(dist, file));
-      }
-    }
   }
 
   return found;
@@ -79,18 +67,10 @@ for (const entry of ['esm/index.mjs', 'cjs/index.cjs']) {
   }
 }
 
-const markdownEntry = path.join(dist, 'esm/markdown.mjs');
-
-if (!fs.existsSync(markdownEntry)) {
-  errors.push('esm/markdown.mjs is missing: run npm run build first');
-} else if (!reachablePackages(markdownEntry).has('react-markdown')) {
-  errors.push('esm/markdown.mjs does not reach react-markdown: the check cannot see imports');
-}
-
 if (errors.length > 0) {
   errors.forEach((error) => signale.error(error));
-  signale.error(`The root entry may only import ${required.join(', ')}`);
+  signale.error(`The entry may only import ${required.join(', ')}`);
   process.exit(1);
 }
 
-signale.success(`The root entry imports only ${required.join(', ')}`);
+signale.success(`The entry imports only ${required.join(', ')}`);
