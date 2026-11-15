@@ -146,6 +146,11 @@ docs/next-env.d.ts
 docs/docgen.json
 .claude/run.log
 
-# Agent worktrees and local logs; build output of storybook build
+# Agent worktrees
 .claude/worktrees/
-storybook-static/
+
+# Playwright and the static Storybook it tests
+storybook-static
+playwright-report
+blob-report
+test-results

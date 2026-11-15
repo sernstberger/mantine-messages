@@ -9,8 +9,9 @@ module.exports = {
     '^.+\\.tsx?$': ['esbuild-jest', { target: 'es2022', sourcemap: true }],
   },
   testMatch: ['**/?(*.)+(spec|test).ts?(x)'],
-  // Agent worktrees under .claude/ hold whole copies of the repo; their tests are not ours
-  testPathIgnorePatterns: ['/node_modules/', '<rootDir>/.claude/'],
+  // Agent worktrees under .claude/ hold whole copies of the repo; their tests are not ours.
+  // e2e/ (and the kit in harness/) are Playwright specs, run by `npm run e2e`
+  testPathIgnorePatterns: ['/node_modules/', '<rootDir>/.claude/', '<rootDir>/e2e/', '<rootDir>/harness/'],
   modulePathIgnorePatterns: ['<rootDir>/.claude/'],
   // Every source file is fully covered; keep it that way
   coverageReporters: ['text', 'text-summary', 'lcov'],
