@@ -2,10 +2,16 @@ import {
   Avatar,
   Box,
   BoxProps,
+  createVarsResolver,
   ElementProps,
   factory,
   Factory,
+  getRadius,
+  getSize,
   GetStylesApi,
+  MantineColor,
+  MantineRadius,
+  MantineSize,
   StylesApiProps,
   Text,
   UnstyledButton,
@@ -51,6 +57,15 @@ export type ChatThreadStylesNames =
   | 'attachments'
   | 'meta'
   | 'status';
+
+export type ChatThreadCssVariables = {
+  root:
+    | '--chat-thread-radius'
+    | '--chat-thread-own-bg'
+    | '--chat-thread-own-color'
+    | '--chat-thread-avatar-size'
+    | '--chat-thread-row-max-width';
+};
 
 export interface ChatThreadLabels extends Record<MessageStatus, string> {
   /** Accessible label of the reply button */
@@ -142,12 +157,25 @@ export interface ChatThreadProps
 
   /** Gets `{ jumpTo }` of the inner `MessageList`, to scroll to a message and flash it */
   controlRef?: React.Ref<MessageListControl>;
+
+  /** Key of `theme.radius` or any valid CSS value to set `border-radius` of bubbles and quotes, numbers are converted to rem @default 'lg' */
+  radius?: MantineRadius;
+
+  /** Key of `theme.colors` or any valid CSS color to set the background of the current user's bubbles @default theme.primaryColor */
+  color?: MantineColor;
+
+  /** If set, adjusts the text color of the current user's bubbles based on `color` */
+  autoContrast?: boolean;
+
+  /** Width and height of avatars, numbers are converted to rem @default 'sm' */
+  avatarSize?: MantineSize | (string & {}) | number;
 }
 
 export type ChatThreadFactory = Factory<{
   props: ChatThreadProps;
   ref: HTMLDivElement;
   stylesNames: ChatThreadStylesNames;
+  vars: ChatThreadCssVariables;
 }>;
 
 const defaultLabels: ChatThreadLabels = {
@@ -166,17 +194,41 @@ const defaultLabels: ChatThreadLabels = {
   loadingOlder: 'Loading older messages',
 };
 
-const defaultProps: Partial<ChatThreadProps> = {
+const defaultProps = {
   groupWindow: 5 * 60 * 1000,
   withAuthors: true,
   autoScroll: true,
   actions: ['reply', 'react', 'edit'],
-};
+  avatarSize: 'sm',
+} satisfies Partial<ChatThreadProps>;
+
+const varsResolver = createVarsResolver<ChatThreadFactory>(
+  (theme, { radius, color, autoContrast, avatarSize }) => {
+    const colors = theme.variantColorResolver({
+      color: color || theme.primaryColor,
+      theme,
+      variant: 'filled',
+      autoContrast,
+    });
+
+    return {
+      root: {
+        '--chat-thread-radius': radius === undefined ? undefined : getRadius(radius),
+        '--chat-thread-own-bg': color ? colors.background : undefined,
+        '--chat-thread-own-color': color ? colors.color : undefined,
+        '--chat-thread-avatar-size': getSize(avatarSize, 'chat-thread-avatar-size'),
+        '--chat-thread-row-max-width': undefined,
+      },
+    };
+  }
+);
 
 const listParts = ['list', 'divider', 'unread', 'loader', 'item'] as const;
 
 interface ChatRowShared {
   getStyles: GetStylesApi<ChatThreadFactory>;
+  unstyled?: boolean;
+  avatarSize: ChatThreadProps['avatarSize'];
   labels: ChatThreadLabels;
   usersById: Map<string, MessagesUser>;
   currentUserId: string;
@@ -215,7 +267,8 @@ const ChatRow = memo(function ChatRow({
   jumpTo,
   shared,
 }: ChatRowProps) {
-  const { getStyles, labels, usersById, currentUserId, withAuthors, renderBody, locale } = shared;
+  const { getStyles, unstyled, avatarSize, labels, usersById, currentUserId } = shared;
+  const { withAuthors, renderBody, locale } = shared;
   const { onReply, onReact, onEdit, onToggleReaction, onOpenAttachment } = shared;
   const nameOf = (userId: string) => usersById.get(userId)?.name ?? userId;
   const own = message.authorId === currentUserId;
@@ -230,14 +283,14 @@ const ChatRow = memo(function ChatRow({
   const quote =
     original === null ? (
       <Box mod={{ unavailable: true }} {...getStyles('quote')}>
-        <Text size="xs" lineClamp={2}>
+        <Text size="xs" lineClamp={2} unstyled={unstyled}>
           {labels.unavailable}
         </Text>
       </Box>
     ) : (
       original && (
         <>
-          <Text size="xs" c="dimmed" {...getStyles('quoteLabel')}>
+          <Text size="xs" unstyled={unstyled} {...getStyles('quoteLabel')}>
             <ReplyIcon size={12} />
             {labels.repliedTo({
               author: name,
@@ -246,8 +299,12 @@ const ChatRow = memo(function ChatRow({
               toOwn: original.authorId === currentUserId,
             })}
           </Text>
-          <UnstyledButton onClick={() => jumpTo(original.id)} {...getStyles('quote')}>
-            <Text size="xs" lineClamp={2}>
+          <UnstyledButton
+            onClick={() => jumpTo(original.id)}
+            unstyled={unstyled}
+            {...getStyles('quote')}
+          >
+            <Text size="xs" lineClamp={2} unstyled={unstyled}>
               {getCachedPreview(original)}
             </Text>
           </UnstyledButton>
@@ -259,13 +316,19 @@ const ChatRow = memo(function ChatRow({
     <Box mod={{ own, 'group-start': groupStart }} {...getStyles('row')}>
       {showAuthor &&
         (groupEnd ? (
-          <Avatar src={author?.avatar} name={name} size="sm" {...getStyles('avatar')} />
+          <Avatar
+            src={author?.avatar}
+            name={name}
+            size={avatarSize}
+            unstyled={unstyled}
+            {...getStyles('avatar')}
+          />
         ) : (
           <Box {...getStyles('avatarSpace')} />
         ))}
       <Box mod={{ own }} {...getStyles('content')}>
         {showAuthor && groupStart && (
-          <Text size="xs" c="dimmed" {...getStyles('author')}>
+          <Text size="xs" unstyled={unstyled} {...getStyles('author')}>
             {name}
           </Text>
         )}
@@ -297,6 +360,7 @@ const ChatRow = memo(function ChatRow({
             onReply={onReply && (() => onReply(message))}
             onReact={onReact && (() => onReact(message))}
             onEdit={onEdit && (() => onEdit(message))}
+            unstyled={unstyled}
             {...getStyles('actions')}
           />
         </Box>
@@ -305,6 +369,7 @@ const ChatRow = memo(function ChatRow({
             attachments={message.attachments}
             locale={locale}
             onOpen={onOpenAttachment && ((attachment) => onOpenAttachment(message, attachment))}
+            unstyled={unstyled}
             {...getStyles('attachments')}
           />
         )}
@@ -313,11 +378,12 @@ const ChatRow = memo(function ChatRow({
             reactions={message.reactions}
             currentUserId={currentUserId}
             onToggle={onToggleReaction && ((emoji) => onToggleReaction(message, emoji))}
+            unstyled={unstyled}
             {...getStyles('reactions')}
           />
         )}
         {(groupEnd || showStatus) && (
-          <Text component="div" size="xs" c="dimmed" {...getStyles('meta')}>
+          <Text component="div" size="xs" unstyled={unstyled} {...getStyles('meta')}>
             {groupEnd && <time dateTime={date.toISOString()}>{time}</time>}
             {showStatus && (
               <Box component="span" mod={{ status }} {...getStyles('status')}>
@@ -363,6 +429,10 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
     loadingOlder,
     labels,
     controlRef,
+    radius,
+    color,
+    autoContrast,
+    avatarSize,
     ...others
   } = props;
 
@@ -377,6 +447,7 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
     unstyled,
     vars,
     attributes,
+    varsResolver,
   });
 
   const theme = useMantineTheme();
@@ -400,12 +471,14 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
   const shared = useMemo<ChatRowShared>(
     () => ({
       getStyles,
+      unstyled,
+      avatarSize,
       labels: allLabels,
       usersById,
       currentUserId,
       withAuthors,
       renderBody,
-      actions: actions!,
+      actions,
       locale,
       onReply: has[0] ? (message) => handlers.current.onReply!(message) : undefined,
       onReact: has[1] ? (message) => handlers.current.onReact!(message) : undefined,
@@ -424,6 +497,7 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
       vars,
       attributes,
       theme,
+      avatarSize,
       allLabels,
       usersById,
       currentUserId,
@@ -458,7 +532,7 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
   const sameGroup = useCallback(
     (previous: ChatMessage, message: ChatMessage) =>
       previous.authorId === message.authorId &&
-      toDate(message.createdAt).getTime() - toDate(previous.createdAt).getTime() <= groupWindow!,
+      toDate(message.createdAt).getTime() - toDate(previous.createdAt).getTime() <= groupWindow,
     [groupWindow]
   );
 
@@ -494,3 +568,4 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
 
 ChatThread.displayName = 'ChatThread';
 ChatThread.classes = classes;
+ChatThread.varsResolver = varsResolver;

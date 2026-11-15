@@ -6,6 +6,7 @@ import React from 'react';
 import type { MessageListControl } from '../MessageList/MessageList';
 import type { ChatMessage, MessagesUser } from '../types';
 import { ChatThread, ChatThreadProps, ChatThreadStylesNames } from './ChatThread';
+import { itHasStaticVarsResolver } from '../../../test-utils/it-has-static-vars-resolver';
 import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
 
 const users: MessagesUser[] = [
@@ -26,10 +27,53 @@ const messages: ChatMessage[] = [
 
 const defaultProps: ChatThreadProps = { messages, users, currentUserId: 'me' };
 
+const busyMessages: ChatMessage[] = [
+  {
+    id: 'a',
+    authorId: 'maya',
+    body: 'Hi there',
+    createdAt: new Date(2026, 10, 15, 9),
+    attachments: [{ id: 'f', name: 'menu.pdf', url: '/menu.pdf' }],
+    reactions: [{ emoji: '👍', userIds: ['me'] }],
+  },
+  { id: 'a2', authorId: 'maya', body: 'Lunch?', createdAt: new Date(2026, 10, 15, 9, 1) },
+  {
+    id: 'b',
+    authorId: 'me',
+    body: 'Yes!',
+    createdAt: new Date(2026, 10, 15, 9, 2),
+    replyToId: 'a2',
+    status: 'read',
+  },
+  {
+    id: 'c',
+    authorId: 'me',
+    body: 'About that',
+    createdAt: new Date(2026, 10, 15, 9, 3),
+    replyToId: 'gone',
+    status: 'failed',
+  },
+];
+
+const busyProps: ChatThreadProps = {
+  ...defaultProps,
+  messages: busyMessages,
+  unreadAfterId: 'a',
+  hasOlder: true,
+  loadingOlder: true,
+  onReply: () => {},
+  onReact: () => {},
+};
+
+const getRoot = (container: HTMLElement) =>
+  container.querySelector<HTMLElement>('.mantine-ChatThread-root')!;
+
 describe('ChatThread', () => {
+  tests.axe([<ChatThread {...defaultProps} />, <ChatThread {...busyProps} />]);
+
   tests.itSupportsSystemProps<ChatThreadProps, ChatThreadStylesNames>({
     component: ChatThread,
-    props: defaultProps,
+    props: busyProps,
     styleProps: true,
     extend: true,
     variant: true,
@@ -41,16 +85,102 @@ describe('ChatThread', () => {
       'root',
       'list',
       'divider',
+      'unread',
+      'loader',
       'item',
       'row',
       'avatar',
+      'avatarSpace',
       'content',
       'author',
+      'quoteLabel',
+      'quote',
       'line',
       'bubble',
+      'actions',
+      'reactions',
+      'attachments',
       'meta',
       'status',
     ],
+  });
+
+  itHasStaticVarsResolver({ component: ChatThread });
+
+  it('sets no theming variables but the avatar size by default', () => {
+    const { container } = render(<ChatThread {...defaultProps} />);
+    const root = getRoot(container);
+    expect(root.style.getPropertyValue('--chat-thread-avatar-size')).toBe(
+      'var(--chat-thread-avatar-size-sm)'
+    );
+    expect(root.style.getPropertyValue('--chat-thread-radius')).toBe('');
+    expect(root.style.getPropertyValue('--chat-thread-own-bg')).toBe('');
+    expect(root.style.getPropertyValue('--chat-thread-own-color')).toBe('');
+  });
+
+  it('sets the radius, own colors and avatar size variables from props', () => {
+    const { container } = render(
+      <ChatThread {...defaultProps} radius="xs" color="teal" avatarSize={40} />
+    );
+    const root = getRoot(container);
+    expect(root.style.getPropertyValue('--chat-thread-radius')).toBe('var(--mantine-radius-xs)');
+    expect(root.style.getPropertyValue('--chat-thread-own-bg')).toBe(
+      'var(--mantine-color-teal-filled)'
+    );
+    expect(root.style.getPropertyValue('--chat-thread-own-color')).toBe(
+      'var(--mantine-color-white)'
+    );
+    expect(root.style.getPropertyValue('--chat-thread-avatar-size')).toBe(
+      'calc(2.5rem * var(--mantine-scale))'
+    );
+  });
+
+  it('picks a readable own text color with autoContrast', () => {
+    const { container } = render(<ChatThread {...defaultProps} color="yellow" autoContrast />);
+    expect(getRoot(container).style.getPropertyValue('--chat-thread-own-color')).toBe(
+      'var(--mantine-color-black)'
+    );
+  });
+
+  it('sizes the avatar with avatarSize', () => {
+    const { container } = render(<ChatThread {...busyProps} avatarSize="lg" />);
+    expect(container.querySelector('.mantine-Avatar-root')).toHaveStyle({
+      '--avatar-size': 'var(--avatar-size-lg)',
+    });
+  });
+
+  it('sets variables from vars', () => {
+    const { container } = render(
+      <ChatThread
+        {...defaultProps}
+        vars={() => ({ root: { '--chat-thread-row-max-width': '60%' } })}
+      />
+    );
+    expect(getRoot(container).style.getPropertyValue('--chat-thread-row-max-width')).toBe('60%');
+  });
+
+  it('passes unstyled to the components it renders', () => {
+    const { container } = render(<ChatThread {...busyProps} unstyled />);
+    const nested =
+      '.mantine-MessageActions-root, .mantine-Attachments-root, .mantine-Reactions-root';
+    const children = [
+      'Avatar',
+      'Text',
+      'UnstyledButton',
+      'MessageActions',
+      'Attachments',
+      'Reactions',
+    ].map((name) =>
+      [...container.querySelectorAll(`.mantine-${name}-root`)].filter(
+        (element) => !element.parentElement!.closest(nested)
+      )
+    );
+    for (const elements of children) {
+      expect(elements.length).toBeGreaterThan(0);
+      for (const element of elements) {
+        expect([...element.classList].filter((name) => !name.startsWith('mantine-'))).toEqual([]);
+      }
+    }
   });
 
   itSupportsAttributes({
