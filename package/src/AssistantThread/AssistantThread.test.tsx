@@ -141,6 +141,37 @@ describe('AssistantThread', () => {
     selector: 'turn',
   });
 
+  it('passes attributes of the list parts and the prompt editor input', async () => {
+    const { container } = render(
+      <AssistantThread
+        {...defaultProps}
+        attributes={{
+          list: { 'data-test': 'list' },
+          item: { 'data-test': 'item' },
+          editorInput: { 'data-test': 'input' },
+        }}
+        onEdit={() => {}}
+      />
+    );
+    expect(container.querySelector('.mantine-AssistantThread-list')).toHaveAttribute(
+      'data-test',
+      'list'
+    );
+    expect(container.querySelector('.mantine-AssistantThread-item')).toHaveAttribute(
+      'data-test',
+      'item'
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Edit: Write a debounce hook' }));
+    expect(screen.getByRole('textbox')).toHaveAttribute('data-test', 'input');
+  });
+
+  it('gives the prompt, which takes focus after an edit, the focus class of the theme', () => {
+    render(<AssistantThread {...defaultProps} />);
+    expect(screen.getByText('Write a debounce hook').closest('[data-role]')).toHaveClass(
+      'mantine-focus-auto'
+    );
+  });
+
   it('shows prompts as bubbles and answers full width, in a log that does not read tokens', () => {
     render(<AssistantThread {...defaultProps} />);
     expect(screen.getByRole('log')).toHaveAttribute('aria-live', 'off');
@@ -397,6 +428,7 @@ describe('AssistantThread', () => {
       'MessageActions',
       'Text',
       'Textarea',
+      'UnstyledButton',
     ];
 
     for (const name of names) {

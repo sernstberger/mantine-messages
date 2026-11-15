@@ -159,9 +159,13 @@ where the list opens.
 <Demo data={demos.longThread} />
 
 With a window, only the rendered rows are in the accessibility tree. The list is still a
-`role="log"` with polite announcements, so new messages are read out, but a screen reader's browse
-cursor reaches only the messages near the view, and focus on a message is lost when it scrolls far
-out of the window. `jumpTo` with `focus` (the default) brings a message into the window and
+`role="log"` with polite announcements, but a screen reader's browse cursor reaches only the
+messages near the view, and focus on a message is lost when it scrolls far out of the window.
+Every row that mounts as the user scrolls would be read out as a new message, so pass
+`aria-live="off"` to the list with a `rowsComponent` (it is an ordinary prop of `MessageList`, and
+`ChatThread` and `TeamThread` forward it), and announce incoming messages yourself, for example
+in a `VisuallyHidden` element with `role="status"` that says who wrote the newest one, as
+`AssistantThread` does. `jumpTo` with `focus` (the default) brings a message into the window and
 focuses it, so search results and reply quotes still lead keyboard and screen reader users to the
 message.
 

@@ -14,6 +14,7 @@ import {
   Text,
   Typography,
   useProps,
+  useMantineTheme,
   useStyles,
   VisuallyHidden,
 } from '@mantine/core';
@@ -182,6 +183,17 @@ export const MarkdownBody = factory<MarkdownBodyFactory>((_props) => {
     attributes,
   });
 
+  const theme = useMantineTheme();
+  const labelsKey = JSON.stringify(labels ?? {});
+  const allLabels = useMemo(() => ({ ...defaultLabels, ...labels }), [labelsKey]);
+
+  // Stable across streamed tokens, so links, code and copy buttons skip rendering;
+  // getStyles is new on every render, so its inputs are the dependencies
+  const context = useMemo(
+    () => ({ getStyles, unstyled, labels: allLabels }),
+    [theme, classNames, styles, vars, attributes, unstyled, allLabels]
+  );
+
   const contextAdapter = useMarkdownAdapter();
   const adapter = adapterProp ?? contextAdapter;
   const split = adapter.splitBlocks ?? true;
@@ -193,7 +205,7 @@ export const MarkdownBody = factory<MarkdownBodyFactory>((_props) => {
   );
 
   return (
-    <MarkdownBodyProvider value={{ getStyles, unstyled, labels: { ...defaultLabels, ...labels } }}>
+    <MarkdownBodyProvider value={context}>
       <Typography ref={ref} unstyled={unstyled} {...getStyles('root')} {...others}>
         {blocks.map((block, index) => (
           <React.Fragment key={index}>

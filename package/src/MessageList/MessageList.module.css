@@ -27,14 +27,6 @@
   display: flex;
   flex-direction: column;
 
-  /* jumpTo focuses the item: keyboard users see where they landed, mouse users the flash */
-  &:focus {
-    outline: none;
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--mantine-primary-color-filled);
-    outline-offset: 2px;
-    border-radius: var(--mantine-radius-md);
-  }
+  /* jumpTo focuses the item; the ring comes from the theme's focusRing (focusable getStyles option) */
+  border-radius: var(--mantine-radius-md);
 }

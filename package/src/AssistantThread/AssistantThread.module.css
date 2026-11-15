@@ -10,15 +10,6 @@
   &:where([data-role='user']) {
     align-items: flex-end;
   }
-
-  &:focus {
-    outline: none;
-  }
-
-  &:focus-visible > :where(.bubble) {
-    outline: 2px solid var(--mantine-primary-color-filled);
-    outline-offset: 2px;
-  }
 }
 
 .bubble {

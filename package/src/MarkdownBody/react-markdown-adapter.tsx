@@ -8,7 +8,10 @@ export interface ReactMarkdownAdapterOptions {
   /** Renderers by tag name, replacing MarkdownBody's own for `a`, `code` and `pre`, and adding others */
   components?: Record<string, React.ComponentType<any>>;
 
-  /** Set `false` when a remark plugin can change where blocks end, `true` by default */
+  /**
+   * Set `false` when a remark plugin can change where blocks end
+   * @default true
+   */
   splitBlocks?: boolean;
 }
 

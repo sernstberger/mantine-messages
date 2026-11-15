@@ -4,7 +4,7 @@ import React from 'react';
 import Markdown from 'react-markdown';
 import { markdownRenders } from '../../../test-utils/react-markdown.mock';
 import remarkGfm from '../../../test-utils/remark-gfm.mock';
-import { MarkdownAdapterProvider } from './MarkdownAdapterProvider';
+import { MarkdownAdapterProvider, type MarkdownAdapter } from './MarkdownAdapterProvider';
 import { MarkdownBody, MarkdownBodyProps, MarkdownBodyStylesNames } from './MarkdownBody';
 import { plainTextMarkdownAdapter } from './plain-text-adapter';
 import { createReactMarkdownAdapter } from './react-markdown-adapter';
@@ -22,6 +22,38 @@ beforeEach(() => {
 });
 
 describe('MarkdownBody', () => {
+  tests.axe([<MarkdownBody {...defaultProps} />, <MarkdownBody>Plain **text**</MarkdownBody>]);
+
+  it('does not render the links of earlier blocks again while a later block streams', () => {
+    const probe: MarkdownAdapter = {
+      render: (text, renderers) => <renderers.a href="https://mantine.dev">{text}</renderers.a>,
+    };
+    // Every link render reads attributes.link once, in getStyles('link')
+    let linkRenders = 0;
+    const attributes = {
+      get link() {
+        linkRenders += 1;
+        return {};
+      },
+    };
+    const markdown = (text: string) => (
+      <MarkdownBody adapter={probe} attributes={attributes}>
+        {text}
+      </MarkdownBody>
+    );
+    const { rerender } = render(markdown('first\n\nsec'));
+
+    // The first rerender remounts (the test wrapper's theme changes); the tokens after it are the measure
+    rerender(markdown('first\n\nsecon'));
+    linkRenders = 0;
+
+    for (const text of ['first\n\nsecond', 'first\n\nsecond w', 'first\n\nsecond wo']) {
+      rerender(markdown(text));
+    }
+    // One link renders per token (the last block), not every link of the answer
+    expect(linkRenders).toBe(3);
+  });
+
   tests.itSupportsSystemProps<MarkdownBodyProps, MarkdownBodyStylesNames>({
     component: MarkdownBody,
     props: defaultProps,

@@ -159,6 +159,27 @@ The package is not published, so these ship without aliases.
   so a `vars` override moves the avatar and its column together
 - `TeamThread`: the hover toolbar shows on touch screens (`hover: none`), as in `ChatThread`
 
+Styles API
+
+- `MessageList` and `AssistantThread`: the `attributes` prop reaches the `list` and `item`
+  selectors and the prompt editor's `editorInput` (`AssistantThread` dropped them before);
+  `unstyled` reaches `MessageList`'s loader wrapper and the `UnstyledButton` of `AssistantThread`
+  steps; the focus ring of `MessageList` items and of an `AssistantThread` prompt follows
+  `theme.focusRing` and `theme.focusClassName` (it was hand-written CSS; the default look is the
+  same, around the whole prompt row instead of its bubble)
+
+Performance
+
+- `MarkdownBody`: the context of its links, code and copy buttons is stable while an answer
+  streams, so the blocks before the last one render once; the row list of `MessageList` computes
+  each item's day once and reuses one formatter per time zone
+
+Docs
+
+- Windowed lists: use `aria-live="off"` on `MessageList` with a `rowsComponent` and announce new
+  messages yourself; `@default` on `MessageList`, `AssistantThread` and markdown adapter props that
+  default to a literal value
+
 Accessibility
 
 - `MessageList`: the log is named (`labels.log`, "Messages", or `aria-label`), is `aria-busy`

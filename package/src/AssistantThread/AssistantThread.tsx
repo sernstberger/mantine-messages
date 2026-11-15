@@ -105,7 +105,10 @@ export interface AssistantThreadProps
   /** Prompts and answers, oldest first; update the last part of the last answer as tokens arrive */
   messages: AssistantMessage[];
 
-  /** Keep the newest answer in view, following it as it streams, `true` by default */
+  /**
+   * Keep the newest answer in view, following it as it streams
+   * @default true
+   */
   autoScroll?: boolean;
 
   /** Called to answer again; shows Regenerate on the last answer and Retry when it failed */
@@ -210,12 +213,14 @@ function Step({
   tool,
   children,
   getStyles,
+  unstyled,
 }: {
   label: React.ReactNode;
   badge?: React.ReactNode;
   tool?: boolean;
   children: React.ReactNode;
   getStyles: GetStyles;
+  unstyled?: boolean;
 }) {
   const [expanded, { toggle }] = useDisclosure(false);
   const id = useId();
@@ -227,6 +232,7 @@ function Step({
         aria-controls={id}
         onClick={toggle}
         mod={{ expanded }}
+        unstyled={unstyled}
         {...getStyles('stepHeader')}
       >
         <Box component="span" mod={{ expanded }} {...getStyles('stepChevron')}>
@@ -292,7 +298,11 @@ function PromptEditor({
   getStyles: GetStyles;
   unstyled?: boolean;
 }) {
-  const inputStyles = getStyles('editorInput');
+  const {
+    className: inputClassName,
+    style: inputStyle,
+    ...inputAttributes
+  } = getStyles('editorInput');
   const [value, setValue] = useState(defaultValue);
   const text = value.trim();
 
@@ -306,8 +316,9 @@ function PromptEditor({
     <Box {...getStyles('editor')}>
       <Textarea
         unstyled={unstyled}
-        classNames={{ input: inputStyles.className }}
-        styles={{ input: inputStyles.style }}
+        classNames={{ input: inputClassName }}
+        styles={{ input: inputStyle }}
+        attributes={{ input: inputAttributes }}
         autosize
         autoFocus
         minRows={1}
@@ -370,6 +381,7 @@ function Part({
       <Step
         label={part.state === 'streaming' ? labels.thinking : labels.thoughts}
         getStyles={getStyles}
+        unstyled={unstyled}
       >
         {part.text}
       </Step>
@@ -382,6 +394,7 @@ function Part({
     <Step
       tool
       getStyles={getStyles}
+      unstyled={unstyled}
       label={part.name}
       badge={
         <Badge
@@ -517,7 +530,7 @@ const Prompt = memo(function Prompt({
 
   return (
     // tabIndex -1: focus lands here after an edit is sent
-    <Box mod={{ role: 'user' }} tabIndex={-1} {...getStyles('turn')}>
+    <Box mod={{ role: 'user' }} tabIndex={-1} {...getStyles('turn', { focusable: true })}>
       {editing ? (
         <PromptEditor
           defaultValue={text}
@@ -679,6 +692,12 @@ export const AssistantThread = factory<AssistantThreadFactory>((_props) => {
         unstyled={unstyled}
         classNames={Object.fromEntries(listParts.map((part) => [part, listStyles[part].className]))}
         styles={Object.fromEntries(listParts.map((part) => [part, listStyles[part].style]))}
+        attributes={Object.fromEntries(
+          listParts.map((part) => {
+            const { className: _className, style: _style, ...rest } = listStyles[part];
+            return [part, rest];
+          })
+        )}
         {...getStyles('root')}
         {...others}
         renderItem={(message) =>
