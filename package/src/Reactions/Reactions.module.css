@@ -1,0 +1,22 @@
+.root {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.reaction {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-xl);
+  font-size: var(--mantine-font-size-xs);
+  background-color: var(--mantine-color-body);
+
+  &[data-active] {
+    border-color: var(--mantine-primary-color-filled);
+    background-color: var(--mantine-primary-color-light);
+  }
+}

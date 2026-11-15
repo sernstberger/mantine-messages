@@ -40,3 +40,16 @@ export type {
   MessageActionItem,
   MessageActionName,
 } from './MessageActions/MessageActions';
+export { Reactions } from './Reactions/Reactions';
+export type {
+  ReactionsProps,
+  ReactionsFactory,
+  ReactionsStylesNames,
+  ReactionsLabels,
+} from './Reactions/Reactions';
+export { Attachments } from './Attachments/Attachments';
+export type {
+  AttachmentsProps,
+  AttachmentsFactory,
+  AttachmentsStylesNames,
+} from './Attachments/Attachments';
