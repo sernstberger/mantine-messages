@@ -2,6 +2,7 @@ import { Box, Paper, ScrollArea, Text } from '@mantine/core';
 import React, { useRef, useState } from 'react';
 import { Composer, type ComposerDraft, type ComposerMode } from './Composer/Composer';
 import { Inbox } from './Inbox/Inbox';
+import { MarkdownBody } from './MarkdownBody/MarkdownBody';
 import {
   sampleChannels,
   sampleConversations,
@@ -371,6 +372,55 @@ export function Team() {
             />
           </ThreadPanel>
         )}
+      </Paper>
+    </Box>
+  );
+}
+
+const now = Date.now();
+
+const markdownMessages: ChatMessage[] = [
+  {
+    id: 'md1',
+    authorId: 'maya',
+    format: 'markdown',
+    createdAt: new Date(now - 6 * 60 * 1000),
+    body: 'Agenda for **Saturday**:\n\n1. Venue walk-through at 10\n2. Menu tasting, see [the menu](https://example.com/menu)\n3. Seating plan',
+  },
+  {
+    id: 'md2',
+    authorId: 'me',
+    format: 'markdown',
+    createdAt: new Date(now - 4 * 60 * 1000),
+    status: 'read',
+    body: 'Looks good. Tables for the plan, from `seat.ts`:\n\n```ts\nconst tables = Math.ceil(guests.length / 8);\n```',
+  },
+  {
+    id: 'md3',
+    authorId: 'maya',
+    createdAt: new Date(now - 2 * 60 * 1000),
+    body: 'Plain text messages keep their *asterisks*.',
+  },
+];
+
+/** Markdown messages through renderBody and MarkdownBody; plain ones stay plain */
+export function MarkdownInChat() {
+  return (
+    <Box p="xl" maw={520}>
+      <Paper withBorder radius="lg" h={520} style={{ display: 'flex', flexDirection: 'column' }}>
+        <ChatThread
+          messages={markdownMessages}
+          users={sampleUsers}
+          currentUserId="me"
+          style={{ flex: 1 }}
+          renderBody={(message) =>
+            message.format === 'markdown' ? (
+              <MarkdownBody>{message.body}</MarkdownBody>
+            ) : (
+              message.body
+            )
+          }
+        />
       </Paper>
     </Box>
   );
