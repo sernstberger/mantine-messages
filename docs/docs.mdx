@@ -219,6 +219,14 @@ Replace a built-in renderer with `components`, for example code blocks highlight
 `@mantine/code-highlight`: `<MarkdownBody components={{ pre: HighlightedPre }}>`. Add remark
 plugins with `remarkPlugins`; they run after remark-gfm.
 
+`MarkdownBody` parses its text block by block (blocks end at blank lines outside code fences, and
+lists stay whole) and keeps each parsed block while its text is the same. A streamed answer
+re-parses only its last block per token instead of the whole answer, and a re-render with the
+same text parses nothing. Keep `components` and `remarkPlugins` stable (module level or
+`useMemo`): a new object parses everything again. With `remarkPlugins` the text is parsed whole,
+since a plugin can change where blocks end; text with link reference or footnote definitions is
+parsed whole too.
+
 ## Assistant
 
 `AssistantThread` from `mantine-messages/assistant` is a chat with a model: prompts are compact

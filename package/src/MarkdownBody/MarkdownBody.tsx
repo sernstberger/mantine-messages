@@ -17,11 +17,12 @@ import {
   useStyles,
   VisuallyHidden,
 } from '@mantine/core';
-import React from 'react';
+import React, { memo, useMemo } from 'react';
 import Markdown, { type Components, type Options } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { CheckIcon, CopyIcon } from '../icons';
 import classes from './MarkdownBody.module.css';
+import { splitMarkdownBlocks } from './split-blocks';
 
 export type MarkdownBodyStylesNames =
   | 'root'
@@ -54,7 +55,10 @@ export interface MarkdownBodyProps
    */
   components?: Components;
 
-  /** Remark plugins, run after remark-gfm */
+  /**
+   * Remark plugins, run after remark-gfm. A plugin can change where blocks end, so with plugins
+   * the text is parsed whole instead of block by block
+   */
   remarkPlugins?: Options['remarkPlugins'];
 
   /** Text, for translation */
@@ -136,6 +140,28 @@ function MarkdownPre({ children }: React.ComponentPropsWithoutRef<'pre'>) {
 
 const defaultComponents: Components = { a: MarkdownLink, code: MarkdownCode, pre: MarkdownPre };
 
+type PluginList = NonNullable<Options['remarkPlugins']>;
+
+/**
+ * One block of the text, parsed by react-markdown. Memoized: a block whose text, components and
+ * plugins are unchanged is not parsed again when MarkdownBody renders
+ */
+const MarkdownPiece = memo(function MarkdownPiece({
+  text,
+  components,
+  remarkPlugins,
+}: {
+  text: string;
+  components: Components;
+  remarkPlugins: PluginList;
+}) {
+  return (
+    <Markdown remarkPlugins={remarkPlugins} components={components}>
+      {text}
+    </Markdown>
+  );
+});
+
 export const MarkdownBody = factory<MarkdownBodyFactory>((_props) => {
   const props = useProps('MarkdownBody', defaultProps, _props);
   const {
@@ -167,15 +193,28 @@ export const MarkdownBody = factory<MarkdownBodyFactory>((_props) => {
     attributes,
   });
 
+  // Kept while the props are the same, so the memoized blocks below can skip parsing
+  const plugins = useMemo<PluginList>(() => [remarkGfm, ...(remarkPlugins ?? [])], [remarkPlugins]);
+  const allComponents = useMemo(() => ({ ...defaultComponents, ...components }), [components]);
+
+  // Top-level blocks, each parsed on its own: as an answer streams in only the last block changes,
+  // so each token parses one block instead of the whole text. The blocks give the same elements
+  // as the whole text (scripts/check-markdown-blocks checks this against react-markdown)
+  const blocks = useMemo(
+    () => (remarkPlugins ? [children] : splitMarkdownBlocks(children)),
+    [children, remarkPlugins]
+  );
+
   return (
     <MarkdownBodyProvider value={{ getStyles, labels: { ...defaultLabels, ...labels } }}>
       <Typography ref={ref} {...getStyles('root')} {...others}>
-        <Markdown
-          remarkPlugins={[remarkGfm, ...(remarkPlugins ?? [])]}
-          components={{ ...defaultComponents, ...components }}
-        >
-          {children}
-        </Markdown>
+        {blocks.map((block, index) => (
+          <React.Fragment key={index}>
+            {/* react-markdown puts a newline between top-level elements; keep it between blocks */}
+            {index > 0 && '\n'}
+            <MarkdownPiece text={block} components={allComponents} remarkPlugins={plugins} />
+          </React.Fragment>
+        ))}
       </Typography>
     </MarkdownBodyProvider>
   );

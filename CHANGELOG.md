@@ -75,6 +75,13 @@ will be 0.1.0.
 
 ### Fixed
 
+- `MarkdownBody` parses its text block by block and keeps each parsed block while its text is
+  unchanged, so a streamed answer no longer re-parses the whole answer on every token (a 4.5 kB
+  answer streamed in 909 tokens parsed 2.07M characters, now 42k), and a re-render with the same
+  text, `components` and `remarkPlugins` parses nothing. With `remarkPlugins`, or link reference
+  and footnote definitions in the text, the text is still parsed whole. Custom renderers get
+  `node` positions relative to their block. `npm run check:markdown` checks the blocks against
+  react-markdown
 - Every component passes Mantine's `attributes` prop to its Styles API, so
   `attributes={{ root: {...}, item: {...} }}` reaches the root and inner parts instead of leaking
   onto the root element
