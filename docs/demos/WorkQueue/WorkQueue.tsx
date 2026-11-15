@@ -73,32 +73,41 @@ export function WorkQueue({ now: nowProp, defaultTicketId, h = 640 }: WorkQueueP
         />
       ) : (
         <>
-          <Box p="sm" style={{ borderBottom: '1px solid var(--mantine-color-default-border)' }}>
-            <QueueFilters
-              filters={filters}
-              onChange={(next) => {
-                setFilters(next);
-                setSelectedIds([]);
-              }}
-              agents={agents}
-              counts={countByView(tickets, now)}
-            />
+          <Box
+            p="sm"
+            pos="relative"
+            style={{ borderBottom: '1px solid var(--mantine-color-default-border)' }}
+          >
+            {/* While rows are selected the bar takes the filters' place but not their height, so the rows stay put under the pointer */}
+            <Box style={{ visibility: selectedIds.length > 0 ? 'hidden' : undefined }}>
+              <QueueFilters
+                filters={filters}
+                onChange={(next) => {
+                  setFilters(next);
+                  setSelectedIds([]);
+                }}
+                agents={agents}
+                counts={countByView(tickets, now)}
+              />
+            </Box>
+            {selectedIds.length > 0 && (
+              <Box pos="absolute" inset={0}>
+                <BulkActions
+                  count={selectedIds.length}
+                  agents={agents}
+                  tags={TAGS}
+                  onAssign={(assignee) =>
+                    bulk({ type: 'assign', ids: selectedIds, assignee, at: at() })
+                  }
+                  onClose={() =>
+                    bulk({ type: 'setStatus', ids: selectedIds, status: 'closed', at: at() })
+                  }
+                  onTag={(tag) => bulk({ type: 'addTag', ids: selectedIds, tag, at: at() })}
+                  onClear={() => setSelectedIds([])}
+                />
+              </Box>
+            )}
           </Box>
-          {selectedIds.length > 0 && (
-            <BulkActions
-              count={selectedIds.length}
-              agents={agents}
-              tags={TAGS}
-              onAssign={(assignee) =>
-                bulk({ type: 'assign', ids: selectedIds, assignee, at: at() })
-              }
-              onClose={() =>
-                bulk({ type: 'setStatus', ids: selectedIds, status: 'closed', at: at() })
-              }
-              onTag={(tag) => bulk({ type: 'addTag', ids: selectedIds, tag, at: at() })}
-              onClear={() => setSelectedIds([])}
-            />
-          )}
           <ScrollArea style={{ flex: 1 }}>
             <TriageTable
               tickets={visible}

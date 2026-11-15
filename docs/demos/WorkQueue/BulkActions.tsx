@@ -23,7 +23,7 @@ export function BulkActions({
   onClear,
 }: BulkActionsProps) {
   return (
-    <Group gap="xs" px="sm" py={6} bg="var(--mantine-primary-color-light)">
+    <Group gap="xs" px="sm" py={6} h="100%" bg="var(--mantine-primary-color-light)">
       <Text size="sm" fw={600} mr="auto">
         {count} selected
       </Text>
