@@ -1,5 +1,6 @@
 import { render, screen, tests } from '@mantine-tests/core';
-import { fireEvent } from '@testing-library/react';
+import { DirectionProvider } from '@mantine/core';
+import { fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { MessageActions, MessageActionsProps, MessageActionsStylesNames } from './MessageActions';
@@ -86,6 +87,165 @@ describe('MessageActions', () => {
     await userEvent.click(screen.getByRole('button', { name: 'More actions' }));
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Edit' }));
     expect(onEdit).toHaveBeenCalled();
+  });
+
+  it('names the toolbar and the menu button after whose message it is', () => {
+    const many = {
+      text: 'Hi',
+      maxVisible: 1,
+      onReact: () => {},
+      onEdit: () => {},
+      actions: ['react', 'edit'] as MessageActionsProps['actions'],
+    };
+    const { rerender } = render(<MessageActions {...many} author="Maya" />);
+    expect(screen.getByRole('toolbar', { name: "Actions for Maya's message" })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: "More actions for Maya's message" })
+    ).toBeInTheDocument();
+
+    rerender(<MessageActions {...many} author="Maya" own />);
+    expect(screen.getByRole('toolbar', { name: 'Actions for your message' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'More actions for your message' })
+    ).toBeInTheDocument();
+
+    rerender(<MessageActions {...many} />);
+    expect(screen.getByRole('toolbar', { name: 'Message actions' })).toBeInTheDocument();
+
+    rerender(
+      <MessageActions
+        {...many}
+        author="Maya"
+        labels={{ more: ({ author }) => `Mehr zu ${author}`, toolbar: () => 'Aktionen' }}
+      />
+    );
+    expect(screen.getByRole('toolbar', { name: 'Aktionen' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Mehr zu Maya' })).toBeInTheDocument();
+
+    rerender(<MessageActions {...many} aria-label="Tools" />);
+    expect(screen.getByRole('toolbar', { name: 'Tools' })).toBeInTheDocument();
+  });
+
+  it('is one tab stop; arrows, Home and End move between the buttons', async () => {
+    const onKeyDown = jest.fn();
+    render(
+      <>
+        <button type="button">Before</button>
+        <MessageActions
+          text="Hi"
+          maxVisible={3}
+          onReply={() => {}}
+          onReact={() => {}}
+          onEdit={() => {}}
+          onThread={() => {}}
+          actions={['reply', 'react', 'thread', 'edit']}
+          onKeyDown={onKeyDown}
+        />
+        <button type="button">After</button>
+      </>
+    );
+    const reply = screen.getByRole('button', { name: 'Reply: Hi' });
+    const react = screen.getByRole('button', { name: 'React: Hi' });
+    const more = screen.getByRole('button', { name: 'More actions' });
+    expect(reply).toHaveAttribute('tabindex', '0');
+    expect(react).toHaveAttribute('tabindex', '-1');
+    expect(more).toHaveAttribute('tabindex', '-1');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Before' }));
+    await userEvent.tab();
+    expect(reply).toHaveFocus();
+    await userEvent.keyboard('{ArrowRight}');
+    expect(react).toHaveFocus();
+    await userEvent.keyboard('{ArrowRight}');
+    expect(more).toHaveFocus();
+    await userEvent.keyboard('{ArrowRight}');
+    expect(reply).toHaveFocus();
+    await userEvent.keyboard('{ArrowLeft}');
+    expect(more).toHaveFocus();
+    await userEvent.keyboard('{Home}');
+    expect(reply).toHaveFocus();
+    await userEvent.keyboard('{End}');
+    expect(more).toHaveFocus();
+
+    // Tab leaves the toolbar, Shift+Tab comes back to the button last used
+    await userEvent.tab();
+    expect(screen.getByRole('button', { name: 'After' })).toHaveFocus();
+    await userEvent.tab({ shift: true });
+    expect(more).toHaveFocus();
+
+    // Other keys pass through; the consumer's onKeyDown runs for every key, Tab included
+    await userEvent.keyboard('{ArrowDown}');
+    expect(more).toHaveFocus();
+    expect(onKeyDown).toHaveBeenCalledTimes(8);
+  });
+
+  it('swaps the arrows in right-to-left layouts, and ignores keys on the toolbar itself', () => {
+    render(
+      <DirectionProvider initialDirection="rtl">
+        <MessageActions
+          text="Hi"
+          onReply={() => {}}
+          onReact={() => {}}
+          actions={['reply', 'react']}
+        />
+      </DirectionProvider>
+    );
+    const reply = screen.getByRole('button', { name: 'Reply: Hi' });
+    const react = screen.getByRole('button', { name: 'React: Hi' });
+    reply.focus();
+    fireEvent.keyDown(reply, { key: 'ArrowLeft' });
+    expect(react).toHaveFocus();
+    fireEvent.keyDown(react, { key: 'ArrowRight' });
+    expect(reply).toHaveFocus();
+
+    fireEvent.keyDown(screen.getByRole('toolbar'), { key: 'End' });
+    expect(reply).toHaveFocus();
+  });
+
+  it('keeps one tab stop when the button that had it goes away', () => {
+    const props = { text: 'Hi', onReply: () => {}, onReact: () => {} };
+    const { rerender } = render(<MessageActions {...props} actions={['reply', 'react']} />);
+    fireEvent.focus(screen.getByRole('button', { name: 'React: Hi' }));
+    rerender(<MessageActions {...props} actions={['reply']} />);
+    expect(screen.getByRole('button', { name: 'Reply: Hi' })).toHaveAttribute('tabindex', '0');
+  });
+
+  it('mounts the menu on first use, and gives focus back to its button on Escape', async () => {
+    render(
+      <MessageActions
+        text="Hi"
+        maxVisible={1}
+        onReact={() => {}}
+        onEdit={() => {}}
+        actions={['react', 'edit']}
+      />
+    );
+    const closed = screen.getByRole('button', { name: 'More actions' });
+    expect(closed).toHaveAttribute('aria-haspopup', 'menu');
+    expect(closed).toHaveAttribute('aria-expanded', 'false');
+    expect(document.querySelector('[data-position]')).not.toBeInTheDocument();
+
+    await userEvent.click(closed);
+    expect(await screen.findByRole('menuitem', { name: 'Edit' })).toBeInTheDocument();
+    const trigger = screen.getByRole('button', { name: 'More actions' });
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('menuitem')).not.toBeInTheDocument());
+    expect(trigger).toHaveFocus();
+  });
+
+  it('asks for a preview function only when a button shows', () => {
+    const preview = jest.fn(() => 'Plain');
+    const { rerender } = render(
+      <MessageActions actions={['reply']} text="**md**" preview={preview} />
+    );
+    expect(preview).not.toHaveBeenCalled();
+    rerender(
+      <MessageActions actions={['reply']} text="**md**" preview={preview} onReply={() => {}} />
+    );
+    expect(preview).toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'Reply: Plain' })).toBeInTheDocument();
   });
 
   it('labels buttons with preview but copies text', async () => {

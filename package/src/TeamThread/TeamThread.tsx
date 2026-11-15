@@ -28,7 +28,7 @@ import type {
 } from '../types';
 import { toDate } from '../utils/dates';
 import { formatRelative, formatTime } from '../utils/format';
-import { getPreview } from '../utils/preview';
+import { getCachedPreview } from '../utils/preview';
 import classes from './TeamThread.module.css';
 
 /** What a team channel shows: messages and events such as "Maya joined" */
@@ -339,7 +339,10 @@ export const TeamThread = factory<TeamThreadFactory>((_props) => {
         </Message.Body>
         <MessageActions
           actions={actions!}
-          text={getPreview(message)}
+          text={message.body}
+          preview={() => getCachedPreview(message)}
+          author={name}
+          own={own}
           onReact={onReact && (() => onReact(message))}
           onThread={onOpenThread && !threadParentId ? () => onOpenThread(message) : undefined}
           onEdit={onEdit && own ? () => onEdit(message) : undefined}

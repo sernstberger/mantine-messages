@@ -1,4 +1,4 @@
-import { getPreview, stripMarkdown, truncate } from './preview';
+import { getCachedPreview, getPreview, stripMarkdown, truncate } from './preview';
 
 describe('stripMarkdown', () => {
   it('removes emphasis, code, links, headings, quotes and list marks', () => {
@@ -29,6 +29,30 @@ describe('getPreview', () => {
     expect(getPreview({ body: '**x**', format: 'markdown', preview: 'Custom' })).toBe('Custom');
     expect(getPreview({ body: '**x**', format: 'markdown' })).toBe('x');
     expect(getPreview({ body: '**x**' })).toBe('**x**');
+  });
+});
+
+describe('getCachedPreview', () => {
+  it('strips each message once, and again when it changes in place', () => {
+    const message: { body: string; format: 'markdown'; preview?: string } = {
+      body: '**a**',
+      format: 'markdown',
+    };
+    expect(getCachedPreview(message)).toBe('a');
+
+    message.body = '**b**';
+    expect(getCachedPreview(message)).toBe('b');
+    message.preview = 'Custom';
+    expect(getCachedPreview(message)).toBe('Custom');
+  });
+
+  it('answers from the cache for the same message', () => {
+    const message = { body: '**same**', format: 'markdown' as const };
+    const first = getCachedPreview(message);
+    const replace = jest.spyOn(String.prototype, 'replace');
+    expect(getCachedPreview(message)).toBe(first);
+    expect(replace).not.toHaveBeenCalled();
+    replace.mockRestore();
   });
 });
 

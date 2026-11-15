@@ -68,6 +68,13 @@ const [replyTo, setReplyTo] = useState<Message | null>(null);
 always show. After three, the rest go in a menu. Reactions and attachments on a message render
 under its bubble; pass `onToggleReaction` and `onOpenAttachment` to make them interactive.
 
+The buttons of a message form a toolbar with one tab stop: Tab reaches the first button (or the
+one used last), the arrow keys move between them, Home and End jump to the ends, and Tab moves on
+to the next message. The toolbar and its menu button are named after the message's author, "More
+actions for Maya's message" or "for your message" (`labels.more` and `labels.toolbar` are
+functions of `{ author, own }`). The menu mounts on first use. The copy action copies the whole
+`body`, markdown included; button labels use the plain-text preview.
+
 ## Long threads
 
 Pass `onLoadOlder`, `hasOlder` and `loadingOlder` to load history as the user scrolls up; the view

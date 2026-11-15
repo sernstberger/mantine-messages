@@ -42,6 +42,7 @@ export type {
   MessageActionsFactory,
   MessageActionsStylesNames,
   MessageActionsLabels,
+  MessageActionsOwner,
   MessageAction,
   MessageActionItem,
   MessageActionName,

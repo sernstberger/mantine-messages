@@ -1,5 +1,5 @@
 import { render, screen, tests } from '@mantine-tests/core';
-import { act } from '@testing-library/react';
+import { act, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import type { MessageListControl } from '../MessageList/MessageList';
@@ -155,12 +155,31 @@ describe('TeamThread', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Reply in thread: Body o' }));
     expect(onOpenThread).toHaveBeenCalledWith(other);
     expect(screen.getByRole('button', { name: 'Copy: Body o' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('toolbar', { name: "Actions for Maya Lindqvist's message" })
+    ).toBeInTheDocument();
 
     // Own message: react, thread, edit, copy is four, so edit and copy go in the menu
-    expect(screen.getAllByRole('button', { name: 'More actions' })).toHaveLength(1);
-    await userEvent.click(screen.getByRole('button', { name: 'More actions' }));
+    expect(screen.getAllByRole('button', { name: /^More actions/ })).toHaveLength(1);
+    await userEvent.click(screen.getByRole('button', { name: 'More actions for your message' }));
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Edit' }));
     expect(onEdit).toHaveBeenCalledWith(own);
+  });
+
+  it('labels actions with the plain preview, but copies the whole body', async () => {
+    const writeText = jest.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { clipboard: { writeText } });
+    const body = `**Bold** move ${'and more '.repeat(20)}`;
+    render(
+      <TeamThread
+        {...defaultProps}
+        actions={['copy']}
+        items={[message('md', 'maya', 1, { body, format: 'markdown' })]}
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: /^Copy: Bold move and more/ }));
+    expect(writeText).toHaveBeenCalledWith(body);
+    expect(await screen.findByRole('button', { name: /^Copied: Bold move/ })).toBeInTheDocument();
   });
 
   it('shows reactions and files, interactive with handlers', async () => {

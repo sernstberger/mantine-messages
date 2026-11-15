@@ -33,6 +33,37 @@ export function getPreview(message: Pick<ChatMessage, 'body' | 'format' | 'previ
   return message.format === 'markdown' ? stripMarkdown(message.body) : message.body;
 }
 
+type PreviewSource = Pick<ChatMessage, 'body' | 'format' | 'preview'>;
+
+const previews = new WeakMap<PreviewSource, PreviewSource & { result: string }>();
+
+/**
+ * `getPreview`, remembered per message object: stripping markdown is 15 passes over the body, and
+ * a thread needs the preview of every message on every render. A message changed in place (same
+ * object, new body) is noticed and stripped again
+ */
+export function getCachedPreview(message: PreviewSource): string {
+  const hit = previews.get(message);
+
+  if (
+    hit &&
+    hit.body === message.body &&
+    hit.format === message.format &&
+    hit.preview === message.preview
+  ) {
+    return hit.result;
+  }
+
+  const result = getPreview(message);
+  previews.set(message, {
+    body: message.body,
+    format: message.format,
+    preview: message.preview,
+    result,
+  });
+  return result;
+}
+
 /** `text` cut to `max` characters, ending in an ellipsis when cut */
 export function truncate(text: string, max: number): string {
   return text.length > max ? `${text.slice(0, max - 1)}…` : text;

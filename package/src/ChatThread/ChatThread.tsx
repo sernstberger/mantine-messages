@@ -20,7 +20,7 @@ import { Reactions } from '../Reactions/Reactions';
 import type { ChatMessage, MessageAttachment, MessageStatus, MessagesUser } from '../types';
 import { toDate } from '../utils/dates';
 import { formatTime } from '../utils/format';
-import { getPreview } from '../utils/preview';
+import { getCachedPreview } from '../utils/preview';
 import classes from './ChatThread.module.css';
 
 export type ChatThreadStylesNames =
@@ -252,7 +252,7 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
         </Text>
         <UnstyledButton onClick={() => jumpTo(original.id)} {...getStyles('quote')}>
           <Text size="xs" lineClamp={2}>
-            {getPreview(original)}
+            {getCachedPreview(original)}
           </Text>
         </UnstyledButton>
       </>
@@ -315,7 +315,10 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
                 </Box>
                 <MessageActions
                   actions={actions!}
-                  text={getPreview(message)}
+                  text={message.body}
+                  preview={() => getCachedPreview(message)}
+                  author={name}
+                  own={own}
                   labels={{ reply: allLabels.reply }}
                   onReply={onReply && (() => onReply(message))}
                   onReact={onReact && (() => onReact(message))}

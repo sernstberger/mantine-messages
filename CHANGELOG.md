@@ -81,6 +81,19 @@ will be 0.1.0.
   where it is. Type: `MessageListJumpOptions`
 - `MessageList`: items are memoised, so a render of the list renders only new and changed items
   when `renderItem` is stable (`useCallback`); `jumpTo` is now stable across renders
+- `MessageActions` is a `role="toolbar"` with one tab stop (roving tabindex: arrow keys, Home and
+  End, mirrored under `dir="rtl"`) instead of a tab stop per button, so Tab moves from message to
+  message
+- `MessageActions`: `labels.more` is now a function of `{ author, own }` ("More actions for
+  Maya's message", "More actions for your message"), and the toolbar is named by
+  `labels.toolbar`; new props `author` and `own`, which `ChatThread` and `TeamThread` pass. Type:
+  `MessageActionsOwner`
+- `MessageActions` mounts its overflow `Menu` on first use and `useClipboard` only with a copy
+  action, and builds built-in items only for the names in `actions`; `preview` may be a function,
+  called only when a button shows
+- `ChatThread`, `TeamThread`: the copy action copies the message's whole `body` (markdown
+  included) instead of its plain-text preview; button labels still use the preview, now computed
+  once per message
 - Times, dates, relative times and file sizes reuse one `Intl` formatter per locale and options
   instead of building one per call (about 50 times cheaper per message)
 
