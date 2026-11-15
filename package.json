@@ -96,7 +96,7 @@
     "signale": "^1.4.0",
     "simple-git": "^3.27.0",
     "storybook": "^10.6.3",
-    "stylelint": "^16.20.0",
+    "stylelint": "^18.0.0",
     "stylelint-config-standard-scss": "^15.0.1",
     "syncpack": "^13.0.4",
     "tsx": "^4.19.4",
