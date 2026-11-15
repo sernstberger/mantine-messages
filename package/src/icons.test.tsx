@@ -11,4 +11,7 @@ describe('icons', () => {
     rerender(<Icon size={12} />);
     expect(container.querySelector('svg')).toHaveAttribute('width', '12');
   });
+  it('has the icons the assistant uses', () => {
+    expect(Object.keys(icons)).toEqual(expect.arrayContaining(['ChevronIcon', 'RegenerateIcon']));
+  });
 });

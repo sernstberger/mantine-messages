@@ -1,4 +1,10 @@
-import type { ChatMessage, Conversation, MessageBase, SystemEvent } from './types';
+import type {
+  AssistantMessage,
+  ChatMessage,
+  Conversation,
+  MessageBase,
+  SystemEvent,
+} from './types';
 
 describe('types', () => {
   it('builds chat messages and events on one base', () => {
@@ -22,5 +28,22 @@ describe('types', () => {
     };
 
     expect([chat.id, event.kind, conversation.kind]).toEqual(['a', 'event', 'channel']);
+  });
+  it('builds assistant prompts and answers from parts', () => {
+    const answer: AssistantMessage = {
+      id: 'a1',
+      authorId: 'assistant',
+      createdAt: 0,
+      role: 'assistant',
+      status: 'error',
+      error: 'Timed out',
+      parts: [
+        { type: 'reasoning', text: 'Thinking', state: 'done' },
+        { type: 'tool', name: 'search', input: { q: 'x' }, output: [], state: 'done' },
+        { type: 'text', text: '**Hi**', state: 'streaming' },
+      ],
+    };
+
+    expect(answer.parts.map((part) => part.type)).toEqual(['reasoning', 'tool', 'text']);
   });
 });

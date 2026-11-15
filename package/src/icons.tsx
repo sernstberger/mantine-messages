@@ -40,3 +40,6 @@ export const FileIcon = icon(['M14 3H6v18h12V7Z', 'M14 3v4h4']);
 export const HashIcon = icon(['M4 9h16', 'M4 15h16', 'M10 3 8 21', 'M16 3l-2 18']);
 export const SearchIcon = icon(['M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z', 'm21 21-4.3-4.3']);
 export const LockIcon = icon(['M5 11h14v10H5z', 'M8 11V7a4 4 0 0 1 8 0v4']);
+
+export const ChevronIcon = icon(['m9 18 6-6-6-6']);
+export const RegenerateIcon = icon(['M21 12a9 9 0 1 1-2.64-6.36', 'M21 3v6h-6']);

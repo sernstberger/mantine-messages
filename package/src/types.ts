@@ -94,3 +94,41 @@ export interface Conversation {
   muted?: boolean;
   pinned?: boolean;
 }
+
+/** One piece of an assistant answer; parts render in order */
+export type AssistantPart =
+  | {
+      type: 'text';
+
+      /** Markdown */
+      text: string;
+
+      /** `'streaming'` while tokens arrive: a cursor blinks at its end */
+      state?: 'streaming' | 'done';
+    }
+  | {
+      type: 'reasoning';
+      text: string;
+      state?: 'streaming' | 'done';
+    }
+  | {
+      type: 'tool';
+
+      /** Tool name, for example `'search_docs'` */
+      name: string;
+      input: unknown;
+      output?: unknown;
+      state: 'running' | 'done' | 'error';
+    };
+
+/** A prompt (`role: 'user'`) or an answer (`role: 'assistant'`) in AssistantThread */
+export interface AssistantMessage extends MessageBase {
+  role: 'user' | 'assistant';
+  parts: AssistantPart[];
+
+  /** `'streaming'` while the answer is generated; `'error'` shows an alert */
+  status?: 'streaming' | 'done' | 'error';
+
+  /** What went wrong, shown in the alert when `status` is `'error'` */
+  error?: string;
+}
