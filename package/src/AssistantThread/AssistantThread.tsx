@@ -6,12 +6,15 @@ import {
   Button,
   Code,
   Collapse,
+  createVarsResolver,
   ElementProps,
   factory,
   Factory,
+  getRadius,
   GetStylesApi,
   Group,
   Loader,
+  MantineRadius,
   StylesApiProps,
   Text,
   Textarea,
@@ -43,11 +46,18 @@ export type AssistantThreadStylesNames =
   | 'thinking'
   | 'step'
   | 'stepHeader'
+  | 'stepLabel'
+  | 'stepChevron'
+  | 'stepBadge'
   | 'stepBody'
+  | 'stepCaption'
   | 'stepCode'
   | 'error'
+  | 'retry'
   | 'actions'
-  | 'editor';
+  | 'editor'
+  | 'editorInput'
+  | 'editorActions';
 
 export interface AssistantThreadLabels {
   copy: string;
@@ -105,12 +115,23 @@ export interface AssistantThreadProps
 
   /** Gets `{ jumpTo }` of the inner `MessageList`, to scroll to a message and flash it */
   controlRef?: React.Ref<MessageListControl>;
+
+  /** Key of `theme.radius` or any valid CSS value to set `border-radius` of prompt bubbles, numbers are converted to rem @default 'xl' */
+  radius?: MantineRadius;
 }
+
+export type AssistantThreadCssVariables = {
+  root:
+    | '--assistant-thread-prompt-radius'
+    | '--assistant-thread-max-width'
+    | '--assistant-thread-prompt-max-width';
+};
 
 export type AssistantThreadFactory = Factory<{
   props: AssistantThreadProps;
   ref: HTMLDivElement;
   stylesNames: AssistantThreadStylesNames;
+  vars: AssistantThreadCssVariables;
 }>;
 
 type GetStyles = GetStylesApi<AssistantThreadFactory>;
@@ -135,7 +156,15 @@ const defaultLabels: AssistantThreadLabels = {
   send: 'Send',
 };
 
-const defaultProps: Partial<AssistantThreadProps> = { autoScroll: true };
+const defaultProps = { autoScroll: true } satisfies Partial<AssistantThreadProps>;
+
+const varsResolver = createVarsResolver<AssistantThreadFactory>((_theme, { radius }) => ({
+  root: {
+    '--assistant-thread-prompt-radius': radius === undefined ? undefined : getRadius(radius),
+    '--assistant-thread-max-width': undefined,
+    '--assistant-thread-prompt-max-width': undefined,
+  },
+}));
 
 const toolColors = { running: 'blue', done: 'teal', error: 'red' } as const;
 
@@ -145,13 +174,18 @@ function TextPart({
   text,
   streaming,
   getStyles,
+  unstyled,
 }: {
   text: string;
   streaming: boolean;
   getStyles: GetStyles;
+  unstyled?: boolean;
 }) {
   // Memoized on the text: when a later part changes, React skips MarkdownBody for this one
-  const body = useMemo(() => <MarkdownBody>{text}</MarkdownBody>, [text]);
+  const body = useMemo(
+    () => <MarkdownBody unstyled={unstyled}>{text}</MarkdownBody>,
+    [text, unstyled]
+  );
 
   return (
     <Box mod={{ streaming }} {...getStyles('text')}>
@@ -163,11 +197,13 @@ function TextPart({
 function Step({
   label,
   badge,
+  tool,
   children,
   getStyles,
 }: {
   label: React.ReactNode;
   badge?: React.ReactNode;
+  tool?: boolean;
   children: React.ReactNode;
   getStyles: GetStyles;
 }) {
@@ -183,8 +219,12 @@ function Step({
         mod={{ expanded }}
         {...getStyles('stepHeader')}
       >
-        <ChevronIcon size={14} />
-        {label}
+        <Box component="span" mod={{ expanded }} {...getStyles('stepChevron')}>
+          <ChevronIcon size={14} />
+        </Box>
+        <Box component="span" mod={{ tool }} {...getStyles('stepLabel')}>
+          {label}
+        </Box>
         {badge}
       </UnstyledButton>
       <Collapse id={id} expanded={expanded} keepMounted={false}>
@@ -198,25 +238,27 @@ function ToolDetails({
   part,
   labels,
   getStyles,
+  unstyled,
 }: {
   part: ToolPart;
   labels: AssistantThreadLabels;
   getStyles: GetStyles;
+  unstyled?: boolean;
 }) {
   return (
     <>
-      <Text size="xs" fw={500}>
+      <Text size="xs" unstyled={unstyled} {...getStyles('stepCaption')}>
         {labels.input}
       </Text>
-      <Code block {...getStyles('stepCode')}>
+      <Code block unstyled={unstyled} {...getStyles('stepCode')}>
         {formatJson(part.input)}
       </Code>
       {part.output !== undefined && (
         <>
-          <Text size="xs" fw={500}>
+          <Text size="xs" unstyled={unstyled} {...getStyles('stepCaption')}>
             {labels.output}
           </Text>
-          <Code block {...getStyles('stepCode')}>
+          <Code block unstyled={unstyled} {...getStyles('stepCode')}>
             {formatJson(part.output)}
           </Code>
         </>
@@ -231,13 +273,16 @@ function PromptEditor({
   onCancel,
   onSubmit,
   getStyles,
+  unstyled,
 }: {
   defaultValue: string;
   labels: AssistantThreadLabels;
   onCancel: () => void;
   onSubmit: (text: string) => void;
   getStyles: GetStyles;
+  unstyled?: boolean;
 }) {
+  const inputStyles = getStyles('editorInput');
   const [value, setValue] = useState(defaultValue);
   const text = value.trim();
 
@@ -250,6 +295,9 @@ function PromptEditor({
   return (
     <Box {...getStyles('editor')}>
       <Textarea
+        unstyled={unstyled}
+        classNames={{ input: inputStyles.className }}
+        styles={{ input: inputStyles.style }}
         autosize
         autoFocus
         minRows={1}
@@ -273,11 +321,11 @@ function PromptEditor({
           }
         }}
       />
-      <Group justify="flex-end" gap="xs" mt="xs">
-        <Button variant="default" size="xs" onClick={onCancel}>
+      <Group justify="flex-end" gap="xs" unstyled={unstyled} {...getStyles('editorActions')}>
+        <Button variant="default" size="xs" unstyled={unstyled} onClick={onCancel}>
           {labels.cancel}
         </Button>
-        <Button size="xs" disabled={!text} onClick={submit}>
+        <Button size="xs" unstyled={unstyled} disabled={!text} onClick={submit}>
           {labels.send}
         </Button>
       </Group>
@@ -289,14 +337,21 @@ function Part({
   part,
   labels,
   getStyles,
+  unstyled,
 }: {
   part: AssistantPart;
   labels: AssistantThreadLabels;
   getStyles: GetStyles;
+  unstyled?: boolean;
 }) {
   if (part.type === 'text') {
     return (
-      <TextPart text={part.text} streaming={part.state === 'streaming'} getStyles={getStyles} />
+      <TextPart
+        text={part.text}
+        streaming={part.state === 'streaming'}
+        getStyles={getStyles}
+        unstyled={unstyled}
+      />
     );
   }
 
@@ -315,25 +370,25 @@ function Part({
 
   return (
     <Step
+      tool
       getStyles={getStyles}
-      label={
-        <Text component="span" inherit ff="monospace">
-          {part.name}
-        </Text>
-      }
+      label={part.name}
       badge={
         <Badge
           size="xs"
           variant="light"
           color={toolColors[part.state]}
-          ms="auto"
-          leftSection={part.state === 'running' ? <Loader size={8} color="blue" /> : null}
+          unstyled={unstyled}
+          leftSection={
+            part.state === 'running' ? <Loader size={8} color="blue" unstyled={unstyled} /> : null
+          }
+          {...getStyles('stepBadge')}
         >
           {toolLabels[part.state]}
         </Badge>
       }
     >
-      <ToolDetails part={part} labels={labels} getStyles={getStyles} />
+      <ToolDetails part={part} labels={labels} getStyles={getStyles} unstyled={unstyled} />
     </Step>
   );
 }
@@ -342,11 +397,18 @@ interface AnswerProps {
   message: AssistantMessage;
   labels: AssistantThreadLabels;
   getStyles: GetStyles;
+  unstyled?: boolean;
 
   onRegenerate?: (message: AssistantMessage) => void;
 }
 
-const Answer = memo(function Answer({ message, labels, getStyles, onRegenerate }: AnswerProps) {
+const Answer = memo(function Answer({
+  message,
+  labels,
+  getStyles,
+  unstyled,
+  onRegenerate,
+}: AnswerProps) {
   const streaming = message.status === 'streaming';
   const text = useMemo(() => getAssistantText(message), [message]);
   const preview = useMemo(() => stripMarkdown(text), [text]);
@@ -369,7 +431,7 @@ const Answer = memo(function Answer({ message, labels, getStyles, onRegenerate }
     >
       <Box {...getStyles('answer')}>
         {message.parts.map((part, index) => (
-          <Part key={index} part={part} labels={labels} getStyles={getStyles} />
+          <Part key={index} part={part} labels={labels} getStyles={getStyles} unstyled={unstyled} />
         ))}
         {streaming && message.parts.length === 0 && (
           <Loader
@@ -377,21 +439,28 @@ const Answer = memo(function Answer({ message, labels, getStyles, onRegenerate }
             size="sm"
             role="img"
             aria-label={labels.thinking}
+            unstyled={unstyled}
             {...getStyles('thinking')}
           />
         )}
       </Box>
       {message.status === 'error' && (
-        <Alert color="red" variant="light" title={labels.error} {...getStyles('error')}>
+        <Alert
+          color="red"
+          variant="light"
+          title={labels.error}
+          unstyled={unstyled}
+          {...getStyles('error')}
+        >
           {message.error}
           {onRegenerate && (
             <Button
-              display="block"
-              mt="xs"
               size="xs"
               variant="light"
               color="red"
+              unstyled={unstyled}
               onClick={() => onRegenerate(message)}
+              {...getStyles('retry')}
             >
               {labels.retry}
             </Button>
@@ -404,6 +473,7 @@ const Answer = memo(function Answer({ message, labels, getStyles, onRegenerate }
           text={text}
           preview={preview}
           labels={{ copy: labels.copy, copied: labels.copied }}
+          unstyled={unstyled}
           {...getStyles('actions')}
         />
       )}
@@ -416,6 +486,7 @@ interface PromptProps {
   editing: boolean;
   labels: AssistantThreadLabels;
   getStyles: GetStyles;
+  unstyled?: boolean;
 
   onStartEdit?: (message: AssistantMessage) => void;
   onCancel: (message: AssistantMessage) => void;
@@ -427,6 +498,7 @@ const Prompt = memo(function Prompt({
   editing,
   labels,
   getStyles,
+  unstyled,
   onStartEdit,
   onCancel,
   onSubmit,
@@ -441,6 +513,7 @@ const Prompt = memo(function Prompt({
           defaultValue={text}
           labels={labels}
           getStyles={getStyles}
+          unstyled={unstyled}
           onCancel={() => onCancel(message)}
           onSubmit={(next) => onSubmit(message, next)}
         />
@@ -452,6 +525,7 @@ const Prompt = memo(function Prompt({
             text={text}
             labels={{ copy: labels.copy, copied: labels.copied, edit: labels.edit }}
             onEdit={onStartEdit && (() => onStartEdit(message))}
+            unstyled={unstyled}
             {...getStyles('actions')}
           />
         </>
@@ -483,6 +557,7 @@ export const AssistantThread = factory<AssistantThreadFactory>((_props) => {
     onEdit,
     labels,
     controlRef,
+    radius,
     // 'off': the status region below announces each finished answer once instead
     'aria-live': ariaLive = 'off',
     ...others
@@ -500,6 +575,7 @@ export const AssistantThread = factory<AssistantThreadFactory>((_props) => {
     unstyled,
     vars,
     attributes,
+    varsResolver,
   });
 
   // Stable across tokens, so memoized parts skip rendering (getStyles is new on every render)
@@ -602,6 +678,7 @@ export const AssistantThread = factory<AssistantThreadFactory>((_props) => {
               editing={message.id === editingId}
               labels={allLabels}
               getStyles={partStyles}
+              unstyled={unstyled}
               onStartEdit={onEdit && !busy ? startEdit : undefined}
               onCancel={cancelEdit}
               onSubmit={submitEdit}
@@ -611,6 +688,7 @@ export const AssistantThread = factory<AssistantThreadFactory>((_props) => {
               message={message}
               labels={allLabels}
               getStyles={partStyles}
+              unstyled={unstyled}
               onRegenerate={onRegenerate && message.id === last.id ? regenerate : undefined}
             />
           )
@@ -625,3 +703,4 @@ export const AssistantThread = factory<AssistantThreadFactory>((_props) => {
 
 AssistantThread.displayName = 'AssistantThread';
 AssistantThread.classes = classes;
+AssistantThread.varsResolver = varsResolver;

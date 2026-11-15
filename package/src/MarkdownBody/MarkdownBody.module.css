@@ -41,6 +41,11 @@
   }
 }
 
+.codeLanguage {
+  color: var(--mantine-color-dimmed);
+  font-family: var(--mantine-font-family-monospace);
+}
+
 .pre {
   margin: 0;
   padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);

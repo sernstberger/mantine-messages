@@ -309,6 +309,7 @@ export const MarkdownBodyStylesApi: StylesApiData<MarkdownBodyFactory> = {
     code: 'Inline code',
     codeBlock: 'Fenced code block: header and code',
     codeHeader: 'Language and copy button above a code block',
+    codeLanguage: 'Language name in the header of a code block',
     copy: 'Copy button of a code block',
     pre: 'Code of a code block',
   },
@@ -326,14 +327,28 @@ export const AssistantThreadStylesApi: StylesApiData<AssistantThreadFactory> = {
     text: 'One text part, rendered with MarkdownBody',
     thinking: 'Dots shown before the first part of an answer arrives',
     step: 'Reasoning or tool step',
-    stepHeader: 'Button that opens a step: name and state',
+    stepHeader: 'Button that opens a step: chevron, name and state',
+    stepLabel: 'Name of a step; a tool’s name is set in monospace',
+    stepChevron: 'Chevron in the header of a step, turned when the step is open',
+    stepBadge: 'State of a tool step: running, done or failed',
     stepBody: 'Reasoning text, or a tool’s input and output',
+    stepCaption: 'Caption above a tool’s input and output',
     stepCode: 'Input or output of a tool, as JSON',
-    error: 'Alert under a failed answer, with Retry',
+    error: 'Alert under a failed answer',
+    retry: 'Retry button in the alert under a failed answer',
     actions: 'Copy, Regenerate and Edit',
     editor: 'Text box and buttons while a prompt is edited',
+    editorInput: 'Text box while a prompt is edited',
+    editorActions: 'Cancel and Send buttons while a prompt is edited',
   },
-  vars: {},
+  vars: {
+    root: {
+      '--assistant-thread-prompt-radius': 'Corner radius of prompt bubbles, from `radius`',
+      '--assistant-thread-max-width':
+        'Largest width of the column of prompts and answers, 48rem by default',
+      '--assistant-thread-prompt-max-width': 'Largest width of a prompt bubble, 85% by default',
+    },
+  },
   modifiers: [
     {
       modifier: 'data-role',
@@ -351,6 +366,8 @@ export const AssistantThreadStylesApi: StylesApiData<AssistantThreadFactory> = {
       condition: 'The part is streaming: a cursor blinks at its end',
     },
     { modifier: 'data-expanded', selector: 'stepHeader', condition: 'The step is open' },
+    { modifier: 'data-expanded', selector: 'stepChevron', condition: 'The step is open' },
+    { modifier: 'data-tool', selector: 'stepLabel', condition: 'The step is a tool call' },
   ],
 };
 
