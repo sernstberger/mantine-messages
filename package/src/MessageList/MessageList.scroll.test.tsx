@@ -2,7 +2,12 @@ import { MantineProvider } from '@mantine/core';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import type { MessageBase } from '../types';
-import { MessageList, MessageListHandlers, MessageListProps } from './MessageList';
+import {
+  MessageList,
+  MessageListHandlers,
+  MessageListProps,
+  MessageListRowsProps,
+} from './MessageList';
 
 const item = (id: string, authorId = 'maya'): MessageBase => ({
   id,
@@ -234,6 +239,75 @@ describe('MessageList scrolling', () => {
       expect(viewport.scrollTop).toBe(300);
     });
 
+    it('keeps the view steady on prepend after the list grew without a render', () => {
+      const { viewport, userScrollsTo, rerender } = setup();
+      userScrollsTo(50);
+      height = 1200;
+      resized();
+      height = 1800;
+      rerender([item('older'), ...start]);
+      expect(viewport.scrollTop).toBe(650);
+    });
+
+    describe('with item positions', () => {
+      // Items are 100px tall, one after another; `shift` moves them all, as rows measured above would
+      let shift: number;
+
+      beforeEach(() => {
+        shift = 0;
+        jest.useFakeTimers({ doNotFake: ['Date'] });
+        jest
+          .spyOn(Element.prototype, 'getBoundingClientRect')
+          .mockImplementation(function rect(this: Element) {
+            const viewport = this.closest<HTMLElement>('.mantine-ScrollArea-viewport');
+            const items = viewport ? [...viewport.querySelectorAll('[data-item-id]')] : [];
+            const index = items.indexOf(this);
+            const top = index === -1 ? 0 : index * 100 + shift - viewport!.scrollTop;
+            return { top, bottom: index === -1 ? 0 : top + 100 } as DOMRect;
+          });
+      });
+
+      afterEach(() => jest.useRealTimers());
+
+      it('keeps the item in view where it was when older items are prepended, while rows settle', () => {
+        const { viewport, userScrollsTo, rerender } = setup();
+        userScrollsTo(150);
+        rerender([item('older'), ...start]);
+        expect(viewport.scrollTop).toBe(250);
+
+        shift = 30;
+        resized();
+        expect(viewport.scrollTop).toBe(280);
+
+        shift = 45;
+        act(() => jest.advanceTimersByTime(16));
+        expect(viewport.scrollTop).toBe(295);
+
+        act(() => jest.advanceTimersByTime(1000));
+        shift = 0;
+        resized();
+        expect(viewport.scrollTop).toBe(295);
+      });
+
+      it('falls back to the growth of the list when the item in view is not rendered after the prepend', () => {
+        function FirstTwo({ rows }: MessageListRowsProps) {
+          return rows
+            .filter((row) => row.type === 'item')
+            .slice(0, 2)
+            .map((row) => <MessageList.Row key={row.key} row={row} />);
+        }
+        const { viewport, userScrollsTo, rerender } = setup({ rowsComponent: FirstTwo });
+        userScrollsTo(150);
+        height = 1400;
+        rerender([item('o1'), item('o2'), ...start], { rowsComponent: FirstTwo });
+        expect(viewport.scrollTop).toBe(550);
+
+        shift = 30;
+        act(() => jest.advanceTimersByTime(16));
+        expect(viewport.scrollTop).toBe(550);
+      });
+    });
+
     it('does not pin with autoScroll off, and reads autoScroll when it fires', () => {
       const { viewport, userScrollsTo, rerender } = setup({ autoScroll: false });
       userScrollsTo(800);
@@ -286,6 +360,15 @@ describe('MessageList scrolling', () => {
     );
     fireEvent.click(screen.getByText('c'));
     expect(scrollIntoView).toHaveBeenCalledWith({ block: 'center', behavior: 'auto' });
+  });
+
+  it('stops following the bottom when it jumps to an item', () => {
+    const control = React.createRef<MessageListHandlers>();
+    const { rerender } = setup({ handlersRef: control });
+    act(() => control.current!.jumpTo('b'));
+    scrollTo.mockClear();
+    rerender([...start, item('d')], { handlersRef: control });
+    expect(scrollTo).not.toHaveBeenCalled();
   });
 
   it('asks for older items once, even when scroll events arrive before the next render', () => {

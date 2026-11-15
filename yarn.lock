@@ -3011,6 +3011,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tanstack/react-virtual@npm:^3.14.22":
+  version: 3.14.26
+  resolution: "@tanstack/react-virtual@npm:3.14.26"
+  dependencies:
+    "@tanstack/virtual-core": "npm:3.19.11"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10c0/71291177ac4c4b067a40351d46c69af0d5fc9dfcc6cb328cb87717b29209501a7193e92e75e599273ee423fff6c55c88157bd238684846b0d926dfa73b5d6dac
+  languageName: node
+  linkType: hard
+
+"@tanstack/virtual-core@npm:3.19.11":
+  version: 3.19.11
+  resolution: "@tanstack/virtual-core@npm:3.19.11"
+  checksum: 10c0/61558882fd09f64020104ecd94bacaa2a6ccbb0745247610ede7683d709cf8d134cc3f6d1ee2d22203cb881e531bc4a3bb92e4657c08edf923ab6d5c39a958ec
+  languageName: node
+  linkType: hard
+
 "@testing-library/dom@npm:^10.4.0":
   version: 10.4.0
   resolution: "@testing-library/dom@npm:10.4.0"
@@ -8584,6 +8603,7 @@ __metadata:
     "@mdx-js/react": "npm:^3.1.0"
     "@next/mdx": "npm:16.2.2"
     "@tabler/icons-react": "npm:^3.33.0"
+    "@tanstack/react-virtual": "npm:^3.14.22"
     "@types/mdx": "npm:^2.0.13"
     "@types/node": "npm:^22.15.24"
     "@types/react": "npm:^19"
@@ -8616,6 +8636,7 @@ __metadata:
     "@storybook/preview-api": "npm:^8.6.14"
     "@storybook/react": "npm:^8.6.14"
     "@storybook/react-vite": "npm:^8.6.14"
+    "@tanstack/react-virtual": "npm:^3.14.22"
     "@testing-library/dom": "npm:^10.4.0"
     "@testing-library/jest-dom": "npm:^6.6.3"
     "@testing-library/react": "npm:^16.3.0"

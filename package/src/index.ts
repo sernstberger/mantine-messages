@@ -68,7 +68,17 @@ import type {
   MessageListLabels,
   MessageListItemContext,
   MessageListHandlers,
+  MessageListRowsProps,
+  MessageListRowsHandlers,
+  MessageListRowProps,
+  MessageListRowFactory,
 } from './MessageList/MessageList';
+import type {
+  MessageListRowData,
+  MessageListItemRow,
+  MessageListDividerRow,
+  MessageListUnreadRow,
+} from './MessageList/get-message-list-rows';
 import type {
   MessageActionsProps,
   MessageActionsFactory,
@@ -265,6 +275,14 @@ export type {
   MessageListLabels,
   MessageListItemContext,
   MessageListHandlers,
+  MessageListRowsProps,
+  MessageListRowsHandlers,
+  MessageListRowProps,
+  MessageListRowFactory,
+  MessageListRowData,
+  MessageListItemRow,
+  MessageListDividerRow,
+  MessageListUnreadRow,
   MessageActionsProps,
   MessageActionsFactory,
   MessageActionsStylesNames,

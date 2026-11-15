@@ -2,20 +2,25 @@ import {
   Box,
   BoxProps,
   Center,
+  CompoundStylesApiProps,
+  createSafeContext,
   Divider,
   ElementProps,
+  factory,
   Factory,
   genericFactory,
+  GetStylesApi,
   Loader,
   ScrollArea,
   StylesApiProps,
   useProps,
   useStyles,
 } from '@mantine/core';
-import React, { memo, useImperativeHandle } from 'react';
+import React, { memo, useImperativeHandle, useMemo } from 'react';
 import type { MessageBase } from '../types';
 import { useDateSettings } from '../MessagesProvider/use-messages-context';
-import { dayNumber, formatDay } from '../utils/format';
+import { formatDay, type DateSettings } from '../utils/format';
+import { getMessageListRows, type MessageListRowData } from './get-message-list-rows';
 import classes from './MessageList.module.css';
 import { useMessageList, type MessageListJumpOptions } from './use-message-list';
 
@@ -54,6 +59,24 @@ export interface MessageListItemContext<T extends MessageBase> {
 export interface MessageListHandlers {
   /** Scrolls to the item with this `id`, flashes it and moves focus to it (see `MessageListJumpOptions`) */
   jumpTo: (id: string, options?: MessageListJumpOptions) => void;
+}
+
+/** Set by a `rowsComponent` that renders only some rows, so `jumpTo` reaches the others */
+export interface MessageListRowsHandlers {
+  /** Scrolls until the row at `index` of `rows` is rendered and in view */
+  scrollToIndex: (index: number) => void;
+}
+
+/** Props of `rowsComponent` */
+export interface MessageListRowsProps<T extends MessageBase = MessageBase> {
+  /** Every row, oldest first: items, date dividers and the unread line; render each with `MessageList.Row` */
+  rows: MessageListRowData<T>[];
+
+  /** The scrolling element (the `ScrollArea` viewport), for example for `getScrollElement` of a virtualizer */
+  viewportRef: React.RefObject<HTMLDivElement | null>;
+
+  /** Set `{ scrollToIndex }` here when only some rows are rendered, so `jumpTo` reaches the rest */
+  handlersRef: React.Ref<MessageListRowsHandlers>;
 }
 
 export interface MessageListProps<T extends MessageBase = MessageBase>
@@ -105,16 +128,39 @@ export interface MessageListProps<T extends MessageBase = MessageBase>
 
   /** Gets `{ jumpTo }`, so code outside the list can scroll to an item and flash it */
   handlersRef?: React.Ref<MessageListHandlers>;
+
+  /**
+   * Renders the rows; every row by default. For threads of thousands of items, a component that
+   * renders only the rows in view with a virtualizer, for example `@tanstack/react-virtual`
+   */
+  rowsComponent?: React.ComponentType<MessageListRowsProps>;
 }
 
 export type MessageListFactory = Factory<{
   props: MessageListProps;
   ref: HTMLDivElement;
   stylesNames: MessageListStylesNames;
+  staticComponents: {
+    Row: typeof MessageListRow;
+  };
   signature: <T extends MessageBase = MessageBase>(
     props: MessageListProps<T> & { ref?: React.Ref<HTMLDivElement> }
   ) => React.JSX.Element;
 }>;
+
+interface MessageListContextValue {
+  getStyles: GetStylesApi<MessageListFactory>;
+  unstyled: boolean | undefined;
+  dates: DateSettings;
+  newMessages: string;
+  renderItem: MessageListProps['renderItem'];
+  highlightedId: string | null;
+  jumpTo: MessageListItemContext<MessageBase>['jumpTo'];
+}
+
+const [MessageListProvider, useMessageListContext] = createSafeContext<MessageListContextValue>(
+  'MessageList.Row must be used inside the rowsComponent of MessageList'
+);
 
 const defaultProps = {
   withDateDividers: true,
@@ -139,6 +185,74 @@ const ItemContent = memo(function ItemContent<T extends MessageBase>({
 }: ItemContentProps<T>) {
   return renderItem(item, context);
 }) as <T extends MessageBase>(props: ItemContentProps<T>) => React.ReactNode;
+
+export interface MessageListRowProps
+  extends BoxProps, CompoundStylesApiProps<MessageListRowFactory>, ElementProps<'div'> {
+  /** The row, from `rows` of `rowsComponent`; set `style` and `ref` to position and measure it */
+  row: MessageListRowData;
+}
+
+export type MessageListRowFactory = Factory<{
+  props: MessageListRowProps;
+  ref: HTMLDivElement;
+  stylesNames: MessageListStylesNames;
+  compound: true;
+}>;
+
+/** One row of the list: an item, a date divider or the unread line */
+export const MessageListRow = factory<MessageListRowFactory>((_props) => {
+  const { classNames, className, style, styles, vars, row, ...others } = useProps(
+    'MessageListRow',
+    null,
+    _props
+  );
+  const ctx = useMessageListContext();
+  const stylesOptions = { className, style, classNames, styles };
+
+  if (row.type === 'item') {
+    return (
+      <Box data-item-id={row.key} {...ctx.getStyles('item', stylesOptions)} {...others}>
+        <ItemContent
+          item={row.item}
+          renderItem={ctx.renderItem}
+          index={row.index}
+          previous={row.previous}
+          next={row.next}
+          groupStart={row.groupStart}
+          groupEnd={row.groupEnd}
+          highlighted={ctx.highlightedId === row.key}
+          jumpTo={ctx.jumpTo}
+        />
+      </Box>
+    );
+  }
+
+  return row.type === 'divider' ? (
+    <Divider
+      label={formatDay(row.date, ctx.dates)}
+      labelPosition="center"
+      unstyled={ctx.unstyled}
+      {...ctx.getStyles('divider', stylesOptions)}
+      {...others}
+    />
+  ) : (
+    <Divider
+      label={ctx.newMessages}
+      labelPosition="center"
+      color="red"
+      unstyled={ctx.unstyled}
+      {...ctx.getStyles('unread', stylesOptions)}
+      {...others}
+    />
+  );
+});
+
+MessageListRow.displayName = 'MessageListRow';
+MessageListRow.classes = classes;
+
+function MessageListAllRows({ rows }: MessageListRowsProps) {
+  return rows.map((row) => <MessageListRow key={row.key} row={row} />);
+}
 
 /** A scrolling list of items; `<MessageList<T>>` types `renderItem` with your item type */
 export const MessageList = genericFactory<MessageListFactory>((_props) => {
@@ -166,6 +280,7 @@ export const MessageList = genericFactory<MessageListFactory>((_props) => {
     loadingOlder,
     labels,
     handlersRef,
+    rowsComponent: Rows = MessageListAllRows,
     role = 'log',
     'aria-live': ariaLive = 'polite',
     'aria-label': ariaLabel,
@@ -185,23 +300,32 @@ export const MessageList = genericFactory<MessageListFactory>((_props) => {
     attributes,
   });
 
+  const dates = useDateSettings(locale, timeZone);
+  const rows = useMemo(
+    () =>
+      getMessageListRows(items, {
+        groupWith,
+        withDateDividers,
+        unreadAfterId,
+        timeZone: dates.timeZone,
+      }),
+    [items, groupWith, withDateDividers, unreadAfterId, dates.timeZone]
+  );
+
   const last = items[items.length - 1];
-  const { viewportRef, onScrollPositionChange, jumpTo, highlightedId, busy } = useMessageList({
-    autoScroll: !!autoScroll,
-    firstId: items[0]?.id,
-    lastId: last?.id,
-    lastIsOwn: !!last && !!isOwn?.(last),
-    onLoadOlder,
-    hasOlder,
-    loadingOlder,
-  });
+  const { viewportRef, rowsHandlersRef, onScrollPositionChange, jumpTo, highlightedId, busy } =
+    useMessageList({
+      autoScroll: !!autoScroll,
+      firstId: items[0]?.id,
+      lastId: last?.id,
+      lastIsOwn: !!last && !!isOwn?.(last),
+      onLoadOlder,
+      hasOlder,
+      loadingOlder,
+      rows,
+    });
   const allLabels = { ...defaultLabels, ...labels };
   useImperativeHandle(handlersRef, () => ({ jumpTo }), [jumpTo]);
-
-  const dates = useDateSettings(locale, timeZone);
-  const newDay = (a: MessageBase | undefined, b: MessageBase) =>
-    !!withDateDividers &&
-    (!a || dayNumber(a.createdAt, dates.timeZone) !== dayNumber(b.createdAt, dates.timeZone));
 
   return (
     <ScrollArea
@@ -229,48 +353,19 @@ export const MessageList = genericFactory<MessageListFactory>((_props) => {
             />
           </Center>
         )}
-        {items.map((item, index) => {
-          const previous = items[index - 1];
-          const next = items[index + 1];
-          const dayStarts = newDay(previous, item);
-          const groupStart = !previous || dayStarts || !groupWith?.(previous, item);
-          const groupEnd = !next || newDay(item, next) || !groupWith?.(item, next);
-
-          return (
-            <React.Fragment key={item.id}>
-              {dayStarts && (
-                <Divider
-                  label={formatDay(item.createdAt, dates)}
-                  labelPosition="center"
-                  unstyled={unstyled}
-                  {...getStyles('divider')}
-                />
-              )}
-              <Box data-item-id={item.id} {...getStyles('item')}>
-                <ItemContent
-                  item={item}
-                  renderItem={renderItem}
-                  index={index}
-                  previous={previous}
-                  next={next}
-                  groupStart={groupStart}
-                  groupEnd={groupEnd}
-                  highlighted={highlightedId === item.id}
-                  jumpTo={jumpTo}
-                />
-              </Box>
-              {item.id === unreadAfterId && next && (
-                <Divider
-                  label={allLabels.newMessages}
-                  labelPosition="center"
-                  color="red"
-                  unstyled={unstyled}
-                  {...getStyles('unread')}
-                />
-              )}
-            </React.Fragment>
-          );
-        })}
+        <MessageListProvider
+          value={{
+            getStyles,
+            unstyled,
+            dates,
+            newMessages: allLabels.newMessages,
+            renderItem,
+            highlightedId,
+            jumpTo,
+          }}
+        >
+          <Rows rows={rows} viewportRef={viewportRef} handlersRef={rowsHandlersRef} />
+        </MessageListProvider>
       </Box>
     </ScrollArea>
   );
@@ -278,10 +373,17 @@ export const MessageList = genericFactory<MessageListFactory>((_props) => {
 
 MessageList.displayName = 'MessageList';
 MessageList.classes = classes;
+MessageList.Row = MessageListRow;
 
 export namespace MessageList {
   export type Props = MessageListProps;
   export type StylesNames = MessageListStylesNames;
   export type Factory = MessageListFactory;
   export type Labels = MessageListLabels;
+
+  export namespace Row {
+    export type Props = MessageListRowProps;
+    export type StylesNames = MessageListStylesNames;
+    export type Factory = MessageListRowFactory;
+  }
 }

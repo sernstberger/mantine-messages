@@ -47,6 +47,7 @@ export default function HomePage() {
           'MessageBody',
           'MessageMeta',
           'MessageList',
+          'MessageListRow',
           'MessageActions',
           'Reactions',
           'Attachments',

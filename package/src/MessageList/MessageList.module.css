@@ -6,12 +6,13 @@
 }
 
 .divider {
-  margin-block: var(--mantine-spacing-sm);
+  /* Padding, not margin: a virtualizer measures rows by their border box */
+  padding-block: var(--mantine-spacing-sm);
   font-weight: 500;
 }
 
 .unread {
-  margin-block: var(--mantine-spacing-xs);
+  padding-block: var(--mantine-spacing-xs);
   font-weight: 600;
 }
 
