@@ -30,8 +30,9 @@ import {
 } from '../MessageList/MessageList';
 import { Reactions } from '../Reactions/Reactions';
 import type { ChatMessage, MessageAttachment, MessagesUser, SystemEvent } from '../types';
+import { useDateSettings } from '../MessagesProvider/use-messages-context';
 import { toDate } from '../utils/dates';
-import { formatRelative, formatTime } from '../utils/format';
+import { type DateSettings, formatRelative, formatTime } from '../utils/format';
 import { getCachedPreview } from '../utils/preview';
 import classes from './TeamThread.module.css';
 
@@ -120,8 +121,11 @@ export interface TeamThreadProps
   /** `id` of the person looking; the list follows their new messages and only they can edit theirs */
   currentUserId: string;
 
-  /** Locale for times and date dividers, the browser's by default */
+  /** Locale for times and date dividers, from `MessagesProvider` (`'en'` without one) by default */
   locale?: string;
+
+  /** IANA time zone for times and date dividers, from `MessagesProvider` (the runtime's without one) by default */
+  timeZone?: string;
 
   /** Longest gap, in milliseconds, between two messages of one group, 5 minutes by default */
   groupWindow?: number;
@@ -231,7 +235,7 @@ interface TeamThreadContextValue {
   usersById: Map<string, MessagesUser>;
   currentUserId: string;
   actions: MessageAction[];
-  locale?: string;
+  dates: DateSettings;
   unstyled?: boolean;
   avatarSize: TeamThreadProps['avatarSize'];
   threadParentId?: string;
@@ -413,7 +417,7 @@ export const TeamThreadAttachments = factory<TeamThreadAttachmentsFactory>((_pro
     <Attachments
       ref={ref}
       attachments={message.attachments}
-      locale={ctx.locale}
+      locale={ctx.dates.locale}
       unstyled={ctx.unstyled}
       onOpen={onOpenAttachment && ((attachment) => onOpenAttachment(message, attachment))}
       {...ctx.getStyles('attachments', { className, style, classNames, styles })}
@@ -536,7 +540,7 @@ export const TeamThreadThreadSummary = factory<TeamThreadThreadSummaryFactory>((
         unstyled={unstyled}
         {...getStyles('threadLastReply', { classNames, styles })}
       >
-        {ctx.labels.lastReply(formatRelative(thread.lastReplyAt, ctx.locale))}
+        {ctx.labels.lastReply(formatRelative(thread.lastReplyAt, ctx.dates))}
       </Text>
     </>
   );
@@ -633,7 +637,7 @@ export const TeamThreadEvent = factory<TeamThreadEventFactory>((_props) => {
   );
   const ctx = useTeamThreadContext();
   const date = toDate(event.createdAt);
-  const time = formatTime(date, ctx.locale);
+  const time = formatTime(date, ctx.dates);
 
   return (
     <Text
@@ -708,7 +712,7 @@ export const TeamThreadMessage = factory<TeamThreadMessageFactory>((_props) => {
   const name = nameOf(ctx.usersById, message.authorId);
   const internal = isInternal(message);
   const date = toDate(message.createdAt);
-  const time = formatTime(date, ctx.locale);
+  const time = formatTime(date, ctx.dates);
 
   return (
     <TeamThreadMessageProvider value={{ ...context, message, name, internal, date, time }}>
@@ -786,6 +790,7 @@ export const TeamThread = factory<TeamThreadFactory>((_props) => {
     users,
     currentUserId,
     locale,
+    timeZone,
     groupWindow,
     autoScroll,
     renderBody,
@@ -824,6 +829,7 @@ export const TeamThread = factory<TeamThreadFactory>((_props) => {
   const theme = useMantineTheme();
   const usersById = useMemo(() => new Map(users.map((user) => [user.id, user])), [users]);
   const allLabels = useMemo(() => ({ ...defaultLabels, ...labels }), [labels]);
+  const dates = useDateSettings(locale, timeZone);
   // 0 outside a thread, so a new message does not change renderItem
   const replyCount = threadParentId
     ? items.filter((item) => !isEvent(item) && item.id !== threadParentId).length
@@ -848,7 +854,7 @@ export const TeamThread = factory<TeamThreadFactory>((_props) => {
       usersById,
       currentUserId,
       actions,
-      locale,
+      dates,
       unstyled,
       avatarSize,
       threadParentId,
@@ -875,7 +881,7 @@ export const TeamThread = factory<TeamThreadFactory>((_props) => {
       usersById,
       currentUserId,
       actions,
-      locale,
+      dates,
       avatarSize,
       threadParentId,
       renderBody,
@@ -931,6 +937,7 @@ export const TeamThread = factory<TeamThreadFactory>((_props) => {
         groupWith={sameGroup}
         isOwn={(item) => item.authorId === currentUserId}
         locale={locale}
+        timeZone={timeZone}
         autoScroll={autoScroll}
         unreadAfterId={unreadAfterId}
         onLoadOlder={onLoadOlder}

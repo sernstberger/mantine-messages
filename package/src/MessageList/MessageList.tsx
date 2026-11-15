@@ -14,8 +14,8 @@ import {
 } from '@mantine/core';
 import React, { memo, useImperativeHandle } from 'react';
 import type { MessageBase } from '../types';
-import { dayKey } from '../utils/dates';
-import { formatDay } from '../utils/format';
+import { useDateSettings } from '../MessagesProvider/use-messages-context';
+import { dayNumber, formatDay } from '../utils/format';
 import classes from './MessageList.module.css';
 import { useMessageList, type MessageListJumpOptions } from './use-message-list';
 
@@ -76,8 +76,11 @@ export interface MessageListProps<T extends MessageBase = MessageBase>
   /** Whether the current user wrote the item; the list always scrolls to their new items */
   isOwn?(item: T): boolean;
 
-  /** Locale for date dividers, the browser's by default */
+  /** Locale for date dividers, from `MessagesProvider` (`'en'` without one) by default */
   locale?: string;
+
+  /** IANA time zone that decides where days start, from `MessagesProvider` (the runtime's without one) by default */
+  timeZone?: string;
 
   /** Divider with the date before each new day, `true` by default */
   withDateDividers?: boolean;
@@ -154,6 +157,7 @@ export const MessageList = genericFactory<MessageListFactory>((_props) => {
     groupWith,
     isOwn,
     locale,
+    timeZone,
     withDateDividers,
     unreadAfterId,
     autoScroll,
@@ -194,8 +198,10 @@ export const MessageList = genericFactory<MessageListFactory>((_props) => {
   const allLabels = { ...defaultLabels, ...labels };
   useImperativeHandle(handlersRef, () => ({ jumpTo }), [jumpTo]);
 
+  const dates = useDateSettings(locale, timeZone);
   const newDay = (a: MessageBase | undefined, b: MessageBase) =>
-    !!withDateDividers && (!a || dayKey(a.createdAt) !== dayKey(b.createdAt));
+    !!withDateDividers &&
+    (!a || dayNumber(a.createdAt, dates.timeZone) !== dayNumber(b.createdAt, dates.timeZone));
 
   return (
     <ScrollArea
@@ -234,7 +240,7 @@ export const MessageList = genericFactory<MessageListFactory>((_props) => {
             <React.Fragment key={item.id}>
               {dayStarts && (
                 <Divider
-                  label={formatDay(item.createdAt, locale)}
+                  label={formatDay(item.createdAt, dates)}
                   labelPosition="center"
                   unstyled={unstyled}
                   {...getStyles('divider')}

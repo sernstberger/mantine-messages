@@ -25,7 +25,8 @@ import { useDebouncedValue, useId, useUncontrolled } from '@mantine/hooks';
 import React, { memo, useCallback, useMemo, useRef } from 'react';
 import { HashIcon, SearchIcon } from '../icons';
 import type { Conversation } from '../types';
-import { formatShort } from '../utils/format';
+import { useDateSettings } from '../MessagesProvider/use-messages-context';
+import { type DateSettings, formatShort } from '../utils/format';
 import { getPreview } from '../utils/preview';
 import classes from './Inbox.module.css';
 
@@ -95,8 +96,11 @@ export interface InboxProps
   /** Called with the `id` of the conversation the user opens */
   onChange?: (id: string) => void;
 
-  /** Locale for times, the browser's by default */
+  /** Locale for times, from `MessagesProvider` (`'en'` without one) by default */
   locale?: string;
+
+  /** IANA time zone for times, from `MessagesProvider` (the runtime's without one) by default */
+  timeZone?: string;
 
   /** Show a search box above the list */
   withSearch?: boolean;
@@ -187,7 +191,7 @@ type GetStyles = GetStylesApi<InboxFactory>;
 interface InboxRowProps {
   conversation: Conversation;
   active: boolean;
-  locale: string | undefined;
+  dates: DateSettings;
   labels: InboxLabels;
   getStyles: GetStyles;
   color: MantineColor | undefined;
@@ -198,7 +202,7 @@ interface InboxRowProps {
 const InboxRow = memo(function InboxRow({
   conversation,
   active,
-  locale,
+  dates,
   labels,
   getStyles,
   color,
@@ -230,7 +234,7 @@ const InboxRow = memo(function InboxRow({
         </Text>
         {conversation.lastMessage && (
           <Text component="span" size="xs" unstyled={unstyled} {...getStyles('time')}>
-            {formatShort(conversation.lastMessage.createdAt, locale)}
+            {formatShort(conversation.lastMessage.createdAt, dates)}
           </Text>
         )}
         <Text component="span" size="sm" truncate unstyled={unstyled} {...getStyles('preview')}>
@@ -272,6 +276,7 @@ export const Inbox = factory<InboxFactory>((_props) => {
     defaultValue,
     onChange,
     locale,
+    timeZone,
     withSearch,
     searchValue,
     defaultSearchValue,
@@ -323,6 +328,7 @@ export const Inbox = factory<InboxFactory>((_props) => {
     () => ({ ...defaultLabels, ...labels }),
     [labelsKey, labels?.unread, labels?.results]
   );
+  const dates = useDateSettings(locale, timeZone);
   const select = useRef(setSelected);
   select.current = setSelected;
   const onSelect = useCallback((id: string) => select.current(id), []);
@@ -367,7 +373,7 @@ export const Inbox = factory<InboxFactory>((_props) => {
       key={conversation.id}
       conversation={conversation}
       active={conversation.id === selected}
-      locale={locale}
+      dates={dates}
       labels={allLabels}
       getStyles={rowStyles}
       color={color}

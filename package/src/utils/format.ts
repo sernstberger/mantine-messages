@@ -3,7 +3,8 @@ import { toDate } from './dates';
 
 const DAY = 24 * 60 * 60 * 1000;
 
-// Building an Intl formatter costs about 50 times more than using one, so each one is shared
+// Building an Intl formatter costs about 50 times more than using one, so each one is shared;
+// options carry the time zone, so the key covers locale, time zone and options
 const formatters = new Map<
   string,
   Intl.DateTimeFormat | Intl.RelativeTimeFormat | Intl.NumberFormat
@@ -41,54 +42,77 @@ export function getNumberFormat(locale: string | undefined, options: Intl.Number
   return cached('number', locale, options, () => new Intl.NumberFormat(locale, options));
 }
 
-const TIME: Intl.DateTimeFormatOptions = { hour: 'numeric', minute: '2-digit' };
-const NUMERIC_AUTO: Intl.RelativeTimeFormatOptions = { numeric: 'auto' };
-
-const sameDay = (a: Date, b: Date) =>
-  a.getFullYear() === b.getFullYear() &&
-  a.getMonth() === b.getMonth() &&
-  a.getDate() === b.getDate();
-
-export function formatTime(value: MessageDate, locale?: string) {
-  return getDateTimeFormat(locale, TIME).format(toDate(value));
+export interface DateSettings {
+  locale?: string;
+  timeZone?: string;
+  now?: MessageDate;
 }
 
-export function formatDay(value: MessageDate, locale?: string, now = new Date()) {
+const TIME: Intl.DateTimeFormatOptions = { hour: 'numeric', minute: '2-digit' };
+const NUMERIC_AUTO: Intl.RelativeTimeFormatOptions = { numeric: 'auto' };
+const CALENDAR_DAY: Intl.DateTimeFormatOptions = {
+  year: 'numeric',
+  month: 'numeric',
+  day: 'numeric',
+};
+
+export function dayNumber(value: MessageDate, timeZone?: string) {
+  const parts = getDateTimeFormat('en-US', { ...CALENDAR_DAY, timeZone }).formatToParts(
+    toDate(value)
+  );
+  const { year, month, day } = Object.fromEntries(
+    parts.map((part) => [part.type, Number(part.value)])
+  );
+  return Date.UTC(year, month - 1, day) / DAY;
+}
+
+const yearOf = (day: number) => new Date(day * DAY).getUTCFullYear();
+
+function daysBefore(date: Date, { timeZone, now }: DateSettings) {
+  const today = dayNumber(now ?? new Date(), timeZone);
+  const day = dayNumber(date, timeZone);
+  return { daysAgo: today - day, sameYear: yearOf(today) === yearOf(day) };
+}
+
+export function formatTime(value: MessageDate, { locale, timeZone }: DateSettings) {
+  return getDateTimeFormat(locale, { ...TIME, timeZone }).format(toDate(value));
+}
+
+export function formatDay(value: MessageDate, settings: DateSettings) {
+  const { locale, timeZone } = settings;
   const date = toDate(value);
-  const relative = getRelativeTimeFormat(locale, NUMERIC_AUTO);
-  const yesterday = new Date(now.getTime() - DAY);
+  const { daysAgo, sameYear } = daysBefore(date, settings);
 
-  if (sameDay(date, now)) {
-    return capitalize(relative.format(0, 'day'));
+  if (daysAgo === 0 || daysAgo === 1) {
+    return capitalize(getRelativeTimeFormat(locale, NUMERIC_AUTO).format(0 - daysAgo, 'day'));
   }
 
-  if (sameDay(date, yesterday)) {
-    return capitalize(relative.format(-1, 'day'));
-  }
-
-  if (now.getTime() - date.getTime() < 7 * DAY) {
-    return getDateTimeFormat(locale, { weekday: 'long' }).format(date);
+  if (daysAgo < 7) {
+    return getDateTimeFormat(locale, { weekday: 'long', timeZone }).format(date);
   }
 
   return getDateTimeFormat(locale, {
     month: 'long',
     day: 'numeric',
-    year: date.getFullYear() === now.getFullYear() ? undefined : 'numeric',
+    year: sameYear ? undefined : 'numeric',
+    timeZone,
   }).format(date);
 }
 
-export function formatShort(value: MessageDate, locale?: string, now = new Date()) {
+export function formatShort(value: MessageDate, settings: DateSettings) {
+  const { locale, timeZone } = settings;
   const date = toDate(value);
+  const { daysAgo } = daysBefore(date, settings);
 
-  if (sameDay(date, now)) {
-    return formatTime(date, locale);
+  if (daysAgo === 0) {
+    return formatTime(date, settings);
   }
 
-  if (now.getTime() - date.getTime() < 7 * DAY) {
-    return getDateTimeFormat(locale, { weekday: 'short' }).format(date);
+  if (daysAgo < 7) {
+    return getDateTimeFormat(locale, { weekday: 'short', timeZone }).format(date);
   }
 
-  return getDateTimeFormat(locale, { month: 'short', day: 'numeric' }).format(date);
+  return getDateTimeFormat(locale, { month: 'short', day: 'numeric', timeZone }).format(date);
 }
 
 const capitalize = (text: string) => text.charAt(0).toLocaleUpperCase() + text.slice(1);
@@ -114,8 +138,9 @@ const RELATIVE_UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
   ['minute', 60],
 ];
 
-export function formatRelative(value: MessageDate, locale?: string, now = new Date()) {
-  const seconds = Math.round((toDate(value).getTime() - now.getTime()) / 1000);
+export function formatRelative(value: MessageDate, { locale, now }: DateSettings) {
+  const from = now === undefined ? Date.now() : toDate(now).getTime();
+  const seconds = Math.round((toDate(value).getTime() - from) / 1000);
   const relative = getRelativeTimeFormat(locale, NUMERIC_AUTO);
 
   for (const [unit, size] of RELATIVE_UNITS) {
