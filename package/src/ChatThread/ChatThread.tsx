@@ -1,43 +1,47 @@
 import {
-  ActionIcon,
   Avatar,
   Box,
   BoxProps,
-  Divider,
   ElementProps,
   factory,
   Factory,
-  ScrollArea,
   StylesApiProps,
   Text,
   UnstyledButton,
   useProps,
   useStyles,
 } from '@mantine/core';
-import { useReducedMotion, useTimeout } from '@mantine/hooks';
-import React, { useMemo, useRef, useState } from 'react';
-import type { ChatMessage, MessageStatus, MessagesUser } from '../types';
-import { formatDay, formatTime } from '../utils/format';
-import { getPreview, truncate } from '../utils/preview';
-import { groupMessages } from '../utils/group-messages';
+import React, { useMemo } from 'react';
+import { Attachments } from '../Attachments/Attachments';
 import { ReplyIcon } from '../icons';
+import { MessageActions, type MessageAction } from '../MessageActions/MessageActions';
+import { MessageList } from '../MessageList/MessageList';
+import { Reactions } from '../Reactions/Reactions';
+import type { ChatMessage, MessageAttachment, MessageStatus, MessagesUser } from '../types';
+import { toDate } from '../utils/dates';
+import { formatTime } from '../utils/format';
+import { getPreview } from '../utils/preview';
 import classes from './ChatThread.module.css';
-import { useStickToBottom } from './use-stick-to-bottom';
 
 export type ChatThreadStylesNames =
   | 'root'
   | 'list'
   | 'divider'
-  | 'group'
-  | 'avatar'
-  | 'messages'
-  | 'author'
+  | 'unread'
+  | 'loader'
+  | 'item'
   | 'row'
+  | 'avatar'
+  | 'avatarSpace'
   | 'content'
-  | 'bubble'
+  | 'author'
   | 'quoteLabel'
   | 'quote'
-  | 'replyButton'
+  | 'line'
+  | 'bubble'
+  | 'actions'
+  | 'reactions'
+  | 'attachments'
   | 'meta'
   | 'status';
 
@@ -50,6 +54,9 @@ export interface ChatThreadLabels extends Record<MessageStatus, string> {
 
   /** Caption above a quoted message; `own` and `toOwn` say which side is the current user */
   repliedTo: (names: { author: string; original: string; own: boolean; toOwn: boolean }) => string;
+
+  /** Line above the first unread message */
+  newMessages: string;
 }
 
 export interface ChatThreadProps
@@ -78,8 +85,35 @@ export interface ChatThreadProps
    */
   autoScroll?: boolean;
 
-  /** Called when the user asks to reply to a message; shows a reply button beside each one */
+  /** Actions beside each message; a built-in shows only when its handler is set, `['reply', 'react', 'edit']` by default */
+  actions?: MessageAction[];
+
+  /** Called when the user asks to reply to a message */
   onReply?: (message: ChatMessage) => void;
+
+  /** Called when the user asks to react to a message, for example to open an emoji picker */
+  onReact?: (message: ChatMessage) => void;
+
+  /** Called when the user asks to edit a message */
+  onEdit?: (message: ChatMessage) => void;
+
+  /** Called when the user clicks a reaction; makes reactions toggle buttons */
+  onToggleReaction?: (message: ChatMessage, emoji: string) => void;
+
+  /** Called when the user opens an attachment; without it attachments are links */
+  onOpenAttachment?: (message: ChatMessage, attachment: MessageAttachment) => void;
+
+  /** `id` of the last read message; a "New messages" line follows it */
+  unreadAfterId?: string | null;
+
+  /** Called when the user scrolls near the top while `hasOlder` and not `loadingOlder` */
+  onLoadOlder?: () => void;
+
+  /** More messages exist before the first one */
+  hasOlder?: boolean;
+
+  /** Older messages are loading; shows a loader at the top */
+  loadingOlder?: boolean;
 
   /** Text for statuses and buttons, for translation */
   labels?: Partial<ChatThreadLabels>;
@@ -101,13 +135,18 @@ const defaultLabels: ChatThreadLabels = {
   unavailable: 'Original message not available',
   repliedTo: ({ author, original, own, toOwn }) =>
     `${own ? 'You' : author} replied to ${toOwn ? (own ? 'yourself' : 'you') : original}`,
+  newMessages: 'New messages',
 };
 
 const defaultProps: Partial<ChatThreadProps> = {
   groupWindow: 5 * 60 * 1000,
   withAuthors: true,
   autoScroll: true,
+  actions: ['reply', 'react', 'edit'],
 };
+
+// Parts of the inner MessageList that ChatThread's Styles API also styles
+const listParts = ['list', 'divider', 'unread', 'loader', 'item'] as const;
 
 export const ChatThread = factory<ChatThreadFactory>((_props) => {
   const props = useProps('ChatThread', defaultProps, _props);
@@ -125,11 +164,18 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
     locale,
     groupWindow,
     withAuthors,
-    labels,
     autoScroll,
+    actions,
     onReply,
-    role = 'log',
-    'aria-live': ariaLive = 'polite',
+    onReact,
+    onEdit,
+    onToggleReaction,
+    onOpenAttachment,
+    unreadAfterId,
+    onLoadOlder,
+    hasOlder,
+    loadingOlder,
+    labels,
     ...others
   } = props;
 
@@ -145,7 +191,6 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
     vars,
   });
 
-  const items = useMemo(() => groupMessages(messages, groupWindow), [messages, groupWindow]);
   const usersById = useMemo(() => new Map(users.map((user) => [user.id, user])), [users]);
   const messagesById = useMemo(
     () => new Map(messages.map((message) => [message.id, message])),
@@ -153,33 +198,14 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
   );
   const allLabels = { ...defaultLabels, ...labels };
   const lastOwn = [...messages].reverse().find((message) => message.authorId === currentUserId);
-  const last = messages[messages.length - 1];
-
-  const viewportRef = useRef<HTMLDivElement>(null);
-  const onScrollPositionChange = useStickToBottom(viewportRef, {
-    enabled: !!autoScroll,
-    firstId: messages[0]?.id,
-    lastId: last?.id,
-    lastIsOwn: last?.authorId === currentUserId,
-  });
-
-  // A click on a quote scrolls to the original message and flashes it
-  const reduceMotion = useReducedMotion();
-  const [highlighted, setHighlighted] = useState<string | null>(null);
-  const flash = useTimeout(() => setHighlighted(null), 1600);
-  const jumpTo = (id: string) => {
-    Array.from(viewportRef.current!.querySelectorAll<HTMLElement>('[data-message-id]'))
-      .find((element) => element.dataset.messageId === id)
-      ?.scrollIntoView({ block: 'center', behavior: reduceMotion ? 'auto' : 'smooth' });
-    flash.clear();
-    setHighlighted(id);
-    flash.start();
-  };
-
   const nameOf = (userId: string) => usersById.get(userId)?.name ?? userId;
 
+  const sameGroup = (previous: ChatMessage, message: ChatMessage) =>
+    previous.authorId === message.authorId &&
+    toDate(message.createdAt).getTime() - toDate(previous.createdAt).getTime() <= groupWindow!;
+
   // The answered message: a caption, then a faded copy tucked under the reply's bubble
-  const renderQuote = (message: ChatMessage) => {
+  const renderQuote = (message: ChatMessage, jumpTo: (id: string) => void) => {
     const original = messagesById.get(message.replyToId!);
 
     if (!original) {
@@ -212,89 +238,99 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
     );
   };
 
+  const listStyles = Object.fromEntries(listParts.map((part) => [part, getStyles(part)]));
+
   return (
-    <ScrollArea
+    <MessageList<ChatMessage>
       ref={ref}
-      viewportRef={viewportRef}
-      onScrollPositionChange={onScrollPositionChange}
+      items={messages}
+      groupWith={sameGroup}
+      isOwn={(message) => message.authorId === currentUserId}
+      locale={locale}
+      autoScroll={autoScroll}
+      unreadAfterId={unreadAfterId}
+      onLoadOlder={onLoadOlder}
+      hasOlder={hasOlder}
+      loadingOlder={loadingOlder}
+      labels={{ unread: allLabels.newMessages }}
+      unstyled={unstyled}
+      classNames={Object.fromEntries(listParts.map((part) => [part, listStyles[part].className]))}
+      styles={Object.fromEntries(listParts.map((part) => [part, listStyles[part].style]))}
       {...getStyles('root')}
       {...others}
-    >
-      <Box role={role} aria-live={ariaLive} {...getStyles('list')}>
-        {items.map((item) => {
-          if (item.type === 'divider') {
-            return (
-              <Divider
-                key={item.key}
-                label={formatDay(item.date, locale)}
-                labelPosition="center"
-                {...getStyles('divider')}
-              />
-            );
-          }
+      renderItem={(message, { groupStart, groupEnd, highlighted, jumpTo }) => {
+        const own = message.authorId === currentUserId;
+        const author = usersById.get(message.authorId);
+        const name = nameOf(message.authorId);
+        const showAuthor = !own && withAuthors;
 
-          const own = item.authorId === currentUserId;
-          const author = usersById.get(item.authorId);
-          const name = nameOf(item.authorId);
-
-          return (
-            <Box key={item.key} mod={{ own }} {...getStyles('group')}>
-              {!own && withAuthors && (
+        return (
+          <Box mod={{ own, 'group-start': groupStart }} {...getStyles('row')}>
+            {showAuthor &&
+              (groupEnd ? (
                 <Avatar src={author?.avatar} name={name} size="sm" {...getStyles('avatar')} />
+              ) : (
+                <Box {...getStyles('avatarSpace')} />
+              ))}
+            <Box mod={{ own }} {...getStyles('content')}>
+              {showAuthor && groupStart && (
+                <Text size="xs" c="dimmed" {...getStyles('author')}>
+                  {name}
+                </Text>
               )}
-              <Box {...getStyles('messages')}>
-                {!own && withAuthors && (
-                  <Text size="xs" c="dimmed" {...getStyles('author')}>
-                    {name}
-                  </Text>
-                )}
-                {item.messages.map((message) => (
-                  <Box key={message.id} mod={{ own }} {...getStyles('row')}>
-                    <Box mod={{ own }} {...getStyles('content')}>
-                      {message.replyToId && renderQuote(message)}
-                      <Box
-                        mod={{
-                          own,
-                          status: message.status,
-                          'message-id': message.id,
-                          highlighted: highlighted === message.id,
-                        }}
-                        title={formatTime(message.createdAt, locale)}
-                        {...getStyles('bubble')}
-                      >
-                        {message.body}
-                      </Box>
-                    </Box>
-                    {onReply && (
-                      <ActionIcon
-                        variant="subtle"
-                        color="gray"
-                        size="sm"
-                        radius="xl"
-                        aria-label={`${allLabels.reply}: ${truncate(getPreview(message), 80)}`}
-                        onClick={() => onReply(message)}
-                        {...getStyles('replyButton')}
-                      >
-                        <ReplyIcon />
-                      </ActionIcon>
-                    )}
-                  </Box>
-                ))}
+              {message.replyToId && renderQuote(message, jumpTo)}
+              <Box mod={{ own }} {...getStyles('line')}>
+                <Box
+                  mod={{ own, status: message.status, 'message-id': message.id, highlighted }}
+                  title={formatTime(message.createdAt, locale)}
+                  {...getStyles('bubble')}
+                >
+                  {message.body}
+                </Box>
+                <MessageActions
+                  actions={actions!}
+                  text={getPreview(message)}
+                  labels={{ reply: allLabels.reply }}
+                  onReply={onReply && (() => onReply(message))}
+                  onReact={onReact && (() => onReact(message))}
+                  onEdit={onEdit && (() => onEdit(message))}
+                  {...getStyles('actions')}
+                />
+              </Box>
+              {message.attachments && (
+                <Attachments
+                  attachments={message.attachments}
+                  locale={locale}
+                  onOpen={
+                    onOpenAttachment && ((attachment) => onOpenAttachment(message, attachment))
+                  }
+                  {...getStyles('attachments')}
+                />
+              )}
+              {message.reactions && (
+                <Reactions
+                  reactions={message.reactions}
+                  currentUserId={currentUserId}
+                  onToggle={onToggleReaction && ((emoji) => onToggleReaction(message, emoji))}
+                  {...getStyles('reactions')}
+                />
+              )}
+              {groupEnd && (
                 <Text component="div" size="xs" c="dimmed" {...getStyles('meta')}>
-                  {formatTime(item.messages[item.messages.length - 1].createdAt, locale)}
-                  {own && lastOwn?.status && item.messages.includes(lastOwn) && (
-                    <Box component="span" mod={{ status: lastOwn.status }} {...getStyles('status')}>
+                  {formatTime(message.createdAt, locale)}
+                  {own && message.id === lastOwn?.id && message.status && (
+                    <Box component="span" mod={{ status: message.status }} {...getStyles('status')}>
                       {' · '}
-                      {allLabels[lastOwn.status]}
+                      {allLabels[message.status]}
                     </Box>
                   )}
                 </Text>
-              </Box>
+              )}
             </Box>
-          );
-        })}
-      </Box>
-    </ScrollArea>
+          </Box>
+        );
+      }}
+    />
   );
 });
 

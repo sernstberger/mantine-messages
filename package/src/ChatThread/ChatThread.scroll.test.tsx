@@ -58,7 +58,11 @@ function setup(messages = start, props: Partial<React.ComponentProps<typeof Chat
   /** The user scrolls to `top` after the pinned time of the last automatic scroll */
   const userScrollsTo = (top: number) => {
     now += 1000;
-    Object.defineProperty(viewport, 'scrollTop', { configurable: true, value: top });
+    Object.defineProperty(viewport, 'scrollTop', {
+      configurable: true,
+      writable: true,
+      value: top,
+    });
     fireEvent.scroll(viewport);
   };
 

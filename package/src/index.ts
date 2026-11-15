@@ -16,9 +16,7 @@ export type {
   ComposerReply,
   ComposerLabels,
 } from './Composer/Composer';
-export { groupMessages } from './utils/group-messages';
 export { getPreview, stripMarkdown, truncate } from './utils/preview';
-export type { ThreadItem, MessageGroup, DateDivider } from './utils/group-messages';
 export type * from './types';
 export { MessageList, MessageListBase } from './MessageList/MessageList';
 export type {

@@ -71,13 +71,13 @@ describe('ChatThread replies', () => {
   });
 
   it('scrolls to the original on a click and flashes it', () => {
-    jest.useFakeTimers();
+    jest.useFakeTimers({ doNotFake: ['Date'] });
     const scrollIntoView = jest.spyOn(Element.prototype, 'scrollIntoView');
     renderThread();
 
     fireEvent.click(screen.getByRole('button', { name: 'Can you send the invoice?' }));
     expect(scrollIntoView).toHaveBeenCalledWith({ block: 'center', behavior: 'smooth' });
-    expect(scrollIntoView.mock.contexts[0]).toBe(bubble('a'));
+    expect(scrollIntoView.mock.contexts[0]).toBe(bubble('a').closest('[data-item-id]'));
     expect(bubble('a')).toHaveAttribute('data-highlighted');
 
     act(() => jest.advanceTimersByTime(1600));
@@ -149,5 +149,56 @@ describe('ChatThread replies', () => {
     const label = `Reply: ${preview.slice(0, 79)}…`;
     expect(screen.getByRole('button', { name: label })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /^Plan: word/ })).toBeInTheDocument();
+  });
+  it('shows reactions, attachments and actions from the new props', async () => {
+    const onReact = jest.fn();
+    const onToggleReaction = jest.fn();
+    const onOpenAttachment = jest.fn();
+    const rich: ChatMessage[] = [
+      {
+        ...messages[0],
+        reactions: [{ emoji: '👍', userIds: ['me'] }],
+        attachments: [{ id: 'f', name: 'menu.pdf', url: '/menu.pdf' }],
+      },
+    ];
+    render(
+      <ChatThread
+        messages={rich}
+        users={users}
+        currentUserId="me"
+        onReact={onReact}
+        onToggleReaction={onToggleReaction}
+        onOpenAttachment={onOpenAttachment}
+        unreadAfterId={null}
+      />,
+      { wrapper: MantineProvider }
+    );
+    fireEvent.click(screen.getByRole('button', { name: /^React: / }));
+    fireEvent.click(screen.getByRole('button', { name: '👍 1, including you' }));
+    fireEvent.click(screen.getByRole('button', { name: 'menu.pdf' }));
+    expect(onReact).toHaveBeenCalledWith(rich[0]);
+    expect(onToggleReaction).toHaveBeenCalledWith(rich[0], '👍');
+    expect(onOpenAttachment).toHaveBeenCalledWith(rich[0], rich[0].attachments![0]);
+  });
+
+  it('passes edit, the unread line and loading through', () => {
+    const onEdit = jest.fn();
+    render(
+      <ChatThread
+        messages={messages}
+        users={users}
+        currentUserId="me"
+        onEdit={onEdit}
+        unreadAfterId="a"
+        loadingOlder
+        hasOlder
+        labels={{ newMessages: 'Unread below' }}
+      />,
+      { wrapper: MantineProvider }
+    );
+    expect(screen.getByText('Unread below')).toBeInTheDocument();
+    expect(document.querySelector('.mantine-ChatThread-loader')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Edit: On it' }));
+    expect(onEdit).toHaveBeenCalledWith(messages[1]);
   });
 });

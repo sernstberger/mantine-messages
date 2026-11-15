@@ -12,7 +12,6 @@ describe('mantine-messages', () => {
       'MessageListBase',
       'Reactions',
       'getPreview',
-      'groupMessages',
       'stripMarkdown',
       'truncate',
       'useMessageList',

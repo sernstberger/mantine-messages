@@ -1,55 +1,9 @@
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--mantine-spacing-sm);
-  padding: var(--mantine-spacing-md);
-}
-
-.divider {
-  font-weight: 500;
-}
-
-.group {
-  display: flex;
-  align-items: flex-end;
-  gap: var(--mantine-spacing-xs);
-  max-width: 80%;
-
-  &:where([data-own]) {
-    align-self: flex-end;
-  }
-}
-
 .avatar {
   flex-shrink: 0;
 }
 
-.messages {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-  min-width: 0;
-
-  :where([data-own]) > & {
-    align-items: flex-end;
-  }
-}
-
 .author {
   padding-inline: var(--mantine-spacing-sm);
-}
-
-/* One bubble and its reply button */
-.row {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  max-width: 100%;
-
-  &:where([data-own]) {
-    flex-direction: row-reverse;
-  }
 }
 
 .bubble {
@@ -95,6 +49,7 @@
 /* A bubble with what it answers above it */
 .content {
   display: flex;
+  max-width: 100%;
   flex-direction: column;
   align-items: flex-start;
   min-width: 0;
@@ -138,12 +93,57 @@
   }
 }
 
-/* Shown on hover and keyboard focus; always shown where there is no hover */
-.replyButton {
+.meta {
+  padding-inline: var(--mantine-spacing-sm);
+}
+
+.status {
+  &:where([data-status='failed']) {
+    color: var(--mantine-color-error);
+  }
+}
+
+/* One message: avatar column and content */
+.row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--mantine-spacing-xs);
+  max-width: 80%;
+  margin-top: 2px;
+
+  &:where([data-group-start]) {
+    margin-top: var(--mantine-spacing-sm);
+  }
+
+  &:where([data-own]) {
+    align-self: flex-end;
+  }
+}
+
+/* Keeps follow-up messages in line with the avatar of their group */
+.avatarSpace {
   flex-shrink: 0;
+  width: rem(26px);
+}
+
+/* A bubble and its actions */
+.line {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+
+  &:where([data-own]) {
+    flex-direction: row-reverse;
+  }
+}
+
+/* Shown on hover, keyboard focus and while their menu is open; always where there is no hover */
+.actions {
   opacity: 0;
 
-  :where(.row:hover, .row:focus-within) > & {
+  :where(.line:hover, .line:focus-within) > &,
+  &[data-menu-open] {
     opacity: 1;
   }
 
@@ -152,12 +152,9 @@
   }
 }
 
-.meta {
-  padding-inline: var(--mantine-spacing-sm);
-}
-
-.status {
-  &:where([data-status='failed']) {
-    color: var(--mantine-color-error);
+.reactions,
+.attachments {
+  :where([data-own]) > & {
+    justify-content: flex-end;
   }
 }
