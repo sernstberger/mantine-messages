@@ -31,8 +31,27 @@ export type MessagesShellCssVariables = {
   root: '--messages-shell-radius' | '--messages-shell-list-width' | '--messages-shell-aside-width';
 };
 
+export interface MessagesShellLabels {
+  /** Name of the `MessagesShell.List` region */
+  list: string;
+
+  /** Name of the `MessagesShell.Main` region */
+  main: string;
+
+  /** Name of the `MessagesShell.Aside` region */
+  aside: string;
+
+  /** Text of `MessagesShell.AsideToggle` */
+  asideToggle: string;
+}
+
 interface MessagesShellContextValue {
   getStyles: GetStylesApi<MessagesShellFactory>;
+  unstyled: boolean | undefined;
+  labels: MessagesShellLabels;
+
+  /** The toggle's button, so closing the overlay aside can return focus to it */
+  toggleRef: React.RefObject<HTMLButtonElement | null>;
 
   /** The aside is narrower than `asideBreakpoint` allows: it overlays `Main` when opened */
   asideCollapsed: boolean;
@@ -58,7 +77,7 @@ export type MessagesShellListFactory = Factory<{
 
 /**
  * The start pane (left in LTR), 300px wide by default (change it with `w`): a column whose children decide how
- * to scroll. A region labelled "List" unless `aria-label` says otherwise
+ * to scroll. A region named by `labels.list` unless `aria-label` says otherwise
  */
 export const MessagesShellList = factory<MessagesShellListFactory>((_props) => {
   const { classNames, className, style, styles, vars, ref, ...others } = useProps(
@@ -72,7 +91,7 @@ export const MessagesShellList = factory<MessagesShellListFactory>((_props) => {
     <Box
       component="section"
       ref={ref}
-      aria-label="List"
+      aria-label={ctx.labels.list}
       {...ctx.getStyles('list', { className, style, classNames, styles })}
       {...others}
     />
@@ -92,7 +111,7 @@ export type MessagesShellMainFactory = Factory<{
   compound: true;
 }>;
 
-/** The middle pane: takes the rest of the width, a column. A region labelled "Main" by default */
+/** The middle pane: takes the rest of the width, a column. A region named by `labels.main` unless `aria-label` says otherwise */
 export const MessagesShellMain = factory<MessagesShellMainFactory>((_props) => {
   const { classNames, className, style, styles, vars, ref, ...others } = useProps(
     'MessagesShellMain',
@@ -105,7 +124,7 @@ export const MessagesShellMain = factory<MessagesShellMainFactory>((_props) => {
     <Box
       component="section"
       ref={ref}
-      aria-label="Main"
+      aria-label={ctx.labels.main}
       {...ctx.getStyles('main', { className, style, classNames, styles })}
       {...others}
     />
@@ -128,7 +147,8 @@ export type MessagesShellAsideFactory = Factory<{
 /**
  * The end pane (right in LTR), 280px wide by default (change it with `w`). Below `asideBreakpoint` it is
  * hidden until opened, then overlays `Main` over a backdrop; Escape or a click on the backdrop
- * closes it. Labelled "Details" by default
+ * closes it, and focus moves into it on open and back to the toggle on close. A complementary region
+ * named by `labels.aside` unless `aria-label` says otherwise
  */
 export const MessagesShellAside = factory<MessagesShellAsideFactory>((_props) => {
   const { classNames, className, style, styles, vars, ref, onKeyDown, ...others } = useProps(
@@ -138,6 +158,24 @@ export const MessagesShellAside = factory<MessagesShellAsideFactory>((_props) =>
   );
   const ctx = useMessagesShellContext();
   const overlay = ctx.asideCollapsed && ctx.asideOpened;
+  const asideRef = React.useRef<HTMLElement>(null);
+  const mergedRef = useMergedRef(ref, asideRef);
+  const wasOverlay = React.useRef(overlay);
+
+  React.useEffect(() => {
+    if (overlay && !wasOverlay.current) {
+      asideRef.current?.focus();
+    }
+
+    if (!overlay && wasOverlay.current) {
+      const active = document.activeElement;
+      if (!active || active === document.body || asideRef.current?.contains(active)) {
+        ctx.toggleRef.current?.focus();
+      }
+    }
+
+    wasOverlay.current = overlay;
+  }, [overlay]);
 
   return (
     <>
@@ -147,15 +185,17 @@ export const MessagesShellAside = factory<MessagesShellAsideFactory>((_props) =>
           color="#000"
           backgroundOpacity={0.25}
           zIndex={2}
+          unstyled={ctx.unstyled}
           onClick={() => ctx.setAsideOpened(false)}
           {...ctx.getStyles('asideBackdrop')}
         />
       )}
       <Box
         component="aside"
-        ref={ref}
+        ref={mergedRef}
         id={ctx.asideId}
-        aria-label="Details"
+        aria-label={ctx.labels.aside}
+        tabIndex={overlay ? -1 : undefined}
         hidden={ctx.asideCollapsed && !ctx.asideOpened}
         mod={{ overlay }}
         onKeyDown={(event: React.KeyboardEvent<HTMLElement>) => {
@@ -180,7 +220,7 @@ export interface MessagesShellAsideToggleProps
     BoxProps,
     CompoundStylesApiProps<MessagesShellAsideToggleFactory>,
     ElementProps<'button'> {
-  /** Label of the button, "Details" by default */
+  /** Label of the button, `labels.asideToggle` unless set */
   children?: React.ReactNode;
 }
 
@@ -209,6 +249,7 @@ export const MessagesShellAsideToggle = factory<MessagesShellAsideToggleFactory>
     ...others
   } = useProps('MessagesShellAsideToggle', {}, _props);
   const ctx = useMessagesShellContext();
+  const mergedRef = useMergedRef(ref, ctx.toggleRef);
 
   if (!ctx.asideCollapsed) {
     return null;
@@ -216,8 +257,9 @@ export const MessagesShellAsideToggle = factory<MessagesShellAsideToggleFactory>
 
   return (
     <Button
-      ref={ref}
+      ref={mergedRef}
       size="compact-sm"
+      unstyled={ctx.unstyled}
       variant={ctx.asideOpened ? 'light' : 'default'}
       aria-expanded={ctx.asideOpened}
       aria-controls={ctx.asideId}
@@ -235,7 +277,7 @@ export const MessagesShellAsideToggle = factory<MessagesShellAsideToggleFactory>
       {...ctx.getStyles('asideToggle', { className, style, classNames, styles })}
       {...others}
     >
-      {children ?? 'Details'}
+      {children ?? ctx.labels.asideToggle}
     </Button>
   );
 });
@@ -253,7 +295,8 @@ export interface MessagesShellProps
 
   /**
    * Width of the shell in px below which the aside collapses: hidden until opened, then over
-   * `Main`. 960 by default; 0 never collapses it
+   * `Main`; 0 never collapses it
+   * @default 960
    */
   asideBreakpoint?: number;
 
@@ -262,6 +305,9 @@ export interface MessagesShellProps
 
   /** Whether the collapsed aside starts open (uncontrolled) */
   defaultAsideOpened?: boolean;
+
+  /** Names of the panes and the text of the toggle, for translation, merged with the English defaults */
+  labels?: Partial<MessagesShellLabels>;
 
   /** Called when the toggle or Escape opens or closes the collapsed aside */
   onAsideOpenedChange?: (opened: boolean) => void;
@@ -279,6 +325,13 @@ export type MessagesShellFactory = Factory<{
     AsideToggle: typeof MessagesShellAsideToggle;
   };
 }>;
+
+const defaultLabels: MessagesShellLabels = {
+  list: 'List',
+  main: 'Main',
+  aside: 'Details',
+  asideToggle: 'Details',
+};
 
 const defaultProps = { asideBreakpoint: 960 } satisfies Partial<MessagesShellProps>;
 
@@ -312,6 +365,7 @@ export const MessagesShell = factory<MessagesShellFactory>((_props) => {
     asideOpened: asideOpenedProp,
     defaultAsideOpened,
     onAsideOpenedChange,
+    labels,
     mod,
     ...others
   } = props;
@@ -340,11 +394,23 @@ export const MessagesShell = factory<MessagesShellFactory>((_props) => {
     onChange: onAsideOpenedChange,
   });
 
+  const toggleRef = React.useRef<HTMLButtonElement>(null);
+  const mergedLabels = React.useMemo(() => ({ ...defaultLabels, ...labels }), [labels]);
+
   const asideCollapsed = width > 0 && width < asideBreakpoint;
 
   return (
     <MessagesShellProvider
-      value={{ getStyles, asideCollapsed, asideOpened, setAsideOpened, asideId }}
+      value={{
+        getStyles,
+        unstyled,
+        labels: mergedLabels,
+        toggleRef,
+        asideCollapsed,
+        asideOpened,
+        setAsideOpened,
+        asideId,
+      }}
     >
       <Box
         ref={mergedRef}
@@ -369,6 +435,7 @@ export namespace MessagesShell {
   export type StylesNames = MessagesShellStylesNames;
   export type Factory = MessagesShellFactory;
   export type CssVariables = MessagesShellCssVariables;
+  export type Labels = MessagesShellLabels;
 
   export namespace List {
     export type Props = MessagesShellListProps;

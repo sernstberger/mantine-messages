@@ -190,6 +190,7 @@ export function Team() {
         {parent && (
           <MessagesShell.Aside w={360} aria-label="Thread pane">
             <ThreadPanel
+              role="region"
               style={{ flex: 1 }}
               subtitle={nameOf(channel)}
               onClose={() => setOpenId(null)}
