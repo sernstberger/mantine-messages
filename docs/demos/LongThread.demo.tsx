@@ -66,6 +66,7 @@ function WindowedRows({ rows, viewportRef, handlersRef }: MessageListRowsProps) 
 const messages: ChatMessage[] = Array.from({ length: 10_000 }, (_, index) => ({
   ...sample[index % sample.length],
   id: \`m-\${index + 1}\`,
+  replyToId: sample[index % sample.length].replyToId && \`m-\${index}\`,
   authorId: index % 3 === 0 ? 'me' : 'maya',
   createdAt: new Date(DEMO_NOW.getTime() - (10_000 - index) * 37 * 60 * 1000),
 }));
@@ -133,6 +134,7 @@ function WindowedRows({ rows, viewportRef, handlersRef }: MessageListRowsProps) 
 const messages: ChatMessage[] = Array.from({ length: 10_000 }, (_, index) => ({
   ...sample[index % sample.length],
   id: `m-${index + 1}`,
+  replyToId: sample[index % sample.length].replyToId && `m-${index}`,
   authorId: index % 3 === 0 ? 'me' : 'maya',
   createdAt: new Date(DEMO_NOW.getTime() - (10_000 - index) * 37 * 60 * 1000),
 }));

@@ -74,6 +74,7 @@ const tenThousand: ChatMessage[] = Array.from({ length: TOTAL }, (_, index) => {
   return {
     ...sample,
     id: `m-${index + 1}`,
+    replyToId: sample.replyToId && `m-${index}`,
     authorId: index % 3 === 0 ? 'me' : 'maya',
     body: `${index + 1}. ${sample.body}`,
     createdAt: new Date(opened - (TOTAL - index) * 37 * MINUTE),
