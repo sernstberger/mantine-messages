@@ -90,6 +90,9 @@ async function expectedConsole(page: Page) {
   return declared.map(({ source, flags }) => new RegExp(source, flags));
 }
 
+/** A cold Vite dev server compiles each story on first request */
+const COLD_DEV_SERVER_TIMEOUT_MS = 60_000;
+
 /**
  * Opens a story and waits until it has rendered, its fonts have loaded and Mantine has applied
  * the color scheme. Console errors that the story declares in `parameters.e2e.allowConsole` do
@@ -101,12 +104,14 @@ export async function openStory(page: Page, id: string, options: StoryOptions = 
   await page.emulateMedia({ reducedMotion: reducedMotion ? 'reduce' : 'no-preference' });
   await page.goto(storyUrl(id, options));
 
-  const phase = await page.waitForFunction(() => {
-    const { classList } = document.body;
-    return ['sb-show-main', 'sb-show-errordisplay', 'sb-show-nopreview'].find((name) =>
-      classList.contains(name)
-    );
-  });
+  const phase = await page.waitForFunction(
+    () =>
+      ['sb-show-main', 'sb-show-errordisplay', 'sb-show-nopreview'].find((name) =>
+        document.body?.classList.contains(name)
+      ),
+    undefined,
+    { timeout: process.env.E2E_DEV ? COLD_DEV_SERVER_TIMEOUT_MS : undefined }
+  );
 
   const shown = await phase.jsonValue();
 
