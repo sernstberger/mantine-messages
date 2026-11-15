@@ -1,17 +1,32 @@
 import { Box, ScrollArea, Text } from '@mantine/core';
 import React, { useRef, useState } from 'react';
-import { Composer, type ComposerDraft, type ComposerMode } from './Composer/Composer';
-import { Inbox } from './Inbox/Inbox';
-import { MessagesShell } from './MessagesShell/MessagesShell';
-import { sampleChannels, sampleTeamItems, sampleUsers } from './sample-data';
-import { TeamThread, type TeamThreadItem } from './TeamThread/TeamThread';
-import { ThreadPanel } from './ThreadPanel/ThreadPanel';
-import type { ChatMessage, Conversation } from './types';
-import { MarkdownAdapterProvider } from './MarkdownBody/MarkdownAdapterProvider';
-import { markdownAdapter } from '../../.storybook/markdown-adapter';
+import {
+  type ChatMessage,
+  Composer,
+  type ComposerDraft,
+  type ComposerMode,
+  type Conversation,
+  Inbox,
+  MarkdownAdapterProvider,
+  MessagesShell,
+  TeamThread,
+  type TeamThreadItem,
+  ThreadPanel,
+} from 'mantine-messages';
+import { sampleChannels, sampleTeamItems, sampleUsers } from '../../sample-data';
+import { markdownAdapter } from '../../../../.storybook/markdown-adapter';
 
 export default {
-  title: 'Team',
+  title: 'Apps/Team',
+  parameters: {
+    layout: 'fullscreen',
+    docs: {
+      description: {
+        story:
+          'A team chat app: channels and direct messages, threads in a side panel, internal notes and system events.',
+      },
+    },
+  },
   decorators: [
     (Story: React.ComponentType) => (
       <MarkdownAdapterProvider adapter={markdownAdapter}>

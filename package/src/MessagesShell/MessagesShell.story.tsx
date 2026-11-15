@@ -51,7 +51,7 @@ function Shell({ width }: { width?: number }) {
   );
 }
 
-export function ThreePanes() {
+export function Usage() {
   return <Shell />;
 }
 

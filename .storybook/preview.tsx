@@ -1,8 +1,27 @@
 import '@mantine/core/styles.css';
-import { MantineProvider } from '@mantine/core';
+import { DirectionProvider, MantineProvider, useDirection } from '@mantine/core';
 import type { Preview } from '@storybook/react';
 import React, { useEffect } from 'react';
 import { useGlobals } from '@storybook/preview-api';
+
+/** Alt+Shift+R flips the text direction, as in Mantine's own Storybook */
+function DirectionWrapper({ children }: { children: React.ReactNode }) {
+  const { toggleDirection } = useDirection();
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.altKey && event.shiftKey && event.code === 'KeyR') {
+        event.preventDefault();
+        toggleDirection();
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [toggleDirection]);
+
+  return <>{children}</>;
+}
 
 const preview: Preview = {
   parameters: {
@@ -11,6 +30,22 @@ const preview: Preview = {
       matchers: {
         color: /(background|color)$/i,
         date: /Date$/i,
+      },
+    },
+    options: {
+      // Components alphabetically (each by its export name), showcase apps last
+      storySort: (a, b) => {
+        const isApp = (item) => item.title.startsWith('Apps/');
+
+        if (isApp(a) !== isApp(b)) {
+          return isApp(a) ? 1 : -1;
+        }
+
+        if (a.title === b.title) {
+          return 0;
+        }
+
+        return a.title.localeCompare(b.title, undefined, { numeric: true });
       },
     },
   },
@@ -53,7 +88,11 @@ const preview: Preview = {
 
       return (
         <React.StrictMode>
-          <MantineProvider forceColorScheme={scheme}>{renderStory()}</MantineProvider>
+          <DirectionProvider>
+            <MantineProvider forceColorScheme={scheme}>
+              <DirectionWrapper>{renderStory()}</DirectionWrapper>
+            </MantineProvider>
+          </DirectionProvider>
         </React.StrictMode>
       );
     },

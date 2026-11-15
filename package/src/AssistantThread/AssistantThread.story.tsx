@@ -204,7 +204,7 @@ function useFakeAssistant() {
 }
 
 /** Ask anything: the answer streams in token by token, with a reasoning step and a tool call */
-export function Assistant() {
+export function Usage() {
   const { messages, streaming, fail, setFail, send, stop, regenerate, edit } = useFakeAssistant();
 
   return (

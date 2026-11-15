@@ -1,16 +1,28 @@
 import { Box, ScrollArea, Text } from '@mantine/core';
 import React, { useRef, useState } from 'react';
-import { ChatThread } from './ChatThread/ChatThread';
-import { Composer, type ComposerDraft } from './Composer/Composer';
-import { Inbox } from './Inbox/Inbox';
-import { MessagesShell } from './MessagesShell/MessagesShell';
-import { sampleConversations, sampleMessages, sampleUsers } from './sample-data';
-import type { ChatMessage } from './types';
-import { MarkdownAdapterProvider } from './MarkdownBody/MarkdownAdapterProvider';
-import { markdownAdapter } from '../../.storybook/markdown-adapter';
+import {
+  type ChatMessage,
+  ChatThread,
+  Composer,
+  type ComposerDraft,
+  Inbox,
+  MarkdownAdapterProvider,
+  MessagesShell,
+} from 'mantine-messages';
+import { sampleConversations, sampleMessages, sampleUsers } from '../../sample-data';
+import { markdownAdapter } from '../../../../.storybook/markdown-adapter';
 
 export default {
-  title: 'Messenger',
+  title: 'Apps/Messenger',
+  parameters: {
+    layout: 'fullscreen',
+    docs: {
+      description: {
+        story:
+          'A direct-message app: conversation list, thread, composer with replies, reactions and attachments.',
+      },
+    },
+  },
   decorators: [
     (Story: React.ComponentType) => (
       <MarkdownAdapterProvider adapter={markdownAdapter}>

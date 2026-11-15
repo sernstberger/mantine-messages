@@ -6,7 +6,7 @@ for (const theme of ['light', 'dark'] as const) {
   test(`a thread takes focus on its title and gives it back to the opener on close (${theme})`, async ({
     page,
   }) => {
-    await openStory(page, 'team--team', { theme });
+    await openStory(page, 'apps-team--team', { theme });
     const opener = page.getByRole('button', { name: /\d+ repl(y|ies)/ }).first();
     await opener.focus();
     await page.keyboard.press('Enter');

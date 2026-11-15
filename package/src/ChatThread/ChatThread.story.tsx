@@ -19,6 +19,14 @@ export default {
   ],
 };
 
+export function Usage() {
+  return (
+    <Box p="xl" maw={480}>
+      <ChatThread messages={sampleMessages} users={sampleUsers} currentUserId="me" />
+    </Box>
+  );
+}
+
 const longThread: ChatMessage[] = Array.from({ length: 80 }, (_, index) => ({
   id: `long-${index}`,
   authorId: index % 3 === 0 ? 'me' : 'maya',
@@ -72,14 +80,6 @@ export function LongThread() {
   );
 }
 
-export function ThreadOnly() {
-  return (
-    <Box p="xl" maw={480}>
-      <ChatThread messages={sampleMessages} users={sampleUsers} currentUserId="me" />
-    </Box>
-  );
-}
-
 const now = Date.now();
 
 const markdownMessages: ChatMessage[] = [
@@ -107,7 +107,7 @@ const markdownMessages: ChatMessage[] = [
 ];
 
 /** Markdown messages through renderBody and MarkdownBody; plain ones stay plain */
-export function MarkdownInChat() {
+export function WithMarkdown() {
   return (
     <Box p="xl" maw={520}>
       <Paper withBorder radius="lg" h={520} style={{ display: 'flex', flexDirection: 'column' }}>
@@ -142,7 +142,7 @@ const customChatMessages: ChatMessage[] = [
 ];
 
 /** renderMessage with the parts: markdown bodies, reply and copy only, and Retry on failed messages */
-export function CustomChatRows() {
+export function Composition() {
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
 
   return (

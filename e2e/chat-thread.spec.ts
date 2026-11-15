@@ -11,7 +11,7 @@ test('opens at the newest message', async ({ page }) => {
 });
 
 test('stays at the bottom when a reply arrives', async ({ page }) => {
-  await openStory(page, 'messenger--messenger');
+  await openStory(page, 'apps-messenger--messenger');
   const log = page.getByRole('log');
   const items = log.locator('[data-item-id]');
   const before = await items.count();

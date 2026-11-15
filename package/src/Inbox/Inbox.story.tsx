@@ -5,7 +5,7 @@ import { sampleConversations } from '../sample-data';
 
 export default { title: 'Inbox' };
 
-export function InboxOnly() {
+export function Usage() {
   return (
     <Box p="xl" maw={360}>
       <Inbox conversations={sampleConversations} defaultValue="maya" />
@@ -13,7 +13,7 @@ export function InboxOnly() {
   );
 }
 
-export function EmptyInbox() {
+export function Empty() {
   return (
     <Box p="xl" maw={360}>
       <Inbox conversations={[]} />

@@ -18,7 +18,7 @@ async function firstTickets(page: Page, count: number) {
 
 test.describe('table view', () => {
   test('selecting a row does not move the rows below it', async ({ page }) => {
-    await openStory(page, 'work-queue--queue');
+    await openStory(page, 'apps-workqueue--work-queue');
     const [first, second] = await firstTickets(page, 2);
     const checkbox = page.getByRole('checkbox', { name: `Select ${first}` });
     const next = rowOf(page, second);
@@ -35,7 +35,7 @@ test.describe('table view', () => {
   });
 
   test('assigns the selected tickets to an agent', async ({ page }) => {
-    await openStory(page, 'work-queue--queue');
+    await openStory(page, 'apps-workqueue--work-queue');
     const ids = await firstTickets(page, 2);
     // Columns: select, ticket, status, priority, assignee
     const assignee = (id: string) => rowOf(page, id).getByRole('cell').nth(4);
@@ -63,7 +63,7 @@ test.describe('table view', () => {
 
 test.describe('split view', () => {
   test('opens a ticket from the list and marks it read', async ({ page }) => {
-    await openStory(page, 'work-queue--split-view');
+    await openStory(page, 'apps-workqueuesplit--work-queue-split');
     const list = page.getByRole('list', { name: 'Tickets' });
     const unread = list.getByRole('button', { name: /, unread$/ }).first();
     const label = (await unread.getAttribute('aria-label'))!;
@@ -79,7 +79,7 @@ test.describe('split view', () => {
   });
 
   test('Activity scrolls the timeline to the event and flashes it', async ({ page }) => {
-    await openStory(page, 'work-queue--split-view');
+    await openStory(page, 'apps-workqueuesplit--work-queue-split');
     const details = page.getByRole('complementary', { name: 'Ticket details' });
     const log = page.getByRole('region', { name: 'Conversation' }).getByRole('log');
     // The buttons under the Activity heading, one per event
@@ -107,7 +107,9 @@ test.describe('split view', () => {
     test('Details opens the ticket details over the conversation; Escape and the backdrop close them', async ({
       page,
     }) => {
-      await openStory(page, 'work-queue--split-view-narrow');
+      // Below 960px of the shell the details pane moves behind the Details button
+      await page.setViewportSize({ width: 800, height: 900 });
+      await openStory(page, 'apps-workqueuesplit--work-queue-split');
       const toggle = page.getByRole('button', { name: 'Details' });
       const details = page.getByRole('complementary', { name: 'Ticket details' });
 
@@ -142,9 +144,16 @@ test.describe('split view', () => {
   });
 });
 
+/** From the table, as a user does: the ticket's subject opens it */
+async function openTicket(page: Page, id: string) {
+  await openStory(page, 'apps-workqueue--work-queue');
+  await rowOf(page, id).getByRole('button').click();
+  await expect(page.getByRole('log')).toBeVisible();
+}
+
 test.describe('open ticket', () => {
   test('an email opens in a dialog; Escape closes it and the focus goes back', async ({ page }) => {
-    await openStory(page, 'work-queue--open-ticket');
+    await openTicket(page, 'T-1042');
     const open = page.getByRole('button', { name: /^Open email: / }).first();
     const subject = (await open.getAttribute('aria-label'))!.replace(/^Open email: /, '');
 
@@ -161,7 +170,7 @@ test.describe('open ticket', () => {
   });
 
   test('Enter sends a reply and keeps the focus in the composer', async ({ page }) => {
-    await openStory(page, 'work-queue--open-ticket');
+    await openTicket(page, 'T-1042');
     const log = page.getByRole('log');
     const composer = page.getByRole('textbox', { name: 'Message' });
 
