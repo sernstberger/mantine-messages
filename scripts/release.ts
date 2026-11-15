@@ -105,4 +105,7 @@ async function release() {
   );
 }
 
-release();
+release().catch((e) => {
+  signale.error(e);
+  process.exit(1);
+});

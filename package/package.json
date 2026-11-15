@@ -3,7 +3,6 @@
   "version": "0.0.0",
   "description": "Messaging components for Mantine: inbox, thread and composer for people talking to people",
   "homepage": "https://sernstberger.github.io/mantine-messages/",
-  "packageManager": "yarn@4.0.1",
   "license": "MIT",
   "author": "Steve Ernstberger",
   "keywords": [
@@ -26,6 +25,16 @@
     "README.md",
     "LICENSE"
   ],
+  "typesVersions": {
+    "*": {
+      "markdown": [
+        "./dist/types/markdown.d.ts"
+      ],
+      "assistant": [
+        "./dist/types/assistant.d.ts"
+      ]
+    }
+  },
   "exports": {
     ".": {
       "import": {
