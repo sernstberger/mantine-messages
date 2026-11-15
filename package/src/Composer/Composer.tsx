@@ -107,10 +107,10 @@ export interface ComposerProps
   /** Called with the draft when the user sends it; the box then clears */
   onSend?: (draft: ComposerDraft) => void;
 
-  /** How the text is written, copied into each draft, `'text'` by default */
+  /** How the text is written, copied into each draft @default 'text' */
   format?: 'text' | 'markdown';
 
-  /** `'Message'` by default */
+  /** Placeholder and accessible name of the text box @default 'Message' */
   placeholder?: string;
 
   /** The message being answered; shows a bar above the box and focuses it */
@@ -134,6 +134,7 @@ export interface ComposerProps
   /** Text for buttons and the reply bar, for translation */
   labels?: Partial<ComposerLabels>;
 
+  /** Disables the text box, the mode switch and the buttons */
   disabled?: boolean;
 
   /** The text can be read and selected but not changed or sent */
@@ -146,7 +147,7 @@ export interface ComposerProps
    * `onChange` and `onKeyDown` run after the composer's own handlers */
   textareaProps?: TextareaProps;
 
-  /** Most rows the box grows to before it scrolls, 6 by default */
+  /** Most rows the box grows to before it scrolls @default 6 */
   maxRows?: number;
 
   /** An answer is being generated: the send button becomes a stop button and Enter does not send */
@@ -387,7 +388,10 @@ export const Composer = factory<ComposerFactory>((_props) => {
             size={size}
             unstyled={unstyled}
             aria-label={allLabels.cancelReply}
-            onClick={onCancelReply}
+            onClick={() => {
+              onCancelReply?.();
+              ownInputRef.current!.focus();
+            }}
             {...getStyles('cancelReply')}
           />
         </Box>
@@ -429,7 +433,10 @@ export const Composer = factory<ComposerFactory>((_props) => {
 
             textareaProps?.onKeyDown?.(event);
           }}
-          {...getStyles('input')}
+          {...getStyles('input', {
+            className: textareaProps?.className,
+            style: textareaProps?.style,
+          })}
         />
         {rightSection && (
           <Box data-position="right" {...getStyles('section')}>
