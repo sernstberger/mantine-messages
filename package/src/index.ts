@@ -70,3 +70,11 @@ export type {
   TeamThreadLabels,
   TeamThreadItem,
 } from './TeamThread/TeamThread';
+
+export { ThreadPanel } from './ThreadPanel/ThreadPanel';
+export type {
+  ThreadPanelProps,
+  ThreadPanelFactory,
+  ThreadPanelStylesNames,
+  ThreadPanelLabels,
+} from './ThreadPanel/ThreadPanel';
