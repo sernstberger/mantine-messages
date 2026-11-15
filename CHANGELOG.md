@@ -37,6 +37,8 @@ will be 0.1.0.
 - `MessageList`: `controlRef` gets `{ jumpTo }`, so code outside the list can scroll to an item
   and flash it; `ChatThread`, `TeamThread` and `AssistantThread` pass it on. Type:
   `MessageListControl`
+- `ThreadPanel`: `withCloseButton` and `closeButtonProps`, like Mantine's `Modal`; `hasOlder`,
+  `loadingOlder`, `onLoadOlder`, `controlRef`, `groupWindow` and `autoScroll` pass to the thread
 - `Composer`: `inputRef`, `textareaProps` and `readOnly`, as on Mantine's inputs
 - Types: `MessageAvatarFactory`, `MessageBodyFactory`, `MessageMetaFactory`, for theme overrides
   and `extend` on `Message.Avatar`, `Message.Body` and `Message.Meta`

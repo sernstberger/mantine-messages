@@ -2,6 +2,7 @@ import {
   Box,
   BoxProps,
   CloseButton,
+  CloseButtonProps,
   ElementProps,
   factory,
   Factory,
@@ -13,6 +14,7 @@ import {
   useStyles,
 } from '@mantine/core';
 import React from 'react';
+import type { MessageListControl } from '../MessageList/MessageList';
 import type { MessageAction } from '../MessageActions/MessageActions';
 import { TeamThread, type TeamThreadLabels } from '../TeamThread/TeamThread';
 import type { ChatMessage, MessageAttachment, MessagesUser } from '../types';
@@ -56,8 +58,14 @@ export interface ThreadPanelProps
   /** Under the title, for example the channel name */
   subtitle?: React.ReactNode;
 
-  /** Called when the user closes the panel; shows a close button */
+  /** Called when the user closes the panel with its close button */
   onClose?: () => void;
+
+  /** Shows the close button; `true` by default when `onClose` is set */
+  withCloseButton?: boolean;
+
+  /** Props of the close button */
+  closeButtonProps?: CloseButtonProps & ElementProps<'button'>;
 
   /** Locale for times and date dividers, the browser's by default */
   locale?: string;
@@ -71,6 +79,24 @@ export interface ThreadPanelProps
 
   /** `id` of the last read reply; a "New messages" line follows it */
   unreadAfterId?: string | null;
+
+  /** Longest gap, in milliseconds, between two replies of one group, 5 minutes by default */
+  groupWindow?: number;
+
+  /** Keep the newest reply in view, `true` by default */
+  autoScroll?: boolean;
+
+  /** Called when the user scrolls near the top while `hasOlder` and not `loadingOlder` */
+  onLoadOlder?: () => void;
+
+  /** More replies exist before the first one */
+  hasOlder?: boolean;
+
+  /** Older replies are loading; shows a loader at the top */
+  loadingOlder?: boolean;
+
+  /** Gets `{ jumpTo }` of the thread's list, to scroll to a reply and flash it */
+  controlRef?: React.Ref<MessageListControl>;
 
   /** Text, for translation */
   labels?: Partial<ThreadPanelLabels>;
@@ -107,6 +133,8 @@ export const ThreadPanel = factory<ThreadPanelFactory>((_props) => {
     titleOrder,
     subtitle,
     onClose,
+    withCloseButton,
+    closeButtonProps,
     locale,
     actions,
     onReact,
@@ -114,6 +142,12 @@ export const ThreadPanel = factory<ThreadPanelFactory>((_props) => {
     onToggleReaction,
     onOpenAttachment,
     unreadAfterId,
+    groupWindow,
+    autoScroll,
+    onLoadOlder,
+    hasOlder,
+    loadingOlder,
+    controlRef,
     labels,
     children,
     ...others
@@ -147,8 +181,19 @@ export const ThreadPanel = factory<ThreadPanelFactory>((_props) => {
             </Text>
           )}
         </Box>
-        {onClose && (
-          <CloseButton aria-label={closeLabel} onClick={onClose} {...getStyles('close')} />
+        {(withCloseButton ?? !!onClose) && (
+          <CloseButton
+            aria-label={closeLabel}
+            {...closeButtonProps}
+            onClick={(event) => {
+              closeButtonProps?.onClick?.(event);
+              onClose?.();
+            }}
+            {...getStyles('close', {
+              className: closeButtonProps?.className,
+              style: closeButtonProps?.style,
+            })}
+          />
         )}
       </Box>
       <TeamThread
@@ -163,6 +208,12 @@ export const ThreadPanel = factory<ThreadPanelFactory>((_props) => {
         onToggleReaction={onToggleReaction}
         onOpenAttachment={onOpenAttachment}
         unreadAfterId={unreadAfterId}
+        groupWindow={groupWindow}
+        autoScroll={autoScroll}
+        onLoadOlder={onLoadOlder}
+        hasOlder={hasOlder}
+        loadingOlder={loadingOlder}
+        controlRef={controlRef}
         labels={threadLabels}
         unstyled={unstyled}
         {...getStyles('thread')}
