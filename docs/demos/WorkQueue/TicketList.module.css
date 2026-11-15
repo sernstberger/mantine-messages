@@ -1,0 +1,63 @@
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.row {
+  position: relative;
+  border-bottom: 1px solid var(--mantine-color-default-border);
+}
+
+/* The left gutter holds the unread dot, or the checkbox on hover, focus and while selecting */
+.button {
+  display: block;
+  width: 100%;
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm) var(--mantine-spacing-xs) 36px;
+  outline-offset: -2px;
+}
+
+.button:hover {
+  background-color: var(--mantine-color-default-hover);
+}
+
+.row[data-checked] .button {
+  background-color: var(--mantine-primary-color-light);
+}
+
+/* The open ticket: tinted, with an edge in the primary colour */
+.row[data-open] .button {
+  background-color: var(--mantine-primary-color-light);
+  box-shadow: inset 3px 0 0 var(--mantine-primary-color-filled);
+}
+
+.check {
+  position: absolute;
+  top: 11px;
+  left: 10px;
+  z-index: 1;
+  opacity: 0;
+}
+
+.dot {
+  position: absolute;
+  top: 15px;
+  left: 14px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--mantine-primary-color-filled);
+  pointer-events: none;
+}
+
+.row:hover .check,
+.row:focus-within .check,
+.list[data-selecting] .check {
+  opacity: 1;
+}
+
+.row:hover .dot,
+.row:focus-within .dot,
+.list[data-selecting] .dot {
+  opacity: 0;
+}

@@ -7,6 +7,7 @@ import {
   PRIORITY_COLORS,
   PRIORITY_LABELS,
   slaState,
+  SORT_LABELS,
   STATUS_COLORS,
   STATUS_LABELS,
 } from './queue';
@@ -23,8 +24,6 @@ export interface TriageTableProps {
   onSort: (key: SortKey) => void;
   onOpen: (id: string) => void;
 }
-
-const SORT_LABELS: Record<SortKey, string> = { priority: 'Priority', age: 'Age', sla: 'SLA' };
 
 export function TriageTable({
   tickets,

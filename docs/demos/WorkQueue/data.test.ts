@@ -56,4 +56,16 @@ describe('work queue data', () => {
         .forEach((item) => expect(ids.has(item.authorId)).toBe(true));
     }
   });
+
+  it('marks a few tickets unread, each one where the customer wrote last', () => {
+    const unread = tickets.filter((ticket) => ticket.unread);
+    expect(unread.map((ticket) => ticket.id)).toEqual(['T-1042', 'T-1041', 'T-1039', 'T-1038']);
+
+    for (const ticket of unread) {
+      const last = ticket.items
+        .filter((item) => !('kind' in item && item.kind === 'event'))
+        .at(-1)!;
+      expect(last.authorId).toBe(ticket.customerId);
+    }
+  });
 });

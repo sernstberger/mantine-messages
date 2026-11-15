@@ -244,6 +244,7 @@ export function createTickets(now: Date): Ticket[] {
     {
       ...base,
       id: 'T-1042',
+      unread: true,
       subject: 'Charged twice for the March invoice',
       customerId: 'nora',
       status: 'open',
@@ -256,6 +257,7 @@ export function createTickets(now: Date): Ticket[] {
     {
       ...base,
       id: 'T-1041',
+      unread: true,
       subject: 'Account locked after password reset',
       customerId: 'luis',
       status: 'open',
@@ -281,6 +283,7 @@ export function createTickets(now: Date): Ticket[] {
     {
       ...base,
       id: 'T-1039',
+      unread: true,
       subject: 'Request: dark mode for the dashboard',
       customerId: 'ben',
       status: 'open',
@@ -293,6 +296,7 @@ export function createTickets(now: Date): Ticket[] {
     {
       ...base,
       id: 'T-1038',
+      unread: true,
       subject: 'Webhook deliveries failing with 410',
       customerId: 'fatima',
       status: 'open',

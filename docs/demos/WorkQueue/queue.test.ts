@@ -5,10 +5,12 @@ import {
   filterTickets,
   formatAge,
   formatDuration,
+  formatLastActivity,
   inView,
   isSnoozed,
   nameGetter,
   nextSort,
+  previewOf,
   queueReducer,
   slaState,
   snoozeOptions,
@@ -125,6 +127,27 @@ describe('times', () => {
   });
 });
 
+describe('list previews', () => {
+  it('previews the newest email, chat message or note, skipping events', () => {
+    // An email whose line breaks become spaces, followed by an event
+    expect(previewOf(byId(tickets, 'T-1040'))).toBe(
+      'Hi Aiko, Thanks for the report, we could reproduce it. A fix is planned for next week; until then, "Export as XLSX" keeps the accents. Priya'
+    );
+    expect(previewOf(byId(tickets, 'T-1042'))).toBe(
+      'Hi, following up on my email about the double charge. Any news?'
+    );
+    expect(previewOf(byId(tickets, 'T-1033'))).toBe(
+      'Note: Same stack trace as BUG-874. Mobile team is on it.'
+    );
+    expect(previewOf({ ...byId(tickets, 'T-1033'), items: [] })).toBe('');
+  });
+
+  it('times the newest message, or the ticket when it has none', () => {
+    expect(formatLastActivity(byId(tickets, 'T-1042'), now)).toBe('12m');
+    expect(formatLastActivity({ ...byId(tickets, 'T-1042'), items: [] }, now)).toBe('2h');
+  });
+});
+
 describe('queueReducer', () => {
   const at = new Date(now.getTime() + minutes(1));
 
@@ -237,5 +260,17 @@ describe('queueReducer', () => {
       id: 'T-1042-6',
       visibility: 'internal',
     });
+  });
+
+  it('marks a ticket read without logging anything, and keeps the list when it is read', () => {
+    const read = queueReducer(tickets, { type: 'markRead', id: 'T-1042' });
+    expect(byId(tickets, 'T-1042').unread).toBe(true);
+    expect(byId(read, 'T-1042')).toMatchObject({
+      unread: false,
+      items: byId(tickets, 'T-1042').items,
+    });
+    expect(byId(read, 'T-1041')).toBe(byId(tickets, 'T-1041'));
+    expect(queueReducer(read, { type: 'markRead', id: 'T-1042' })).toBe(read);
+    expect(queueReducer(tickets, { type: 'markRead', id: 'T-1040' })).toBe(tickets);
   });
 });

@@ -46,6 +46,9 @@ export interface Ticket {
 
   /** Oldest first */
   items: TimelineItem[];
+
+  /** The customer wrote and nobody has opened the ticket since */
+  unread?: boolean;
 }
 
 /** Someone who can be assigned tickets */

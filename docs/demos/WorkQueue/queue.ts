@@ -1,9 +1,16 @@
-import type { ChatMessage, MessagesUser, SystemEvent } from 'mantine-messages';
+import {
+  type ChatMessage,
+  getPreview,
+  type MessagesUser,
+  type SystemEvent,
+} from 'mantine-messages';
 import type {
   Agent,
+  EmailItem,
   QueueFilters,
   QueueSort,
   QueueView,
+  SortKey,
   Ticket,
   TicketPriority,
   TicketStatus,
@@ -33,6 +40,12 @@ export const PRIORITY_COLORS: Record<TicketPriority, string> = {
   high: 'orange',
   normal: 'blue',
   low: 'gray',
+};
+
+export const SORT_LABELS: Record<SortKey, string> = {
+  priority: 'Priority',
+  age: 'Age',
+  sla: 'SLA',
 };
 
 const PRIORITY_RANK: Record<TicketPriority, number> = { urgent: 0, high: 1, normal: 2, low: 3 };
@@ -135,6 +148,35 @@ export function formatDuration(ms: number) {
 export const formatAge = (ticket: Ticket, now: Date) =>
   formatDuration(now.getTime() - ticket.createdAt.getTime());
 
+/** The newest email, chat message or note; events are left out */
+export function latestMessage(ticket: Ticket): EmailItem | ChatMessage | undefined {
+  return ticket.items.findLast(
+    (item): item is EmailItem | ChatMessage => !('kind' in item && item.kind === 'event')
+  );
+}
+
+/** One line of the newest message: email text, chat body, or a note prefixed "Note: " */
+export function previewOf(ticket: Ticket) {
+  const item = latestMessage(ticket);
+
+  if (!item) {
+    return '';
+  }
+
+  if ('kind' in item) {
+    return item.text.replace(/\s+/g, ' ').trim();
+  }
+
+  const text = getPreview(item);
+  return item.visibility === 'internal' ? `Note: ${text}` : text;
+}
+
+/** Time since the newest message, or since the ticket was created when it has none: "12m" */
+export const formatLastActivity = (ticket: Ticket, now: Date) =>
+  formatDuration(
+    now.getTime() - new Date(latestMessage(ticket)?.createdAt ?? ticket.createdAt).getTime()
+  );
+
 export interface SlaState {
   label: string;
   color: string;
@@ -184,12 +226,14 @@ export type QueueAction =
   | { type: 'setPriority'; ids: string[]; priority: TicketPriority; at: Date }
   | { type: 'addTag'; ids: string[]; tag: string; at: Date }
   | { type: 'snooze'; ids: string[]; until: Date | null; at: Date }
-  | { type: 'send'; id: string; text: string; note: boolean; at: Date };
+  | { type: 'send'; id: string; text: string; note: boolean; at: Date }
+  // Opening a ticket reads it; nothing is logged
+  | { type: 'markRead'; id: string };
 
 /** What the change does to one ticket, and the event it logs; null when there is nothing to do */
 function describe(
   ticket: Ticket,
-  action: Exclude<QueueAction, { type: 'send' }>
+  action: Exclude<QueueAction, { type: 'send' } | { type: 'markRead' }>
 ): [Partial<Ticket>, string] | null {
   switch (action.type) {
     case 'assign': {
@@ -232,6 +276,13 @@ const nextId = (ticket: Ticket) => `${ticket.id}-${ticket.items.length + 1}`;
 
 /** Changes to tickets; every change logs an event in the ticket's timeline */
 export function queueReducer(tickets: Ticket[], action: QueueAction): Ticket[] {
+  if (action.type === 'markRead') {
+    // The same list when there is nothing to read, so opening a read ticket renders nothing new
+    return tickets.some((ticket) => ticket.id === action.id && ticket.unread)
+      ? tickets.map((ticket) => (ticket.id === action.id ? { ...ticket, unread: false } : ticket))
+      : tickets;
+  }
+
   if (action.type === 'send') {
     return tickets.map((ticket) => {
       if (ticket.id !== action.id) {
