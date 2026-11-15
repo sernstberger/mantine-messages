@@ -112,9 +112,9 @@ each pane is a labelled region (`aria-label` names it). `withBorder` and `radius
 
 The shell measures itself. Below `asideBreakpoint` (960px by default, `0` never) the aside hides
 and `MessagesShell.AsideToggle`, which renders nothing while there is room, opens it over `Main`;
-Escape or a click beside it closes it. Control it with `asideOpened` and `onAsideOpenedChange`, for example to open a
-thread panel as soon as a thread is picked. The Messenger demo above and the work queue below are
-built on it.
+Escape or a click beside it closes it. Control it with `asideOpened` and `onAsideOpenedChange`,
+for example to open a thread panel as soon as a thread is picked. The Messenger demo above and the
+work queue below are built on it.
 
 ```tsx
 <MessagesShell withBorder radius="lg" h={600}>

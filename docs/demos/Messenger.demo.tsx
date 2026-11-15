@@ -1,13 +1,20 @@
-import { Box, Paper, ScrollArea } from '@mantine/core';
+import { ScrollArea } from '@mantine/core';
 import { MantineDemo } from '@mantinex/demo';
-import { ChatMessage, ChatThread, Composer, ComposerDraft, Inbox } from 'mantine-messages';
+import {
+  ChatMessage,
+  ChatThread,
+  Composer,
+  ComposerDraft,
+  Inbox,
+  MessagesShell,
+} from 'mantine-messages';
 import React, { useState } from 'react';
 import { conversations, messages as initialMessages, users } from './data';
 
 const code = `
 import { useState } from 'react';
-import { Paper, ScrollArea } from '@mantine/core';
-import { ChatThread, Composer, Inbox, type ComposerDraft } from 'mantine-messages';
+import { ScrollArea } from '@mantine/core';
+import { ChatThread, Composer, Inbox, MessagesShell, type ComposerDraft } from 'mantine-messages';
 import { conversations, messages as initialMessages, users } from './data';
 
 function Demo() {
@@ -21,15 +28,17 @@ function Demo() {
     ]);
 
   return (
-    <Paper withBorder radius="lg" h={520} style={{ display: 'flex', overflow: 'hidden' }}>
-      <ScrollArea w={260}>
-        <Inbox conversations={conversations} value={selected} onChange={setSelected} />
-      </ScrollArea>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+    <MessagesShell withBorder radius="lg" h={520}>
+      <MessagesShell.List w={260} aria-label="Conversations">
+        <ScrollArea style={{ flex: 1 }}>
+          <Inbox conversations={conversations} value={selected} onChange={setSelected} />
+        </ScrollArea>
+      </MessagesShell.List>
+      <MessagesShell.Main aria-label="Conversation">
         <ChatThread messages={messages} users={users} currentUserId="me" style={{ flex: 1 }} />
         <Composer onSend={send} m="sm" />
-      </div>
-    </Paper>
+      </MessagesShell.Main>
+    </MessagesShell>
   );
 }
 `;
@@ -45,15 +54,17 @@ function Demo() {
     ]);
 
   return (
-    <Paper withBorder radius="lg" h={520} style={{ display: 'flex', overflow: 'hidden' }}>
-      <ScrollArea w={260} style={{ borderRight: '1px solid var(--mantine-color-default-border)' }}>
-        <Inbox conversations={conversations} value={selected} onChange={setSelected} />
-      </ScrollArea>
-      <Box style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+    <MessagesShell withBorder radius="lg" h={520}>
+      <MessagesShell.List w={260} aria-label="Conversations">
+        <ScrollArea style={{ flex: 1 }}>
+          <Inbox conversations={conversations} value={selected} onChange={setSelected} />
+        </ScrollArea>
+      </MessagesShell.List>
+      <MessagesShell.Main aria-label="Conversation">
         <ChatThread messages={messages} users={users} currentUserId="me" style={{ flex: 1 }} />
         <Composer onSend={send} m="sm" />
-      </Box>
-    </Paper>
+      </MessagesShell.Main>
+    </MessagesShell>
   );
 }
 

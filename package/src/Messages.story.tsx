@@ -3,6 +3,7 @@ import React, { useRef, useState } from 'react';
 import { Composer, type ComposerDraft, type ComposerMode } from './Composer/Composer';
 import { Inbox } from './Inbox/Inbox';
 import { MarkdownBody } from './MarkdownBody/MarkdownBody';
+import { MessagesShell } from './MessagesShell/MessagesShell';
 import {
   sampleChannels,
   sampleConversations,
@@ -67,14 +68,13 @@ export function Messenger() {
 
   return (
     <Box p="xl">
-      <Paper withBorder radius="lg" h={600} style={{ display: 'flex', overflow: 'hidden' }}>
-        <ScrollArea
-          w={300}
-          style={{ borderRight: '1px solid var(--mantine-color-default-border)' }}
-        >
-          <Inbox conversations={sampleConversations} value={selected} onChange={setSelected} />
-        </ScrollArea>
-        <Box style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <MessagesShell withBorder radius="lg" h={600}>
+        <MessagesShell.List w={300} aria-label="Conversations">
+          <ScrollArea style={{ flex: 1 }}>
+            <Inbox conversations={sampleConversations} value={selected} onChange={setSelected} />
+          </ScrollArea>
+        </MessagesShell.List>
+        <MessagesShell.Main aria-label="Conversation">
           <Text
             fw={600}
             px="md"
@@ -106,8 +106,8 @@ export function Messenger() {
               onCancelReply={() => setReplyTo(null)}
             />
           </Box>
-        </Box>
-      </Paper>
+        </MessagesShell.Main>
+      </MessagesShell>
     </Box>
   );
 }
@@ -306,8 +306,14 @@ export function Team() {
 
   return (
     <Box p="xl">
-      <Paper withBorder radius="lg" h={640} style={{ display: 'flex', overflow: 'hidden' }}>
-        <Box w={260} style={{ display: 'flex', flexDirection: 'column', borderRight: border }}>
+      <MessagesShell
+        withBorder
+        radius="lg"
+        h={640}
+        asideOpened={parent !== undefined}
+        onAsideOpenedChange={(opened) => !opened && setOpenId(null)}
+      >
+        <MessagesShell.List w={260} aria-label="Channels">
           <Text fw={800} px="md" py="sm" style={{ borderBottom: border }}>
             Acme
           </Text>
@@ -323,8 +329,8 @@ export function Team() {
               sections
             />
           </ScrollArea>
-        </Box>
-        <Box style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        </MessagesShell.List>
+        <MessagesShell.Main aria-label="Channel">
           <Box px="md" py="sm" style={{ borderBottom: border }}>
             <Text fw={700}>{nameOf(channel)}</Text>
             <Text size="xs" c="dimmed">
@@ -351,28 +357,29 @@ export function Team() {
               onSend={(draft) => post(draft)}
             />
           </Box>
-        </Box>
+        </MessagesShell.Main>
         {parent && (
-          <ThreadPanel
-            w={360}
-            parent={parent}
-            replies={replies}
-            users={sampleUsers}
-            currentUserId="me"
-            subtitle={nameOf(channel)}
-            onClose={() => setOpenId(null)}
-            onReact={(message) => toggle(message.id, '👀')}
-            onToggleReaction={(message, emoji) => toggle(message.id, emoji)}
-            style={{ borderLeft: border }}
-          >
-            <Composer
-              key={parent.id}
-              placeholder="Reply…"
-              onSend={(draft) => post(draft, parent.id)}
-            />
-          </ThreadPanel>
+          <MessagesShell.Aside w={360} aria-label="Thread">
+            <ThreadPanel
+              style={{ flex: 1 }}
+              parent={parent}
+              replies={replies}
+              users={sampleUsers}
+              currentUserId="me"
+              subtitle={nameOf(channel)}
+              onClose={() => setOpenId(null)}
+              onReact={(message) => toggle(message.id, '👀')}
+              onToggleReaction={(message, emoji) => toggle(message.id, emoji)}
+            >
+              <Composer
+                key={parent.id}
+                placeholder="Reply…"
+                onSend={(draft) => post(draft, parent.id)}
+              />
+            </ThreadPanel>
+          </MessagesShell.Aside>
         )}
-      </Paper>
+      </MessagesShell>
     </Box>
   );
 }
