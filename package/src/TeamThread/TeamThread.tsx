@@ -10,6 +10,7 @@ import {
   Text,
   UnstyledButton,
   useProps,
+  VisuallyHidden,
   useStyles,
 } from '@mantine/core';
 import React, { useMemo } from 'react';
@@ -272,7 +273,8 @@ export const TeamThread = factory<TeamThreadFactory>((_props) => {
   const renderMessage = (message: ChatMessage, groupStart: boolean, highlighted: boolean) => {
     const author = usersById.get(message.authorId);
     const name = nameOf(message.authorId);
-    const time = formatTime(message.createdAt, locale);
+    const date = toDate(message.createdAt);
+    const time = formatTime(date, locale);
     const own = message.authorId === currentUserId;
     const internal = isInternal(message);
     const { thread } = message;
@@ -292,7 +294,11 @@ export const TeamThread = factory<TeamThreadFactory>((_props) => {
         {groupStart ? (
           <Message.Avatar src={author?.avatar} name={name} {...getStyles('avatar')} />
         ) : (
-          <Message.Meta {...getStyles('gutterTime')}>{time}</Message.Meta>
+          <Message.Meta {...getStyles('gutterTime')}>
+            {/* Follow-ups show no name, so screen readers get it here */}
+            <VisuallyHidden>{name} </VisuallyHidden>
+            <time dateTime={date.toISOString()}>{time}</time>
+          </Message.Meta>
         )}
         <Message.Body {...getStyles('body')}>
           {groupStart && (
@@ -300,7 +306,13 @@ export const TeamThread = factory<TeamThreadFactory>((_props) => {
               <Text component="span" size="sm" fw={700} {...getStyles('author')}>
                 {name}
               </Text>
-              <Text component="span" size="xs" c="dimmed" {...getStyles('time')}>
+              <Text
+                component="time"
+                dateTime={date.toISOString()}
+                size="xs"
+                c="dimmed"
+                {...getStyles('time')}
+              >
                 {time}
               </Text>
             </Message.Meta>
@@ -379,15 +391,16 @@ export const TeamThread = factory<TeamThreadFactory>((_props) => {
       {...others}
       renderItem={(item, { groupStart, highlighted }) => {
         if (isEvent(item)) {
+          const date = toDate(item.createdAt);
+          const time = formatTime(date, locale);
+
           return (
-            <Text
-              size="xs"
-              c="dimmed"
-              ta="center"
-              title={formatTime(item.createdAt, locale)}
-              {...getStyles('event')}
-            >
+            <Text size="xs" c="dimmed" ta="center" title={time} {...getStyles('event')}>
               {item.text}
+              <VisuallyHidden>
+                {' '}
+                <time dateTime={date.toISOString()}>{time}</time>
+              </VisuallyHidden>
             </Text>
           );
         }

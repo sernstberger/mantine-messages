@@ -9,6 +9,7 @@ import {
   Text,
   UnstyledButton,
   useProps,
+  VisuallyHidden,
   useStyles,
 } from '@mantine/core';
 import React, { useMemo } from 'react';
@@ -57,6 +58,9 @@ export interface ChatThreadLabels extends Record<MessageStatus, string> {
 
   /** Line above the first unread message */
   newMessages: string;
+
+  /** Said by screen readers before the current user's own messages */
+  you: string;
 
   /** Accessible name of the message log, unless `aria-label` is set */
   log: string;
@@ -151,6 +155,7 @@ const defaultLabels: ChatThreadLabels = {
   repliedTo: ({ author, original, own, toOwn }) =>
     `${own ? 'You' : author} replied to ${toOwn ? (own ? 'yourself' : 'you') : original}`,
   newMessages: 'New messages',
+  you: 'You',
   log: 'Messages',
   loadingOlder: 'Loading older messages',
 };
@@ -289,6 +294,14 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
         const author = usersById.get(message.authorId);
         const name = nameOf(message.authorId);
         const showAuthor = !own && withAuthors;
+        const date = toDate(message.createdAt);
+        const time = formatTime(date, locale);
+        const status = message.status;
+        // Sending and failed are said for every own message, the rest only for the last one
+        const showStatus =
+          own &&
+          !!status &&
+          (message.id === lastOwn?.id || status === 'sending' || status === 'failed');
 
         return (
           <Box mod={{ own, 'group-start': groupStart }} {...getStyles('row')}>
@@ -305,13 +318,22 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
                 </Text>
               )}
               {message.replyToId && renderQuote(message, jumpTo)}
+              {!(showAuthor && groupStart) && (
+                <VisuallyHidden>{own ? allLabels.you : name}: </VisuallyHidden>
+              )}
               <Box mod={{ own }} {...getStyles('line')}>
                 <Box
                   mod={{ own, status: message.status, 'message-id': message.id, highlighted }}
-                  title={formatTime(message.createdAt, locale)}
+                  title={time}
                   {...getStyles('bubble')}
                 >
                   {renderBody ? renderBody(message) : message.body}
+                  {!groupEnd && (
+                    <VisuallyHidden>
+                      {' '}
+                      <time dateTime={date.toISOString()}>{time}</time>
+                    </VisuallyHidden>
+                  )}
                 </Box>
                 <MessageActions
                   actions={actions!}
@@ -344,13 +366,13 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
                   {...getStyles('reactions')}
                 />
               )}
-              {groupEnd && (
+              {(groupEnd || showStatus) && (
                 <Text component="div" size="xs" c="dimmed" {...getStyles('meta')}>
-                  {formatTime(message.createdAt, locale)}
-                  {own && message.id === lastOwn?.id && message.status && (
-                    <Box component="span" mod={{ status: message.status }} {...getStyles('status')}>
-                      {' · '}
-                      {allLabels[message.status]}
+                  {groupEnd && <time dateTime={date.toISOString()}>{time}</time>}
+                  {showStatus && (
+                    <Box component="span" mod={{ status }} {...getStyles('status')}>
+                      {groupEnd && ' · '}
+                      {allLabels[status]}
                     </Box>
                   )}
                 </Text>

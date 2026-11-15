@@ -31,7 +31,11 @@ The one `styles.css` covers every entry.
 
 `ChatThread` takes messages oldest first. Consecutive messages from one person within
 `groupWindow` (5 minutes by default) share one group, each new day gets a divider, and the
-messages of `currentUserId` sit on the right. The status of your last message shows under it.
+messages of `currentUserId` sit on the right. The status of your last message shows under it;
+"Sending" and "Not sent" show under every message that has them.
+
+Screen readers hear who wrote each message ("You" for your own, `labels.you`) and when, also
+where the screen shows no name or time; times are `<time datetime>` elements.
 
 `ChatThread` scrolls itself (it is a Mantine `ScrollArea`), so give it a height or let it fill a
 flex column with `style={{ flex: 1 }}`. It opens at the newest message and follows new ones while

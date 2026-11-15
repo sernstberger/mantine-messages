@@ -84,9 +84,31 @@ describe('TeamThread', () => {
     render(<TeamThread {...defaultProps} />);
     expect(screen.getByRole('log')).toBeInTheDocument();
     expect(screen.getByText('Theo joined #launch')).toHaveClass('mantine-TeamThread-event');
-    expect(screen.getAllByText('Maya Lindqvist')).toHaveLength(1);
+    expect(document.querySelectorAll('.mantine-TeamThread-author')).toHaveLength(1);
     expect(row('a')).not.toHaveAttribute('data-compact');
     expect(row('b')).toHaveAttribute('data-compact');
+  });
+
+  it('gives screen readers the author of follow-ups and the time of every row', () => {
+    render(<TeamThread {...defaultProps} locale="en-US" />);
+    // Follow-up b shows no name; a visually hidden one precedes its time
+    expect(row('b').querySelector('.mantine-VisuallyHidden-root')).toHaveTextContent(
+      'Maya Lindqvist'
+    );
+    const times = Array.from(document.querySelectorAll('time')).map((time) => [
+      time.getAttribute('datetime'),
+      time.textContent,
+    ]);
+    expect(times).toEqual([
+      [at(0).toISOString(), '9:00 AM'],
+      [at(1).toISOString(), '9:01 AM'],
+      [at(2).toISOString(), '9:02 AM'],
+    ]);
+
+    // The event's time is in the row, not only in a hover title
+    expect(screen.getByText('Theo joined #launch')).toHaveTextContent(
+      'Theo joined #launch 9:00 AM'
+    );
   });
 
   it('groups by author, time and visibility; events break groups', () => {

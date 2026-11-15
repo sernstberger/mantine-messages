@@ -91,6 +91,12 @@ will be 0.1.0.
 - `MessageActions` mounts its overflow `Menu` on first use and `useClipboard` only with a copy
   action, and builds built-in items only for the names in `actions`; `preview` may be a function,
   called only when a button shows
+- `ChatThread`: every message tells screen readers who wrote it (`labels.you`, "You", for your
+  own; the name where none is shown) and when (a visually hidden `<time>` where no time is
+  shown, a `<time datetime>` where one is); "Sending" and "Not sent" show under every own message
+  that has them, not only the last
+- `TeamThread`: follow-up rows give screen readers the author's name, event rows their time, and
+  times are `<time datetime>` elements
 - `ChatThread`, `TeamThread`: the copy action copies the message's whole `body` (markdown
   included) instead of its plain-text preview; button labels still use the preview, now computed
   once per message
