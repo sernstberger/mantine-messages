@@ -1,20 +1,20 @@
 import { Box, Paper, ScrollArea } from '@mantine/core';
 import { MantineDemo } from '@mantinex/demo';
-import { Composer, Inbox, ChatMessage, ChatThread } from 'mantine-messages';
+import { ChatMessage, ChatThread, Composer, ComposerDraft, Inbox } from 'mantine-messages';
 import React, { useState } from 'react';
 import { conversations, messages as initialMessages, users } from './data';
 
 const code = `
 import { useState } from 'react';
 import { Paper, ScrollArea } from '@mantine/core';
-import { Composer, Inbox, ChatThread } from 'mantine-messages';
+import { ChatThread, Composer, Inbox, type ComposerDraft } from 'mantine-messages';
 import { conversations, messages as initialMessages, users } from './data';
 
 function Demo() {
   const [selected, setSelected] = useState('maya');
   const [messages, setMessages] = useState(initialMessages);
 
-  const send = (body: string) =>
+  const send = ({ text: body }: ComposerDraft) =>
     setMessages((current) => [
       ...current,
       { id: crypto.randomUUID(), authorId: 'me', body, createdAt: new Date(), status: 'sent' },
@@ -38,7 +38,7 @@ function Demo() {
   const [selected, setSelected] = useState('maya');
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
 
-  const send = (body: string) =>
+  const send = ({ text: body }: ComposerDraft) =>
     setMessages((current) => [
       ...current,
       { id: `new-${current.length}`, authorId: 'me', body, createdAt: new Date(), status: 'sent' },

@@ -25,7 +25,7 @@ describe('Composer', () => {
     const box = screen.getByRole('textbox', { name: 'Message' });
 
     await userEvent.type(box, '  hello  {Enter}');
-    expect(onSend).toHaveBeenCalledWith('hello');
+    expect(onSend).toHaveBeenCalledWith({ text: 'hello', format: 'text', attachments: [] });
     expect(box).toHaveValue('');
   });
 
@@ -45,7 +45,7 @@ describe('Composer', () => {
 
     await userEvent.type(screen.getByRole('textbox'), 'hi');
     await userEvent.click(button);
-    expect(onSend).toHaveBeenCalledWith('hi');
+    expect(onSend).toHaveBeenCalledWith({ text: 'hi', format: 'text', attachments: [] });
   });
 
   it('does not send blank text or while disabled', async () => {
@@ -66,7 +66,7 @@ describe('Composer', () => {
   });
 
   it('shows who the reply is for and focuses the box', () => {
-    render(<Composer replyTo={{ authorName: 'Maya', body: 'Can you send it?' }} />);
+    render(<Composer replyTo={{ id: 'm1', authorName: 'Maya', body: 'Can you send it?' }} />);
     expect(screen.getByText('Maya')).toBeInTheDocument();
     expect(screen.getByText('Can you send it?')).toBeInTheDocument();
     expect(screen.getByRole('textbox')).toHaveFocus();
@@ -76,7 +76,7 @@ describe('Composer', () => {
     const onCancelReply = jest.fn();
     render(
       <Composer
-        replyTo={{ authorName: 'Maya', body: 'Hi' }}
+        replyTo={{ id: 'm1', authorName: 'Maya', body: 'Hi' }}
         onCancelReply={onCancelReply}
         labels={{ cancelReply: 'Stop replying' }}
       />
@@ -91,5 +91,23 @@ describe('Composer', () => {
     render(<Composer onCancelReply={onCancelReply} />);
     await userEvent.type(screen.getByRole('textbox'), '{Escape}');
     expect(onCancelReply).not.toHaveBeenCalled();
+  });
+
+  it('sends the reply id and the format with the draft', async () => {
+    const onSend = jest.fn();
+    render(
+      <Composer
+        format="markdown"
+        replyTo={{ id: 'm1', authorName: 'Maya', body: 'Hi' }}
+        onSend={onSend}
+      />
+    );
+    await userEvent.type(screen.getByRole('textbox'), '**yes**{Enter}');
+    expect(onSend).toHaveBeenCalledWith({
+      text: '**yes**',
+      format: 'markdown',
+      attachments: [],
+      replyToId: 'm1',
+    });
   });
 });

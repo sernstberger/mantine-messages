@@ -20,8 +20,24 @@ export type ComposerStylesNames = 'root' | 'reply' | 'replyText' | 'field' | 'in
 
 /** The message being answered, shown above the text box */
 export interface ComposerReply {
+  /** `id` of the message being answered, sent as `replyToId` */
+  id: string;
   authorName: string;
   body: string;
+}
+
+/** What the user sends */
+export interface ComposerDraft {
+  /** Trimmed text */
+  text: string;
+  format: 'text' | 'markdown';
+  attachments: File[];
+
+  /** Which mode was chosen, for example `'reply'` or `'note'` */
+  mode?: string;
+
+  /** `id` of the message being answered */
+  replyToId?: string;
 }
 
 export interface ComposerLabels {
@@ -46,8 +62,11 @@ export interface ComposerProps
   /** Called when the text changes */
   onChange?: (value: string) => void;
 
-  /** Called with the trimmed text when the user sends it; the box then clears */
-  onSend?: (value: string) => void;
+  /** Called with the draft when the user sends it; the box then clears */
+  onSend?: (draft: ComposerDraft) => void;
+
+  /** How the text is written, copied into each draft, `'text'` by default */
+  format?: 'text' | 'markdown';
 
   /** `'Message'` by default */
   placeholder?: string;
@@ -76,6 +95,7 @@ export type ComposerFactory = Factory<{
 const defaultProps: Partial<ComposerProps> = {
   placeholder: 'Message',
   maxRows: 6,
+  format: 'text',
 };
 
 const defaultLabels: ComposerLabels = {
@@ -112,6 +132,7 @@ export const Composer = factory<ComposerFactory>((_props) => {
     defaultValue,
     onChange,
     onSend,
+    format,
     placeholder,
     replyTo,
     onCancelReply,
@@ -147,7 +168,12 @@ export const Composer = factory<ComposerFactory>((_props) => {
 
   const send = () => {
     if (canSend) {
-      onSend?.(text.trim());
+      onSend?.({
+        text: text.trim(),
+        format: format!,
+        attachments: [],
+        ...(replyTo && { replyToId: replyTo.id }),
+      });
       setText('');
     }
   };

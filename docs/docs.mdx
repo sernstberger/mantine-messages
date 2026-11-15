@@ -44,10 +44,10 @@ const [replyTo, setReplyTo] = useState<Message | null>(null);
 
 <ChatThread messages={messages} users={users} currentUserId="me" onReply={setReplyTo} />
 <Composer
-  replyTo={replyTo && { authorName: nameOf(replyTo.authorId), body: replyTo.body }}
+  replyTo={replyTo && { id: replyTo.id, authorName: nameOf(replyTo.authorId), body: getPreview(replyTo) }}
   onCancelReply={() => setReplyTo(null)}
-  onSend={(body) => {
-    send({ body, replyToId: replyTo?.id });
+  onSend={(draft) => {
+    send({ body: draft.text, replyToId: draft.replyToId });
     setReplyTo(null);
   }}
 />
@@ -61,5 +61,5 @@ component.
 
 ## Composer
 
-`Composer` grows with its text up to `maxRows`. Enter sends, Shift+Enter adds a line, and the
-text is trimmed before `onSend` gets it.
+`Composer` grows with its text up to `maxRows`. Enter sends, Shift+Enter adds a line. `onSend`
+gets a draft: `{ text, format, attachments, replyToId }`, with the text trimmed.

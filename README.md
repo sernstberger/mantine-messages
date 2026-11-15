@@ -14,7 +14,7 @@ Mantine Styles API, light and dark themes, and keyboard and screen reader suppor
 | `ChatThread` | Messages grouped by author and time, date dividers, your messages on the right, status of your last message |
 | `Composer` | Text box that grows, Enter to send, Shift+Enter for a new line |
 
-All three share the `Conversation`, `Message` and `MessagesUser` types. You bring the data; the
+All three share the `Conversation`, `ChatMessage` and `MessagesUser` types. You bring the data; the
 components never fetch anything.
 
 ## Usage
@@ -29,7 +29,7 @@ function Messenger() {
     <>
       <Inbox conversations={conversations} value={openId} onChange={setOpenId} />
       <ChatThread messages={messages} users={users} currentUserId="me" />
-      <Composer onSend={(text) => sendMessage(text)} />
+      <Composer onSend={(draft) => sendMessage(draft.text)} />
     </>
   );
 }

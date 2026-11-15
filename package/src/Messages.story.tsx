@@ -1,6 +1,6 @@
 import { Box, Paper, ScrollArea, Text } from '@mantine/core';
 import React, { useRef, useState } from 'react';
-import { Composer } from './Composer/Composer';
+import { Composer, type ComposerDraft } from './Composer/Composer';
 import { Inbox } from './Inbox/Inbox';
 import { sampleConversations, sampleMessages, sampleUsers } from './sample-data';
 import { ChatThread } from './ChatThread/ChatThread';
@@ -22,7 +22,7 @@ export function Messenger() {
   };
 
   // Maya answers a moment after you send, so the thread has something to follow
-  const send = (body: string) => {
+  const send = ({ text: body }: ComposerDraft) => {
     add({ authorId: 'me', body, status: 'sent', replyToId: replyTo?.id });
     setReplyTo(null);
     setTimeout(
@@ -61,6 +61,7 @@ export function Messenger() {
               onSend={send}
               replyTo={
                 replyTo && {
+                  id: replyTo.id,
                   authorName: sampleUsers.find((user) => user.id === replyTo.authorId)!.name,
                   body: replyTo.body,
                 }
@@ -103,7 +104,7 @@ export function LongThread() {
         />
         <Composer
           m="sm"
-          onSend={(body) =>
+          onSend={({ text: body }) =>
             setMessages((current) => [
               ...current,
               { id: `long-new-${current.length}`, authorId: 'me', body, createdAt: new Date() },
