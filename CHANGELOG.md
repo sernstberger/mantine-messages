@@ -103,6 +103,10 @@ will be 0.1.0.
 - `ChatThread`, `TeamThread`: rows are memoised and handlers are read through a ref, so a render
   of the thread (a keystroke in a parent, an inline `onReply`) renders only new and changed rows;
   a change to `renderBody`, `actions`, `labels`, `users` or the Styles API props renders them all
+- `Composer`: focus stays in the text box after sending with the send button (the button is
+  disabled once the box is empty, which used to drop focus to the page); the reply bar describes
+  the text box (`aria-describedby`), and an `aria-describedby` in `textareaProps` now reaches the
+  text box instead of being replaced by Mantine's input wrapper
 - Times, dates, relative times and file sizes reuse one `Intl` formatter per locale and options
   instead of building one per call (about 50 times cheaper per message)
 

@@ -341,6 +341,9 @@ the first section that matches. Channels show a `#`.
 
 `Composer` grows with its text up to `maxRows`. Enter sends, Shift+Enter adds a line. `onSend`
 gets a draft: `{ text, format, attachments, replyToId }`, with the text trimmed.
+After sending, by Enter or with the button, the cursor stays in the box. With `replyTo`, the reply
+bar describes the box (`aria-describedby`), so screen readers say whom the message answers when
+the box gets focus.
 
 `modes` adds a switch above the box, for example Reply and Internal note; the chosen `value` goes in
 `draft.mode`. A mode with `note: true` tints the composer yellow, and its `placeholder` replaces the

@@ -56,6 +56,22 @@ describe('Composer', () => {
     expect(onSend).toHaveBeenCalledWith({ text: 'hi', format: 'text', attachments: [] });
   });
 
+  it('keeps focus in the box after sending with the button or Enter', async () => {
+    const onSend = jest.fn();
+    render(<Composer onSend={onSend} />);
+    const box = screen.getByRole('textbox');
+
+    await userEvent.type(box, 'one');
+    await userEvent.click(screen.getByRole('button', { name: 'Send' }));
+    expect(onSend).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('button', { name: 'Send' })).toBeDisabled();
+    expect(box).toHaveFocus();
+
+    await userEvent.type(box, 'two{Enter}');
+    expect(onSend).toHaveBeenCalledTimes(2);
+    expect(box).toHaveFocus();
+  });
+
   it('does not send blank text or while disabled', async () => {
     const onSend = jest.fn();
     const { rerender } = render(<Composer onSend={onSend} />);
@@ -112,6 +128,33 @@ describe('Composer', () => {
     expect(screen.getByText('Maya')).toBeInTheDocument();
     expect(screen.getByText('Can you send it?')).toBeInTheDocument();
     expect(screen.getByRole('textbox')).toHaveFocus();
+  });
+
+  it('describes the box with the reply bar, after any description of its own', () => {
+    const { rerender } = render(
+      <Composer replyTo={{ id: 'm1', authorName: 'Maya', body: 'Can you send it?' }} />
+    );
+    expect(screen.getByRole('textbox')).toHaveAccessibleDescription(
+      'Replying to Maya Can you send it?'
+    );
+
+    rerender(
+      <>
+        <span id="hint">Enter sends</span>
+        <Composer
+          replyTo={{ id: 'm1', authorName: 'Maya', body: 'Can you send it?' }}
+          textareaProps={{ 'aria-describedby': 'hint' }}
+        />
+      </>
+    );
+    expect(screen.getByRole('textbox')).toHaveAccessibleDescription(
+      'Replying to Maya Can you send it? Enter sends'
+    );
+
+    rerender(<Composer textareaProps={{ 'aria-describedby': 'hint' }} />);
+    expect(screen.getByRole('textbox')).toHaveAttribute('aria-describedby', 'hint');
+    rerender(<Composer />);
+    expect(screen.getByRole('textbox')).not.toHaveAttribute('aria-describedby');
   });
 
   it('cancels the reply with the close button or Escape', async () => {

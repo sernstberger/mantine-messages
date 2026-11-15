@@ -15,7 +15,7 @@ import {
   useProps,
   useStyles,
 } from '@mantine/core';
-import { useMergedRef, useUncontrolled } from '@mantine/hooks';
+import { useId, useIsomorphicEffect, useMergedRef, useUncontrolled } from '@mantine/hooks';
 import React, { useEffect, useRef } from 'react';
 import classes from './Composer.module.css';
 
@@ -266,8 +266,26 @@ export const Composer = factory<ComposerFactory>((_props) => {
         ...(replyTo && { replyToId: replyTo.id }),
       });
       setText('');
+      // Sending with the button disables it; keep the cursor in the box for the next message
+      ownInputRef.current!.focus();
     }
   };
+
+  // The reply bar describes the box, so screen readers say whom the message answers on focus
+  const replyId = useId();
+  const describedBy =
+    [replyTo && replyId, textareaProps?.['aria-describedby']].filter(Boolean).join(' ') ||
+    undefined;
+
+  // Set on the element: Mantine's input wrapper replaces an aria-describedby prop with the ids
+  // of its own description and error, which the composer does not use
+  useIsomorphicEffect(() => {
+    if (describedBy) {
+      ownInputRef.current!.setAttribute('aria-describedby', describedBy);
+    } else {
+      ownInputRef.current!.removeAttribute('aria-describedby');
+    }
+  }, [describedBy]);
 
   return (
     <Box
@@ -292,7 +310,7 @@ export const Composer = factory<ComposerFactory>((_props) => {
       )}
       {replyTo && (
         <Box {...getStyles('reply')}>
-          <Box {...getStyles('replyText')}>
+          <Box id={replyId} {...getStyles('replyText')}>
             <Text size="xs" c="dimmed">
               {allLabels.replyingTo}{' '}
               <Text component="span" inherit fw={600} c="var(--mantine-color-text)">
