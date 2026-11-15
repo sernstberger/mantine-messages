@@ -26,9 +26,7 @@ function Demo() {
         <Inbox conversations={conversations} value={selected} onChange={setSelected} />
       </ScrollArea>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <ScrollArea style={{ flex: 1 }}>
-          <Thread messages={messages} users={users} currentUserId="me" />
-        </ScrollArea>
+        <Thread messages={messages} users={users} currentUserId="me" style={{ flex: 1 }} />
         <Composer onSend={send} m="sm" />
       </div>
     </Paper>
@@ -52,9 +50,7 @@ function Demo() {
         <Inbox conversations={conversations} value={selected} onChange={setSelected} />
       </ScrollArea>
       <Box style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <ScrollArea style={{ flex: 1 }}>
-          <Thread messages={messages} users={users} currentUserId="me" />
-        </ScrollArea>
+        <Thread messages={messages} users={users} currentUserId="me" style={{ flex: 1 }} />
         <Composer onSend={send} m="sm" />
       </Box>
     </Paper>

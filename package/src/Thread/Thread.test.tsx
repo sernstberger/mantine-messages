@@ -34,6 +34,7 @@ describe('Thread', () => {
     displayName: 'Thread',
     stylesApiSelectors: [
       'root',
+      'list',
       'divider',
       'group',
       'avatar',

@@ -1,5 +1,5 @@
 import { Box, Paper, ScrollArea, Text } from '@mantine/core';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Composer } from './Composer/Composer';
 import { Inbox } from './Inbox/Inbox';
 import { sampleConversations, sampleMessages, sampleUsers } from './sample-data';
@@ -13,11 +13,21 @@ export function Messenger() {
   const [messages, setMessages] = useState<Message[]>(sampleMessages);
   const title = sampleConversations.find((c) => c.id === selected)?.title;
 
-  const send = (body: string) =>
-    setMessages((current) => [
-      ...current,
-      { id: `new-${current.length}`, authorId: 'me', body, createdAt: new Date(), status: 'sent' },
-    ]);
+  const count = useRef(0);
+  const add = (message: Omit<Message, 'id' | 'createdAt'>) => {
+    count.current += 1;
+    const id = `new-${count.current}`;
+    setMessages((current) => [...current, { ...message, id, createdAt: new Date() }]);
+  };
+
+  // Maya answers a moment after you send, so the thread has something to follow
+  const send = (body: string) => {
+    add({ authorId: 'me', body, status: 'sent' });
+    setTimeout(
+      () => add({ authorId: 'maya', body: replies[count.current % replies.length] }),
+      1500
+    );
+  };
 
   return (
     <Box p="xl">
@@ -37,13 +47,47 @@ export function Messenger() {
           >
             {title}
           </Text>
-          <ScrollArea style={{ flex: 1 }}>
-            <Thread messages={messages} users={sampleUsers} currentUserId="me" />
-          </ScrollArea>
+          <Thread messages={messages} users={sampleUsers} currentUserId="me" style={{ flex: 1 }} />
           <Box p="sm">
             <Composer onSend={send} />
           </Box>
         </Box>
+      </Paper>
+    </Box>
+  );
+}
+
+const replies = [
+  'Got it, thanks!',
+  'Perfect, forwarding it to Finance now.',
+  'Oh nice, the menu looks great.',
+  'Can we do the vegetarian option for 12 of them?',
+];
+
+const longThread: Message[] = Array.from({ length: 80 }, (_, index) => ({
+  id: `long-${index}`,
+  authorId: index % 3 === 0 ? 'me' : 'maya',
+  body: `Message ${index + 1} of 80`,
+  createdAt: new Date(Date.now() - (80 - index) * 7 * 60 * 1000),
+}));
+
+/** Opens at the newest message. Scroll up, then send: it jumps down because you sent it */
+export function LongThread() {
+  const [messages, setMessages] = useState(longThread);
+
+  return (
+    <Box p="xl" maw={480}>
+      <Paper withBorder radius="lg" h={500} style={{ display: 'flex', flexDirection: 'column' }}>
+        <Thread messages={messages} users={sampleUsers} currentUserId="me" style={{ flex: 1 }} />
+        <Composer
+          m="sm"
+          onSend={(body) =>
+            setMessages((current) => [
+              ...current,
+              { id: `long-new-${current.length}`, authorId: 'me', body, createdAt: new Date() },
+            ])
+          }
+        />
       </Paper>
     </Box>
   );

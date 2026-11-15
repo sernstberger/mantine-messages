@@ -1,4 +1,4 @@
-.root {
+.list {
   display: flex;
   flex-direction: column;
   gap: var(--mantine-spacing-sm);
@@ -6,11 +6,7 @@
 }
 
 .divider {
-  align-self: center;
-  padding: 2px var(--mantine-spacing-sm);
-  font-size: var(--mantine-font-size-xs);
   font-weight: 500;
-  color: var(--mantine-color-dimmed);
 }
 
 .group {

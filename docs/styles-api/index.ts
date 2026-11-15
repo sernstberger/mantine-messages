@@ -23,8 +23,9 @@ export const InboxStylesApi: StylesApiData<InboxFactory> = {
 
 export const ThreadStylesApi: StylesApiData<ThreadFactory> = {
   selectors: {
-    root: 'Root element, a live log',
-    divider: 'Date divider between days',
+    root: 'Root element, a Mantine ScrollArea',
+    list: 'Column of messages inside the scroll area, a live log',
+    divider: 'Date divider between days, a Mantine Divider',
     group: 'Consecutive messages from one author',
     avatar: 'Avatar of another person',
     messages: 'Column of bubbles inside a group',
