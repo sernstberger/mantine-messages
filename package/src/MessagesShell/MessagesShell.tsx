@@ -11,6 +11,7 @@ import {
   getRadius,
   GetStylesApi,
   MantineRadius,
+  Overlay,
   StylesApiProps,
   useProps,
   useStyles,
@@ -141,8 +142,11 @@ export const MessagesShellAside = factory<MessagesShellAsideFactory>((_props) =>
   return (
     <>
       {overlay && (
-        <Box
+        <Overlay
           aria-hidden
+          color="#000"
+          backgroundOpacity={0.25}
+          zIndex={2}
           onClick={() => ctx.setAsideOpened(false)}
           {...ctx.getStyles('asideBackdrop')}
         />
