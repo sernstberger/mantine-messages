@@ -1,41 +1,36 @@
+// Deviation: @storybook/react-vite, not Mantine's @storybook/nextjs (a library on Vite, not a Next app)
 import type { StorybookConfig } from '@storybook/react-vite';
-import { dirname, join } from 'path';
 import { mergeConfig } from 'vite';
-import { repoStaticDirs, repoViteConfig } from './repo-vite';
-
-function getAbsolutePath(value: string): any {
-  return dirname(require.resolve(join(value, 'package.json')));
-}
+import { repoStaticDirs, repoViteConfig } from './repo-vite.ts';
 
 const config: StorybookConfig = {
-  stories: ['../package/src/**/*.story.@(js|jsx|mjs|ts|tsx)'],
+  core: {
+    disableWhatsNewNotifications: true,
+    disableTelemetry: true,
+    enableCrashReports: false,
+  },
+  features: {
+    sidebarOnboardingChecklist: false,
+  },
+  // Deviation: one package, so one glob (Mantine globs packages/@mantine/* and filters by COMPONENT)
+  stories: ['../package/src/**/*.story.@(ts|tsx)'],
+  // Deviation: the repo's static files, from repo-vite.ts (Mantine has none)
   staticDirs: repoStaticDirs,
-  addons: [getAbsolutePath('@storybook/addon-essentials')],
+  addons: [],
   framework: {
-    name: getAbsolutePath('@storybook/react-vite'),
+    name: '@storybook/react-vite',
     options: {},
   },
-  docs: {
-    autodocs: false,
-  },
-  // Telemetry also prints a notice and spawns the package manager during builds
-  core: { disableTelemetry: true },
+  // Deviation: Vite instead of webpackFinal; the build stays silent and the repo adds its own config
   viteFinal: (viteConfig) =>
     mergeConfig(
       mergeConfig(viteConfig, {
+        // Vite lists every chunk otherwise; warnings still print
+        logLevel: 'warn',
         build: {
-          // The chunks over Vite's 500 kB default are third-party modules that already load on
-          // demand (Storybook's docs renderer and the like): nothing left to split
+          // The preview entry (Storybook's runtime, React, Mantine) is over Vite's 500 kB default;
+          // Storybook loads it from disk, so splitting it would gain nothing
           chunkSizeWarningLimit: 1500,
-          rollupOptions: {
-            onwarn(warning, warn) {
-              // Storybook's own preview runtime uses eval; that is Storybook's code, not ours
-              if (warning.code === 'EVAL' && warning.id?.includes('/@storybook/core/')) {
-                return;
-              }
-              warn(warning);
-            },
-          },
         },
       }),
       repoViteConfig

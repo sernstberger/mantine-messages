@@ -9,6 +9,7 @@
     "harness",
     "playwright.config.ts"
   ],
+  "exclude": ["harness/storybook"],
   "compilerOptions": {
     "types": ["node", "jest", "@testing-library/jest-dom"],
     "target": "ES2015",

@@ -1,105 +1,136 @@
+// Deviation: styles imported here, and no preview-head.html (Mantine's loads a CDN stylesheet; e2e runs offline)
 import '@mantine/core/styles.css';
-import { DirectionProvider, MantineProvider, useDirection } from '@mantine/core';
-import type { Preview } from '@storybook/react';
 import React, { useEffect } from 'react';
-import { useGlobals } from '@storybook/preview-api';
+import { TextAlignLeftIcon, TextAlignRightIcon } from '@phosphor-icons/react';
+// Deviation: @storybook/react-vite, not Mantine's @storybook/nextjs (a library on Vite, not a Next app)
+import type { Decorator, Preview } from '@storybook/react-vite';
+import { useGlobals } from 'storybook/preview-api';
+import { ActionIcon, DirectionProvider, MantineProvider, useDirection } from '@mantine/core';
+// Deviation: the repo's theme and providers (Mantine: its docs theme, CodeHighlight, Modals, Notifications)
 import { RepoProviders, repoTheme } from './repo';
 
-/** Alt+Shift+R flips the text direction, as in Mantine's own Storybook */
-function DirectionWrapper({ children }: { children: React.ReactNode }) {
-  const { toggleDirection } = useDirection();
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.altKey && event.shiftKey && event.code === 'KeyR') {
-        event.preventDefault();
-        toggleDirection();
-      }
-    };
-
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [toggleDirection]);
-
-  return <>{children}</>;
-}
+export const globalTypes = {
+  theme: {
+    name: 'Theme',
+    description: 'Mantine color scheme',
+    defaultValue: 'light',
+    toolbar: {
+      icon: 'mirror',
+      items: [
+        { value: 'light', title: 'Light' },
+        { value: 'dark', title: 'Dark' },
+      ],
+    },
+  },
+};
 
 const preview: Preview = {
   parameters: {
-    actions: { argTypesRegex: '^on[A-Z].*' },
+    layout: 'fullscreen',
     controls: {
       matchers: {
         color: /(background|color)$/i,
         date: /Date$/i,
       },
     },
-    options: {
-      // Components alphabetically (each by its export name), showcase apps last. No TypeScript
-      // annotations here: Storybook evaluates this function statically
-      storySort: (a, b) => {
-        const isApp = (item) => item.title.startsWith('Apps/');
-
-        if (isApp(a) !== isApp(b)) {
-          return isApp(a) ? 1 : -1;
-        }
-
-        if (a.title === b.title) {
-          return 0;
-        }
-
-        return a.title.localeCompare(b.title, undefined, { numeric: true });
-      },
-    },
   },
-  globalTypes: {
-    theme: {
-      name: 'Theme',
-      description: 'Mantine color scheme',
-      defaultValue: 'light',
-      toolbar: {
-        icon: 'mirror',
-        items: [
-          { value: 'light', title: 'Light' },
-          { value: 'dark', title: 'Dark' },
-        ],
-      },
-    },
-  },
-  decorators: [
-    (renderStory: any, context: any) => {
-      const [{ theme }, updateGlobals] = useGlobals();
-
-      useEffect(() => {
-        const onKeyDown = (event: KeyboardEvent) => {
-          if (!(event.metaKey || event.ctrlKey) || event.code !== 'KeyJ') {
-            return;
-          }
-
-          event.preventDefault();
-          updateGlobals({ theme: theme === 'dark' ? 'light' : 'dark' });
-        };
-
-        window.addEventListener('keydown', onKeyDown);
-        return () => window.removeEventListener('keydown', onKeyDown);
-      }, [theme, updateGlobals]);
-
-      const scheme = (context.globals.theme || 'light') as 'light' | 'dark';
-
-      // StrictMode mounts, unmounts and mounts again in development (storybook dev, e2e:dev), so
-      // effects that do not clean up after themselves show up there
-      return (
-        <React.StrictMode>
-          <DirectionProvider>
-            <MantineProvider theme={repoTheme} forceColorScheme={scheme}>
-              <RepoProviders>
-                <DirectionWrapper>{renderStory()}</DirectionWrapper>
-              </RepoProviders>
-            </MantineProvider>
-          </DirectionProvider>
-        </React.StrictMode>
-      );
-    },
-  ],
 };
 
 export default preview;
+
+export const parameters = {
+  layout: 'fullscreen',
+  options: {
+    showPanel: false,
+    // Storybook fails to compile if `(a: any, b: any)` is added to storySort function
+    // @ts-expect-error
+    storySort: (a, b) => {
+      // Deviation: showcase apps (Apps/*) sort last; Mantine has none
+      const isAppA = a.title.startsWith('Apps/');
+      const isAppB = b.title.startsWith('Apps/');
+
+      if (isAppA !== isAppB) {
+        return isAppA ? 1 : -1;
+      }
+
+      return a.title.localeCompare(b.title, undefined, { numeric: true });
+    },
+  },
+};
+
+function DirectionWrapper({ children }: { children: React.ReactNode }) {
+  const { dir, toggleDirection } = useDirection();
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      const isToggleDirection = event.altKey && event.shiftKey && event.code === 'KeyR';
+
+      if (!isToggleDirection) {
+        return;
+      }
+
+      event.preventDefault();
+      toggleDirection();
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [toggleDirection]);
+
+  return (
+    <>
+      <ActionIcon
+        size="xl"
+        radius="md"
+        variant="default"
+        pos="fixed"
+        bottom={20}
+        right={20}
+        onClick={toggleDirection}
+        style={{ zIndex: 1000 }}
+        aria-label="Toggle text direction"
+      >
+        {dir === 'ltr' ? <TextAlignLeftIcon /> : <TextAlignRightIcon />}
+      </ActionIcon>
+      {children}
+    </>
+  );
+}
+
+export const decorators: Decorator[] = [
+  (renderStory, context) => {
+    const [{ theme: globalTheme }, updateGlobals] = useGlobals();
+
+    useEffect(() => {
+      const onKeyDown = (event: KeyboardEvent) => {
+        const isMod = event.metaKey || event.ctrlKey;
+        const isJ = event.code === 'KeyJ';
+
+        if (!isMod || !isJ) {
+          return;
+        }
+
+        event.preventDefault();
+        updateGlobals({ theme: globalTheme === 'dark' ? 'light' : 'dark' });
+      };
+
+      window.addEventListener('keydown', onKeyDown);
+      return () => window.removeEventListener('keydown', onKeyDown);
+    }, [globalTheme, updateGlobals]);
+
+    const scheme = (context.globals.theme || 'light') as 'light' | 'dark';
+    // Deviation: StrictMode (Mantine has none) mounts, unmounts and mounts again in development, so
+    // effects that do not clean up after themselves show up in storybook dev and e2e:dev
+    return (
+      <React.StrictMode>
+        <DirectionProvider initialDirection="ltr" detectDirection={false}>
+          <MantineProvider theme={repoTheme} forceColorScheme={scheme}>
+            <RepoProviders>
+              <DirectionWrapper>{renderStory()}</DirectionWrapper>
+            </RepoProviders>
+          </MantineProvider>
+        </DirectionProvider>
+      </React.StrictMode>
+    );
+  },
+];
