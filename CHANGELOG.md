@@ -55,6 +55,13 @@ will be 0.1.0.
 
 ### Changed
 
+- `ThreadPanel` is a frame with parts, like Mantine's `Modal`: the panel keeps `title` (a prop
+  now, "Thread" by default; it was `labels.title`), `subtitle`, `titleOrder`, `onClose`,
+  `withCloseButton`, `closeButtonProps`, `withFocusManagement` and `labels.close`;
+  `ThreadPanel.Replies` takes `parent`, `replies` and every other `TeamThread` prop (it used to
+  pass 14 of them through the panel, and thread labels are now its `labels`); `ThreadPanel.Footer`
+  wraps the composer (a bare child is no longer wrapped). The panel is named by its title through
+  `aria-labelledby`, and `unstyled` reaches its `Title`, `Text`, `CloseButton` and the thread
 - Renames, with no aliases because the package is not published: `controlRef` is now `handlersRef`
   (like Mantine's `NumberInput`) on `MessageList`, `ChatThread`, `TeamThread`, `ThreadPanel` and
   `AssistantThread`, and its type `MessageListControl` is now `MessageListHandlers`;
