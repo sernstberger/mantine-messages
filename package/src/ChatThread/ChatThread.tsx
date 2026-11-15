@@ -20,6 +20,7 @@ import type { ChatMessage, MessageStatus, MessagesUser } from '../types';
 import { formatDay, formatTime } from '../utils/format';
 import { getPreview, truncate } from '../utils/preview';
 import { groupMessages } from '../utils/group-messages';
+import { ReplyIcon } from '../icons';
 import classes from './ChatThread.module.css';
 import { useStickToBottom } from './use-stick-to-bottom';
 
@@ -101,20 +102,6 @@ const defaultLabels: ChatThreadLabels = {
   repliedTo: ({ author, original, own, toOwn }) =>
     `${own ? 'You' : author} replied to ${toOwn ? (own ? 'yourself' : 'you') : original}`,
 };
-
-function ReplyIcon({ size = 16 }: { size?: number }) {
-  return (
-    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" aria-hidden="true">
-      <path
-        d="M9 14 4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 const defaultProps: Partial<ChatThreadProps> = {
   groupWindow: 5 * 60 * 1000,
