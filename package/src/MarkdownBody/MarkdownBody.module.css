@@ -1,0 +1,52 @@
+.root {
+  min-width: 0;
+  font-size: inherit;
+  line-height: 1.6;
+  white-space: normal;
+  overflow-wrap: anywhere;
+
+  /* Typography spaces paragraphs for articles; messages are tighter */
+  & :where(p, ul, ol, blockquote, table) {
+    margin-bottom: var(--mantine-spacing-sm);
+  }
+
+  /* Wide tables scroll instead of widening the message */
+  & :where(table) {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+
+.codeBlock {
+  margin-block: var(--mantine-spacing-sm);
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-md);
+  overflow: hidden;
+}
+
+/* Language on the left, copy button on the right */
+.codeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 28px;
+  padding: 2px 4px 2px 12px;
+  border-bottom: 1px solid var(--mantine-color-default-border);
+
+  @mixin light {
+    background-color: var(--mantine-color-gray-0);
+  }
+
+  @mixin dark {
+    background-color: var(--mantine-color-dark-7);
+  }
+}
+
+.pre {
+  margin: 0;
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  border-radius: 0;
+  overflow-x: auto;
+  white-space: pre;
+}

@@ -27,6 +27,9 @@ module.exports = {
   ],
   setupFilesAfterEnv: ['./jsdom.mocks.cjs'],
   moduleNameMapper: {
+    // react-markdown and remark-gfm are ESM only and Jest runs CommonJS: tests get stand-ins
+    '^react-markdown$': '<rootDir>/test-utils/react-markdown.mock.tsx',
+    '^remark-gfm$': '<rootDir>/test-utils/remark-gfm.mock.ts',
     '\\.(css)$': 'identity-obj-proxy',
   },
 };
