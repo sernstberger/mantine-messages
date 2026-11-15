@@ -80,6 +80,12 @@ export interface ChatThreadProps
   withAuthors?: boolean;
 
   /**
+   * Renders the body of a message, for example markdown with `MarkdownBody` from
+   * `mantine-messages/markdown`; the plain `body` by default
+   */
+  renderBody?: (message: ChatMessage) => React.ReactNode;
+
+  /**
    * Keep the newest message in view: open at the bottom, follow new messages while the user is at
    * the bottom or when they sent them, `true` by default
    */
@@ -164,6 +170,7 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
     locale,
     groupWindow,
     withAuthors,
+    renderBody,
     autoScroll,
     actions,
     onReply,
@@ -285,7 +292,7 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
                   title={formatTime(message.createdAt, locale)}
                   {...getStyles('bubble')}
                 >
-                  {message.body}
+                  {renderBody ? renderBody(message) : message.body}
                 </Box>
                 <MessageActions
                   actions={actions!}

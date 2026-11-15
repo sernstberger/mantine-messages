@@ -81,4 +81,16 @@ describe('ChatThread', () => {
     render(<ChatThread {...defaultProps} messages={[{ ...messages[1], status: undefined }]} />);
     expect(screen.queryByText('Read', { exact: false })).not.toBeInTheDocument();
   });
+  it('renders bodies through renderBody, for example markdown', () => {
+    render(
+      <ChatThread
+        {...defaultProps}
+        renderBody={(message) => (
+          <strong data-testid={`body-${message.id}`}>{message.body.toUpperCase()}</strong>
+        )}
+      />
+    );
+    expect(screen.getByTestId('body-a')).toHaveTextContent('HI THERE');
+    expect(screen.getByTestId('body-a').closest('.mantine-ChatThread-bubble')).toBeInTheDocument();
+  });
 });

@@ -30,6 +30,18 @@
     background-color: var(--mantine-primary-color-filled);
     color: var(--mantine-primary-color-contrast);
   }
+  /* Markdown from renderBody: links and code stay readable on the filled bubble */
+  &[data-own] :where(a, code) {
+    color: inherit;
+  }
+
+  &[data-own] :where(a) {
+    text-decoration: underline;
+  }
+
+  &[data-own] :where(code) {
+    background-color: alpha(var(--mantine-color-white), 0.2);
+  }
 
   &:where([data-status='sending']) {
     opacity: 0.6;
