@@ -50,7 +50,7 @@ export interface MessageListItemContext<T extends MessageBase> {
   jumpTo: (id: string, options?: MessageListJumpOptions) => void;
 }
 
-/** What `handlersRef` gives code outside the list */
+/** Handlers for code outside the list */
 export interface MessageListHandlers {
   /** Scrolls to the item with this `id`, flashes it and moves focus to it (see `MessageListJumpOptions`) */
   jumpTo: (id: string, options?: MessageListJumpOptions) => void;

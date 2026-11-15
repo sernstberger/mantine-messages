@@ -55,6 +55,12 @@ will be 0.1.0.
 
 ### Changed
 
+- Renames, with no aliases because the package is not published: `controlRef` is now `handlersRef`
+  (like Mantine's `NumberInput`) on `MessageList`, `ChatThread`, `TeamThread`, `ThreadPanel` and
+  `AssistantThread`, and its type `MessageListControl` is now `MessageListHandlers`;
+  `Reactions` `onToggle` is now `onToggleReaction`; `MessageActions` `onThread` is now
+  `onOpenThread`; `Inbox` `search` and `defaultSearch` are now `searchValue` and
+  `defaultSearchValue`, like Mantine's `Select`
 - `Inbox`: `emptyLabel` is now `labels.empty`, next to `labels.noResults`, so all of its text is
   in `labels`
 - `MessageList`: `labels.unread` is now `labels.newMessages`, the key `ChatThread`, `TeamThread`

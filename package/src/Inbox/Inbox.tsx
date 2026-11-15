@@ -101,14 +101,14 @@ export interface InboxProps
   /** Show a search box above the list */
   withSearch?: boolean;
 
-  /** Search text, controlled; filters by title, with or without the search box */
-  search?: string;
+  /** Controlled search value, filters by title with or without the search box */
+  searchValue?: string;
 
-  /** Search text at first, uncontrolled */
+  /** Default search value */
   defaultSearchValue?: string;
 
-  /** Called when the search text changes */
-  onSearchChange?: (search: string) => void;
+  /** Called when search changes */
+  onSearchChange?: (value: string) => void;
 
   /**
    * `true` for Pinned, Channels and Direct messages (from `pinned` and `kind`), or your own
@@ -273,7 +273,7 @@ export const Inbox = factory<InboxFactory>((_props) => {
     onChange,
     locale,
     withSearch,
-    search,
+    searchValue,
     defaultSearchValue,
     onSearchChange,
     sections,
@@ -306,7 +306,7 @@ export const Inbox = factory<InboxFactory>((_props) => {
     onChange: (id) => id !== null && onChange?.(id),
   });
   const [query, setQuery] = useUncontrolled({
-    value: search,
+    value: searchValue,
     defaultValue: defaultSearchValue,
     finalValue: '',
     onChange: onSearchChange,

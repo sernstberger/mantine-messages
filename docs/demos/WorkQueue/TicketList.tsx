@@ -32,7 +32,7 @@ interface RowProps {
   open: boolean;
   checked: boolean;
   onOpen: (id: string) => void;
-  onToggle: (id: string) => void;
+  onToggleSelected: (id: string) => void;
 }
 
 const STEPS: Record<string, number> = { ArrowDown: 1, ArrowUp: -1 };
@@ -49,7 +49,7 @@ function moveFocus(event: React.KeyboardEvent<HTMLButtonElement>) {
   }
 }
 
-function Row({ ticket, now, nameOf, open, checked, onOpen, onToggle }: RowProps) {
+function Row({ ticket, now, nameOf, open, checked, onOpen, onToggleSelected }: RowProps) {
   const detailsId = useId();
   const customer = nameOf(ticket.customerId);
   const sla = slaState(ticket, now);
@@ -62,7 +62,7 @@ function Row({ ticket, now, nameOf, open, checked, onOpen, onToggle }: RowProps)
         size="xs"
         aria-label={`Select ${ticket.id}`}
         checked={checked}
-        onChange={() => onToggle(ticket.id)}
+        onChange={() => onToggleSelected(ticket.id)}
       />
       {ticket.unread && <span className={classes.dot} aria-hidden />}
       <UnstyledButton
@@ -159,7 +159,7 @@ export function TicketList({
           open={ticket.id === openId}
           checked={selected.has(ticket.id)}
           onOpen={onOpen}
-          onToggle={toggle}
+          onToggleSelected={toggle}
         />
       ))}
     </ul>
