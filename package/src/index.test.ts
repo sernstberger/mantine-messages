@@ -12,6 +12,7 @@ describe('mantine-messages', () => {
       'MessageList',
       'MessageListBase',
       'Reactions',
+      'TeamThread',
       'getPreview',
       'stripMarkdown',
       'truncate',

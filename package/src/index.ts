@@ -61,3 +61,12 @@ export type {
   MessageBodyProps,
   MessageMetaProps,
 } from './Message/Message';
+
+export { TeamThread } from './TeamThread/TeamThread';
+export type {
+  TeamThreadProps,
+  TeamThreadFactory,
+  TeamThreadStylesNames,
+  TeamThreadLabels,
+  TeamThreadItem,
+} from './TeamThread/TeamThread';
