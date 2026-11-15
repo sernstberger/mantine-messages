@@ -72,7 +72,16 @@ export const Attachments = factory<AttachmentsFactory>((_props) => {
         const part = attachment.mimeType?.startsWith('image/') ? 'image' : 'file';
         const content =
           part === 'image' ? (
-            <Image src={attachment.url} alt={attachment.name} radius="md" />
+            // Lazy: a long history does not fetch every image at once
+            <Image
+              src={attachment.url}
+              alt={attachment.name}
+              radius="md"
+              loading="lazy"
+              decoding="async"
+              width={attachment.width}
+              height={attachment.height}
+            />
           ) : (
             <>
               <FileIcon />

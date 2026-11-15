@@ -19,6 +19,10 @@ export interface MessageAttachment {
 
   /** Size in bytes */
   size?: number;
+
+  /** Width and height of an image in pixels; they reserve its box before it loads */
+  width?: number;
+  height?: number;
 }
 
 /** An emoji reaction and who left it */

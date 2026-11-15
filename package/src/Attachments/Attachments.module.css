@@ -10,6 +10,11 @@
   max-width: rem(240px);
   border-radius: var(--mantine-radius-md);
   overflow: hidden;
+
+  /* With width and height attributes the box keeps their aspect ratio while it scales */
+  & :where(img) {
+    height: auto;
+  }
 }
 
 .file {

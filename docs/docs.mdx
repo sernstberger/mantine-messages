@@ -67,6 +67,8 @@ const [replyTo, setReplyTo] = useState<Message | null>(null);
 `'edit'`, `'copy'`) show when their handler is set, and custom items `{ id, label, icon, onClick }`
 always show. After three, the rest go in a menu. Reactions and attachments on a message render
 under its bubble; pass `onToggleReaction` and `onOpenAttachment` to make them interactive.
+Image attachments load lazily; give them `width` and `height` (in pixels) when you know them, so
+their space is kept before they load and the thread does not jump.
 
 ## Long threads
 

@@ -99,6 +99,9 @@ will be 0.1.0.
 - `ThreadPanel`: focus moves to the title when the panel opens from a focused control and back to
   that control when it closes (keyboard users were left on the opener and lost focus on close).
   New prop `withFocusManagement`, `true` by default. Escape still does not close it, by design
+- `Attachments`: images load lazily (`loading="lazy"`, `decoding="async"`), so a long history no
+  longer fetches every image at once. `MessageAttachment` takes optional `width` and `height`,
+  which reserve an image's box before it loads
 - Every component passes Mantine's `attributes` prop to its Styles API, so
   `attributes={{ root: {...}, item: {...} }}` reaches the root and inner parts instead of leaking
   onto the root element
