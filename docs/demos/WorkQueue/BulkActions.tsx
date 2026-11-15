@@ -1,0 +1,68 @@
+import { Button, Group, Menu, Text } from '@mantine/core';
+import React from 'react';
+import type { Agent } from './types';
+
+export interface BulkActionsProps {
+  count: number;
+  agents: Agent[];
+  tags: string[];
+  onAssign: (agent: Agent | null) => void;
+  onClose: () => void;
+  onTag: (tag: string) => void;
+  onClear: () => void;
+}
+
+/** Shown while tickets are selected: assign, close or tag them all at once */
+export function BulkActions({
+  count,
+  agents,
+  tags,
+  onAssign,
+  onClose,
+  onTag,
+  onClear,
+}: BulkActionsProps) {
+  return (
+    <Group gap="xs" px="sm" py={6} bg="var(--mantine-primary-color-light)">
+      <Text size="sm" fw={600} mr="auto">
+        {count} selected
+      </Text>
+      <Menu position="bottom-end">
+        <Menu.Target>
+          <Button size="compact-sm" variant="default">
+            Assign
+          </Button>
+        </Menu.Target>
+        <Menu.Dropdown>
+          {agents.map((agent) => (
+            <Menu.Item key={agent.id} onClick={() => onAssign(agent)}>
+              {agent.name}
+            </Menu.Item>
+          ))}
+          <Menu.Divider />
+          <Menu.Item onClick={() => onAssign(null)}>Unassigned</Menu.Item>
+        </Menu.Dropdown>
+      </Menu>
+      <Menu position="bottom-end">
+        <Menu.Target>
+          <Button size="compact-sm" variant="default">
+            Tag
+          </Button>
+        </Menu.Target>
+        <Menu.Dropdown>
+          {tags.map((tag) => (
+            <Menu.Item key={tag} onClick={() => onTag(tag)}>
+              #{tag}
+            </Menu.Item>
+          ))}
+        </Menu.Dropdown>
+      </Menu>
+      <Button size="compact-sm" variant="default" onClick={onClose}>
+        Close tickets
+      </Button>
+      <Button size="compact-sm" variant="subtle" onClick={onClear}>
+        Clear selection
+      </Button>
+    </Group>
+  );
+}
