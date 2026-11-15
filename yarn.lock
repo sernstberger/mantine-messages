@@ -5918,7 +5918,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fast-glob@npm:^3.2.11, fast-glob@npm:^3.2.9":
+"fast-glob@npm:^3.2.9":
   version: 3.3.1
   resolution: "fast-glob@npm:3.3.1"
   dependencies:
@@ -5985,6 +5985,18 @@ __metadata:
     picomatch:
       optional: true
   checksum: 10c0/5d63330a1b97165e9b0fb20369fafc7cf826bc4b3e374efcb650bc77d7145ac01193b5da1a7591eab89ae6fd6b15cdd414085910b2a2b42296b1480c9f2677af
+  languageName: node
+  linkType: hard
+
+"fdir@npm:^6.5.0":
+  version: 6.5.0
+  resolution: "fdir@npm:6.5.0"
+  peerDependencies:
+    picomatch: ^3 || ^4
+  peerDependenciesMeta:
+    picomatch:
+      optional: true
+  checksum: 10c0/e345083c4306b3aed6cb8ec551e26c36bab5c511e99ea4576a16750ddc8d3240e63826cc624f5ae17ad4dc82e68a253213b60d556c11bfad064b7607847ed07f
   languageName: node
   linkType: hard
 
@@ -8666,7 +8678,7 @@ __metadata:
     oxfmt: "npm:^0.55.0"
     oxlint: "npm:^1.70.0"
     postcss: "npm:^8.5.4"
-    postcss-preset-mantine: "npm:1.17.0"
+    postcss-preset-mantine: "npm:1.18.0"
     react: "npm:19.2.4"
     react-dom: "npm:19.2.4"
     react-markdown: "npm:^10.1.0"
@@ -10644,6 +10656,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"picomatch@npm:^4.0.4":
+  version: 4.0.7
+  resolution: "picomatch@npm:4.0.7"
+  checksum: 10c0/beb6ae02c43ae44e84883b90830196d9046b1726ead292adcf7f57945e0bb0d992d68563d87e03b484b6f3c9a5c6defda7523477f047d7f0e663f126cc01787f
+  languageName: node
+  linkType: hard
+
 "pify@npm:^3.0.0":
   version: 3.0.0
   resolution: "pify@npm:3.0.0"
@@ -10801,14 +10820,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss-js@npm:^4.0.0":
-  version: 4.0.1
-  resolution: "postcss-js@npm:4.0.1"
+"postcss-js@npm:^4.0.1":
+  version: 4.1.0
+  resolution: "postcss-js@npm:4.1.0"
   dependencies:
     camelcase-css: "npm:^2.0.1"
   peerDependencies:
     postcss: ^8.4.21
-  checksum: 10c0/af35d55cb873b0797d3b42529514f5318f447b134541844285c9ac31a17497297eb72296902967911bb737a75163441695737300ce2794e3bd8c70c13a3b106e
+  checksum: 10c0/a3cf6e725f3e9ecd7209732f8844a0063a1380b718ccbcf93832b6ec2cd7e63ff70dd2fed49eb2483c7482296860a0f7badd3115b5d0fa05ea648eb6d9dfc9c6
   languageName: node
   linkType: hard
 
@@ -10911,17 +10930,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss-mixins@npm:^9.0.4":
-  version: 9.0.4
-  resolution: "postcss-mixins@npm:9.0.4"
+"postcss-mixins@npm:^12.0.0":
+  version: 12.1.2
+  resolution: "postcss-mixins@npm:12.1.2"
   dependencies:
-    fast-glob: "npm:^3.2.11"
-    postcss-js: "npm:^4.0.0"
-    postcss-simple-vars: "npm:^7.0.0"
-    sugarss: "npm:^4.0.1"
+    postcss-js: "npm:^4.0.1"
+    postcss-simple-vars: "npm:^7.0.1"
+    sugarss: "npm:^5.0.0"
+    tinyglobby: "npm:^0.2.14"
   peerDependencies:
     postcss: ^8.2.14
-  checksum: 10c0/6bb90bd15bb4a06e8f50b36b38f24bba8350cdb9f1d9690e97a9610619da9fc22cdccfc81aa628bef60490cce35f76ceac7602062f5895b30d72123684016a93
+  checksum: 10c0/cbd33a40545ebcaa08acc9126a6cbffc48db968ea5a555c397b3c5b30e0f805fb2de3381556b36efe3dc9eb935d51c6056b86d6367fb6204f6c1ae492017524d
   languageName: node
   linkType: hard
 
@@ -10987,14 +11006,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss-nested@npm:^6.0.1":
-  version: 6.0.1
-  resolution: "postcss-nested@npm:6.0.1"
+"postcss-nested@npm:^7.0.2":
+  version: 7.0.2
+  resolution: "postcss-nested@npm:7.0.2"
   dependencies:
-    postcss-selector-parser: "npm:^6.0.11"
+    postcss-selector-parser: "npm:^7.0.0"
   peerDependencies:
     postcss: ^8.2.14
-  checksum: 10c0/2a50aa36d5d103c2e471954830489f4c024deed94fa066169101db55171368d5f80b32446b584029e0471feee409293d0b6b1d8ede361f6675ba097e477b3cbd
+  checksum: 10c0/b467f328c89c5b0dcd1b569ae083f6163235c0cac09494a0b284eef5275fa1386bbc26c66c85adf194cef0a65d315994140724a34539a096e5acd39d9c753338
   languageName: node
   linkType: hard
 
@@ -11109,15 +11128,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss-preset-mantine@npm:1.17.0":
-  version: 1.17.0
-  resolution: "postcss-preset-mantine@npm:1.17.0"
+"postcss-preset-mantine@npm:1.18.0":
+  version: 1.18.0
+  resolution: "postcss-preset-mantine@npm:1.18.0"
   dependencies:
-    postcss-mixins: "npm:^9.0.4"
-    postcss-nested: "npm:^6.0.1"
+    postcss-mixins: "npm:^12.0.0"
+    postcss-nested: "npm:^7.0.2"
   peerDependencies:
     postcss: ">=8.0.0"
-  checksum: 10c0/9410196f8c9b6389f376abe04b732b92179859b195d1422d02e94e46fca1503272b553993727af396cddc6c094a162d73a9a8fd1f85bd3ac2c41135c9365210a
+  checksum: 10c0/11308684261220a88f8607c10846777b7f83a8b44d6e787ed803a5ee4ceabbc447ffbaaccd34da8da650907d502c0703b8245cecf42b2714def1e8991dcec81d
   languageName: node
   linkType: hard
 
@@ -11169,13 +11188,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss-selector-parser@npm:^6.0.11, postcss-selector-parser@npm:^6.0.2, postcss-selector-parser@npm:^6.0.4, postcss-selector-parser@npm:^6.0.5, postcss-selector-parser@npm:^6.0.9":
+"postcss-selector-parser@npm:^6.0.2, postcss-selector-parser@npm:^6.0.4, postcss-selector-parser@npm:^6.0.5, postcss-selector-parser@npm:^6.0.9":
   version: 6.0.13
   resolution: "postcss-selector-parser@npm:6.0.13"
   dependencies:
     cssesc: "npm:^3.0.0"
     util-deprecate: "npm:^1.0.2"
   checksum: 10c0/51f099b27f7c7198ea1826470ef0adfa58b3bd3f59b390fda123baa0134880a5fa9720137b6009c4c1373357b144f700b0edac73335d0067422063129371444e
+  languageName: node
+  linkType: hard
+
+"postcss-selector-parser@npm:^7.0.0":
+  version: 7.2.1
+  resolution: "postcss-selector-parser@npm:7.2.1"
+  dependencies:
+    util-deprecate: "npm:^1.0.2"
+  checksum: 10c0/bb82454497a6d2c8ec302cb53fbdc5c4ca36b8874c5c1b61acc6f9a0d6699135b7de6b1852d8d57c0d3404500e14fa9995595cd5d73b3fcdf48d717c2264784c
   languageName: node
   linkType: hard
 
@@ -11189,7 +11217,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss-simple-vars@npm:^7.0.0":
+"postcss-simple-vars@npm:^7.0.1":
   version: 7.0.1
   resolution: "postcss-simple-vars@npm:7.0.1"
   peerDependencies:
@@ -12941,12 +12969,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sugarss@npm:^4.0.1":
-  version: 4.0.1
-  resolution: "sugarss@npm:4.0.1"
+"sugarss@npm:^5.0.0":
+  version: 5.0.2
+  resolution: "sugarss@npm:5.0.2"
   peerDependencies:
     postcss: ^8.3.3
-  checksum: 10c0/18b78c8839ab9eea9681366223277e10adf6b1dd54e7b64fbdae3a1234eedcc16a772bb62c8f3dc9665acc07496981e24bf773c8c362b5f294b9b1e12fbe58aa
+  checksum: 10c0/b4f095ba2f1b45210cdd9ac87fd751646b2f1b3ef2d3a38e98de114f030d754550c0f75d6214afc559df7181eb87361264153008f3ec5248e78018e86cfee62b
   languageName: node
   linkType: hard
 
@@ -13159,6 +13187,16 @@ __metadata:
     fdir: "npm:^6.4.4"
     picomatch: "npm:^4.0.2"
   checksum: 10c0/f789ed6c924287a9b7d3612056ed0cda67306cd2c80c249fd280cf1504742b12583a2089b61f4abbd24605f390809017240e250241f09938054c9b363e51c0a6
+  languageName: node
+  linkType: hard
+
+"tinyglobby@npm:^0.2.14":
+  version: 0.2.17
+  resolution: "tinyglobby@npm:0.2.17"
+  dependencies:
+    fdir: "npm:^6.5.0"
+    picomatch: "npm:^4.0.4"
+  checksum: 10c0/7f7bb0f197c88bc4b20c231e0deca4240ca3bf313a88f5a7fee93a872b84966a4d50220947c0455ad07a60b3b360961c5b7fd979222aeb716a9f99b412002e4c
   languageName: node
   linkType: hard
 
