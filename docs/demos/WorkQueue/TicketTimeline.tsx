@@ -5,6 +5,7 @@ import {
   type ChatMessage,
   type MessageListHandlers,
   type MessagesUser,
+  useMessagesContext,
 } from 'mantine-messages';
 import React from 'react';
 import { EmailCard } from './EmailCard';
@@ -20,12 +21,17 @@ export interface TicketTimelineProps {
   onOpenEmail: (email: EmailItem) => void;
 }
 
-const time = (item: TimelineItem) =>
-  new Date(item.createdAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+const time = (item: TimelineItem, { locale, timeZone }: { locale: string; timeZone?: string }) =>
+  new Date(item.createdAt).toLocaleTimeString(locale, {
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZone,
+  });
 
 /** Emails, chat, internal notes and events of one ticket, in one list */
 export function TicketTimeline({ items, users, handlersRef, onOpenEmail }: TicketTimelineProps) {
   const nameOf = nameGetter(users);
+  const dates = useMessagesContext();
   const { dir } = useDirection();
   const bar = dir === 'rtl' ? '-3px' : '3px';
 
@@ -52,7 +58,7 @@ export function TicketTimeline({ items, users, handlersRef, onOpenEmail }: Ticke
             </Text>
             <Text component="span" size="xs" c="dimmed">
               {note && 'Internal note · '}
-              {time(message)}
+              {time(message, dates)}
             </Text>
           </Message.Meta>
           <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
@@ -69,12 +75,12 @@ export function TicketTimeline({ items, users, handlersRef, onOpenEmail }: Ticke
     }
 
     if (item.kind === 'email') {
-      return <EmailCard email={item} time={time(item)} onOpen={onOpenEmail} />;
+      return <EmailCard email={item} time={time(item, dates)} onOpen={onOpenEmail} />;
     }
 
     return (
       <Text size="xs" c="dimmed" ta="center">
-        {item.text} · {time(item)}
+        {item.text} · {time(item, dates)}
       </Text>
     );
   };

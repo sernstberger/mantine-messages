@@ -197,13 +197,18 @@ export function slaState(ticket: Ticket, now: Date): SlaState {
   return { label: `${formatDuration(left)} left`, color: left <= 60 * 60000 ? 'orange' : 'teal' };
 }
 
-export const formatDateTime = (date: Date) =>
-  date.toLocaleString(undefined, {
+/** Weekday, date and time; pass the `MessagesProvider` locale and time zone so it matches the lists */
+export const formatDateTime = (
+  date: Date,
+  { locale, timeZone }: { locale?: string; timeZone?: string } = {}
+) =>
+  date.toLocaleString(locale, {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
+    timeZone,
   });
 
 /** Quick choices in the snooze menu */

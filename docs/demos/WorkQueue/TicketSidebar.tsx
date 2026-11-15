@@ -9,7 +9,7 @@ import {
   NavLink,
   TextInput,
 } from '@mantine/core';
-import type { SystemEvent } from 'mantine-messages';
+import { type SystemEvent, useMessagesContext } from 'mantine-messages';
 import React, { useState } from 'react';
 import {
   formatDateTime,
@@ -39,6 +39,7 @@ export function TicketSidebar({ ticket, agents, now, dispatch, onJumpTo }: Ticke
   const [custom, setCustom] = useState('');
   const [snoozeOpen, setSnoozeOpen] = useState(false);
   const ids = [ticket.id];
+  const { locale, timeZone } = useMessagesContext();
   const at = () => new Date();
   const customDate = custom ? new Date(custom) : null;
   const events = ticket.items.filter(
@@ -89,7 +90,9 @@ export function TicketSidebar({ ticket, agents, now, dispatch, onJumpTo }: Ticke
 
       {isSnoozed(ticket, now) ? (
         <Group justify="space-between" gap="xs">
-          <Text size="sm">Snoozed until {formatDateTime(ticket.snoozedUntil!)}</Text>
+          <Text size="sm">
+            Snoozed until {formatDateTime(ticket.snoozedUntil!, { locale, timeZone })}
+          </Text>
           <Button size="compact-sm" variant="default" onClick={() => snooze(null)}>
             Unsnooze
           </Button>
@@ -149,7 +152,7 @@ export function TicketSidebar({ ticket, agents, now, dispatch, onJumpTo }: Ticke
             key={event.id}
             component="button"
             label={event.text}
-            description={formatDateTime(new Date(event.createdAt))}
+            description={formatDateTime(new Date(event.createdAt), { locale, timeZone })}
             onClick={() => onJumpTo(event.id)}
             styles={{ root: { borderRadius: 'var(--mantine-radius-sm)' } }}
           />

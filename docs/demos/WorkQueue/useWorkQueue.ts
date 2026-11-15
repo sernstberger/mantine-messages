@@ -1,3 +1,4 @@
+import { useMessagesContext } from 'mantine-messages';
 import { useMemo, useReducer, useState } from 'react';
 import { agents, createTickets, TAGS, users } from './data';
 import {
@@ -19,7 +20,8 @@ const nameOf = nameGetter(users);
  * filters, sort, the selection and the bulk actions on it
  */
 export function useWorkQueue(nowProp?: Date) {
-  const [now] = useState(() => nowProp ?? new Date());
+  const settings = useMessagesContext();
+  const [now] = useState(() => nowProp ?? new Date(settings.now ?? Date.now()));
   const [tickets, dispatch] = useReducer(queueReducer, now, createTickets);
   const [filters, setFiltersState] = useState<QueueFilters>(DEFAULT_FILTERS);
   const [sort, setSort] = useState<QueueSort>({ key: 'sla', direction: 'asc' });
