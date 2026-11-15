@@ -10,11 +10,24 @@ Mantine Styles API, light and dark themes, and keyboard and screen reader suppor
 yarn add mantine-messages @mantine/core @mantine/hooks react react-dom
 ```
 
-Peers: `@mantine/core` and `@mantine/hooks` ^9.8.0, `react` and `react-dom` ^19.2.0. Optional peers, only for
-`mantine-messages/markdown` and `mantine-messages/assistant`: `react-markdown` ^10 and `remark-gfm` ^4.
+Peers: `@mantine/core` and `@mantine/hooks` ^9.8.0, `react` and `react-dom` ^19.2.0.
+
+Markdown (`MarkdownBody`, and the answers of `AssistantThread`) needs a markdown engine that you
+install and hand over through an adapter, like `@mantine/code-highlight` does for highlighters.
+Without one the text shows as plain text:
 
 ```bash
 yarn add react-markdown remark-gfm
+```
+
+```tsx
+import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { createReactMarkdownAdapter, MarkdownAdapterProvider } from 'mantine-messages';
+
+const adapter = createReactMarkdownAdapter(Markdown, { remarkPlugins: [remarkGfm] });
+
+<MarkdownAdapterProvider adapter={adapter}>{/* your app */}</MarkdownAdapterProvider>;
 ```
 
 ## Components
@@ -25,11 +38,8 @@ yarn add react-markdown remark-gfm
 - `TeamThread` — Slack-style rows: compact follow-ups, event lines, internal notes, "12 replies" thread summaries, reactions and files
 - `ThreadPanel` — A thread beside the channel: the parent, a reply count, the replies and your composer
 - `Message` — The parts of a row (`Message.Avatar`, `Message.Body`, `Message.Meta`) for your own layouts
-- `MarkdownBody` — From `mantine-messages/markdown`: safe markdown with Mantine typography, code blocks and copy buttons
-- `AssistantThread` — From `mantine-messages/assistant`: LLM chat with streamed answers, reasoning and tool steps, Stop, Regenerate, edit and resend
-
-Markdown and the assistant need two optional peers: `yarn add react-markdown remark-gfm`. The root
-entry never imports them.
+- `MarkdownBody` — Safe markdown through your adapter with Mantine typography, code blocks and copy buttons
+- `AssistantThread` — LLM chat with streamed answers, reasoning and tool steps, Stop, Regenerate, edit and resend
 
 All three share the `Conversation`, `ChatMessage` and `MessagesUser` types. You bring the data; the
 components never fetch anything.
@@ -55,19 +65,18 @@ function Messenger() {
 }
 ```
 
-Markdown (needs the optional peers):
+Markdown (needs the adapter above):
 
 ```tsx
-import { MarkdownBody } from 'mantine-messages/markdown';
+import { MarkdownBody } from 'mantine-messages';
 
 <MarkdownBody>{'Some **markdown** with `code`'}</MarkdownBody>;
 ```
 
-Assistant chat (needs the optional peers):
+Assistant chat (answers show markdown with the adapter above):
 
 ```tsx
-import { Composer } from 'mantine-messages';
-import { AssistantThread } from 'mantine-messages/assistant';
+import { AssistantThread, Composer } from 'mantine-messages';
 
 <>
   <AssistantThread messages={messages} onRegenerate={regenerate} />

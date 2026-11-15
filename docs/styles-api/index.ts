@@ -1,8 +1,10 @@
 import type {
+  AssistantThreadFactory,
   AttachmentsFactory,
   ChatThreadFactory,
   ComposerFactory,
   InboxFactory,
+  MarkdownBodyFactory,
   MessageActionsFactory,
   MessageFactory,
   MessageListFactory,
@@ -11,8 +13,6 @@ import type {
   TeamThreadFactory,
   ThreadPanelFactory,
 } from 'mantine-messages';
-import type { AssistantThreadFactory } from 'mantine-messages/assistant';
-import type { MarkdownBodyFactory } from 'mantine-messages/markdown';
 import type { StylesApiData } from '../components/styles-api.types';
 
 export const InboxStylesApi: StylesApiData<InboxFactory> = {

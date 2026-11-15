@@ -24,16 +24,16 @@ will be 0.1.0.
 - `Message`, `Message.Avatar`, `Message.Body`, `Message.Meta`: building blocks for message rows
 - `Composer`: `modes` with `draft.mode`, and note styling for a mode with `note: true`
 - `Inbox`: a search box (`withSearch`), sections (`sections`), and a `#` on channels
-- `mantine-messages/markdown`: `MarkdownBody`, safe markdown with code blocks and copy buttons;
-  react-markdown and remark-gfm are optional peers, never imported by the root entry
-- `mantine-messages/assistant`: `AssistantThread` for LLM chat: streamed answers with markdown,
+- `MarkdownBody`: safe markdown with code blocks and copy buttons, rendered through a markdown
+  adapter (see `MarkdownAdapterProvider` under Changed)
+- `AssistantThread` for LLM chat: streamed answers with markdown,
   collapsible reasoning and tool steps, regenerate, edit and resend, and finished answers
   announced to screen readers; `getAssistantText`
 - `ChatThread`: `renderBody`, for example to render markdown messages with `MarkdownBody`
 - `Composer`: `streaming` and `onStop` turn the send button into a stop button
 - `MessageList`: follows the newest item while it grows, for streamed answers
 - Types: `AssistantMessage`, `AssistantPart`
-- A build check that the root entry reaches no optional peer (`npm run check:peers`, part of `npm test`)
+- A build check that the entry reaches no package other than its peers (`npm run check:peers`, part of `npm test`)
 - `MessageList`: `handlersRef` gets `{ jumpTo }`, so code outside the list can scroll to an item
   and flash it; `ChatThread`, `TeamThread` and `AssistantThread` pass it on. Type:
   `MessageListHandlers`
@@ -55,13 +55,26 @@ will be 0.1.0.
 
 ### Changed
 
-- `ThreadPanel` is a frame with parts, like Mantine's `Modal`: the panel keeps `title` (a prop
+- Breaking: `ThreadPanel` is a frame with parts, like Mantine's `Modal`: the panel keeps `title` (a prop
   now, "Thread" by default; it was `labels.title`), `subtitle`, `titleOrder`, `onClose`,
   `withCloseButton`, `closeButtonProps`, `withFocusManagement` and `labels.close`;
   `ThreadPanel.Replies` takes `parent`, `replies` and every other `TeamThread` prop (it used to
   pass 14 of them through the panel, and thread labels are now its `labels`); `ThreadPanel.Footer`
   wraps the composer (a bare child is no longer wrapped). The panel is named by its title through
   `aria-labelledby`, and `unstyled` reaches its `Title`, `Text`, `CloseButton` and the thread
+- Breaking: markdown goes through an adapter, like `@mantine/code-highlight`. `mantine-messages`
+  no longer imports or peers on `react-markdown` and `remark-gfm`: install them yourself, create
+  an adapter with `createReactMarkdownAdapter(Markdown, { remarkPlugins: [remarkGfm] })` and wrap
+  your app in `MarkdownAdapterProvider`. Without a provider `MarkdownBody` and the answers of
+  `AssistantThread` show plain text with line breaks (`plainTextMarkdownAdapter`). New exports:
+  `MarkdownAdapterProvider`, `createReactMarkdownAdapter`, `plainTextMarkdownAdapter`,
+  `useMarkdownAdapter` and the types `MarkdownAdapter`, `MarkdownRenderers`
+- Breaking: `mantine-messages/markdown` and `mantine-messages/assistant` are gone, and with them
+  `typesVersions` and the optional peers. Import `MarkdownBody`, `AssistantThread` and
+  `getAssistantText` from `mantine-messages`
+- Breaking: `MarkdownBody` no longer takes `components` and `remarkPlugins`; pass them to
+  `createReactMarkdownAdapter`, and `remark-gfm` is no longer added for you. `MarkdownBody` takes
+  `adapter`, to use another adapter than the provider's for one instance
 - Renames, with no aliases because the package is not published: `controlRef` is now `handlersRef`
   (like Mantine's `NumberInput`) on `MessageList`, `ChatThread`, `TeamThread`, `ThreadPanel` and
   `AssistantThread`, and its type `MessageListControl` is now `MessageListHandlers`;
@@ -131,7 +144,7 @@ will be 0.1.0.
 - `MarkdownBody` parses its text block by block and keeps each parsed block while its text is
   unchanged, so a streamed answer no longer re-parses the whole answer on every token (a 4.5 kB
   answer streamed in 909 tokens parsed 2.07M characters, now 42k), and a re-render with the same
-  text, `components` and `remarkPlugins` parses nothing. With `remarkPlugins`, or link reference
+  text and adapter parses nothing. With an adapter that sets `splitBlocks: false`, or link reference
   and footnote definitions in the text, the text is still parsed whole. Custom renderers get
   `node` positions relative to their block. `npm run check:markdown` checks the blocks against
   react-markdown

@@ -1,20 +1,22 @@
-import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import signale from 'signale';
+import { createReactMarkdownAdapter } from '../package/src/MarkdownBody/react-markdown-adapter';
+import type { MarkdownRenderers } from '../package/src/MarkdownBody/MarkdownAdapterProvider';
 import { splitMarkdownBlocks } from '../package/src/MarkdownBody/split-blocks';
 
 /**
  * MarkdownBody parses its text block by block (see split-blocks.ts). Jest runs a stand-in for
- * react-markdown, so this checks the split against the real parser: for every sample, and for
+ * react-markdown, so this checks the split against the real parser, built through the adapter: for every sample, and for
  * every prefix of it (the text as it streams in, one character at a time), the blocks rendered
  * one by one and joined by a newline must be the same HTML as the whole text rendered at once.
  *
  *   tsx scripts/check-markdown-blocks
  */
+const adapter = createReactMarkdownAdapter(Markdown, { remarkPlugins: [remarkGfm] });
 const render = (text: string) =>
-  renderToStaticMarkup(<Markdown remarkPlugins={[remarkGfm]}>{text}</Markdown>);
+  renderToStaticMarkup(adapter.render(text, {} as MarkdownRenderers));
 
 const samples: Record<string, string> = {
   paragraphs:
