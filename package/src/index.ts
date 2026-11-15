@@ -66,8 +66,11 @@ export type {
   MessageFactory,
   MessageStylesNames,
   MessageAvatarProps,
+  MessageAvatarFactory,
   MessageBodyProps,
+  MessageBodyFactory,
   MessageMetaProps,
+  MessageMetaFactory,
 } from './Message/Message';
 
 export { TeamThread } from './TeamThread/TeamThread';
