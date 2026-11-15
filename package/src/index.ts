@@ -6,7 +6,13 @@ export type {
   ChatThreadLabels,
 } from './ChatThread/ChatThread';
 export { Inbox } from './Inbox/Inbox';
-export type { InboxProps, InboxFactory, InboxStylesNames } from './Inbox/Inbox';
+export type {
+  InboxProps,
+  InboxFactory,
+  InboxStylesNames,
+  InboxSection,
+  InboxLabels,
+} from './Inbox/Inbox';
 export { Composer } from './Composer/Composer';
 export type {
   ComposerProps,

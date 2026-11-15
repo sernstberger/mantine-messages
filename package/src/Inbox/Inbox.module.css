@@ -5,6 +5,25 @@
   gap: 2px;
 }
 
+.search {
+  margin-bottom: var(--mantine-spacing-xs);
+}
+
+/* A heading and its conversations */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.section + .section {
+  margin-top: var(--mantine-spacing-sm);
+}
+
+.sectionLabel {
+  padding: 4px var(--mantine-spacing-sm);
+}
+
 .item {
   display: flex;
   align-items: center;

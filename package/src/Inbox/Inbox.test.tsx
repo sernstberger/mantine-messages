@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import type { Conversation } from '../types';
 import { Inbox, InboxProps, InboxStylesNames } from './Inbox';
+import { within } from '@testing-library/react';
 
 const conversations: Conversation[] = [
   {
@@ -72,5 +73,75 @@ describe('Inbox', () => {
       />
     );
     expect(screen.getByText('Ship it')).toBeInTheDocument();
+  });
+});
+
+describe('Inbox search and sections', () => {
+  const team: Conversation[] = [
+    { id: 'general', title: 'general', kind: 'channel' },
+    { id: 'launch', title: 'launch', kind: 'channel', pinned: true },
+    { id: 'maya', title: 'Maya Lindqvist', kind: 'direct' },
+    { id: 'crew', title: 'Priya, Sam', kind: 'group' },
+    { id: 'old', title: 'Old chat' },
+  ];
+
+  it('filters by title with the search box, uncontrolled', async () => {
+    const onSearchChange = jest.fn();
+    render(<Inbox conversations={team} withSearch onSearchChange={onSearchChange} />);
+    await userEvent.type(screen.getByRole('textbox', { name: 'Search' }), ' MAYA ');
+    expect(onSearchChange).toHaveBeenLastCalledWith(' MAYA ');
+    expect(screen.getAllByRole('button')).toHaveLength(1);
+    expect(screen.getByRole('button', { name: /Maya/ })).toBeInTheDocument();
+  });
+
+  it('filters with a controlled search and says when nothing matches', () => {
+    render(<Inbox conversations={team} search="zzz" labels={{ noResults: 'Nothing here' }} />);
+    expect(screen.getByText('Nothing here')).toBeInTheDocument();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+  });
+
+  it('groups into Pinned, Channels and Direct messages', () => {
+    render(<Inbox conversations={team} sections />);
+    const pinned = within(screen.getByRole('group', { name: 'Pinned' })).getAllByRole('button');
+    const channels = within(screen.getByRole('group', { name: 'Channels' })).getAllByRole('button');
+    const direct = within(screen.getByRole('group', { name: 'Direct messages' })).getAllByRole(
+      'button'
+    );
+    expect(pinned).toHaveLength(1);
+    expect(pinned[0]).toHaveAccessibleName(/launch/);
+    expect(channels).toHaveLength(1);
+    expect(channels[0]).toHaveAccessibleName(/general/);
+    expect(direct).toHaveLength(3);
+  });
+
+  it('hides empty sections and takes custom sections and labels', () => {
+    const { rerender } = render(
+      <Inbox
+        conversations={team}
+        sections={[{ id: 'mine', label: 'Mine', match: (c) => c.id === 'maya' }]}
+      />
+    );
+    expect(within(screen.getByRole('group', { name: 'Mine' })).getAllByRole('button')).toHaveLength(
+      1
+    );
+    expect(screen.getAllByRole('button')).toHaveLength(1);
+
+    rerender(
+      <Inbox
+        conversations={team.filter((c) => c.kind === 'channel' && !c.pinned)}
+        sections
+        labels={{ channels: 'Rooms' }}
+      />
+    );
+    expect(screen.queryByRole('group', { name: 'Pinned' })).not.toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Rooms' })).toBeInTheDocument();
+  });
+
+  it('marks channels with a # icon', () => {
+    render(<Inbox conversations={team} />);
+    const general = screen.getByRole('button', { name: /general/ });
+    expect(general).toHaveAttribute('data-channel');
+    expect(general.querySelector('svg')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Maya/ })).not.toHaveAttribute('data-channel');
   });
 });
