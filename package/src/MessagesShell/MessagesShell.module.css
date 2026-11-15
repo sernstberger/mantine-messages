@@ -16,7 +16,7 @@
   display: flex;
   flex: none;
   flex-direction: column;
-  width: 300px;
+  width: rem(300px);
   min-height: 0;
   overflow: hidden;
   border-inline-end: 1px solid var(--mantine-color-default-border);
@@ -35,7 +35,7 @@
   display: flex;
   flex: none;
   flex-direction: column;
-  width: 280px;
+  width: rem(280px);
   min-height: 0;
   overflow: hidden;
   border-inline-start: 1px solid var(--mantine-color-default-border);

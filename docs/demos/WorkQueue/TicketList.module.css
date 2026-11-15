@@ -14,7 +14,7 @@
   display: block;
   width: 100%;
   padding-block: var(--mantine-spacing-xs);
-  padding-inline: 36px var(--mantine-spacing-sm);
+  padding-inline: rem(36px) var(--mantine-spacing-sm);
   outline-offset: -2px;
 
   @mixin hover {
@@ -38,18 +38,18 @@
 
 .check {
   position: absolute;
-  top: 11px;
-  inset-inline-start: 10px;
+  top: rem(11px);
+  inset-inline-start: rem(10px);
   z-index: 1;
   opacity: 0;
 }
 
 .dot {
   position: absolute;
-  top: 15px;
-  inset-inline-start: 14px;
-  width: 8px;
-  height: 8px;
+  top: rem(15px);
+  inset-inline-start: rem(14px);
+  width: rem(8px);
+  height: rem(8px);
   border-radius: 50%;
   background-color: var(--mantine-primary-color-filled);
   pointer-events: none;

@@ -6,11 +6,11 @@
 /* One message, a Message */
 .row {
   position: relative;
-  padding: 2px var(--mantine-spacing-md);
+  padding: rem(2px) var(--mantine-spacing-md);
 
   &:where(:not([data-compact])) {
     margin-top: var(--mantine-spacing-xs);
-    padding-top: 6px;
+    padding-top: rem(6px);
   }
 
   @mixin hover {
@@ -38,7 +38,7 @@
 }
 
 .avatar {
-  margin-top: 2px;
+  margin-top: rem(2px);
 }
 
 /* Lines up with the first line of the text */
@@ -47,7 +47,7 @@
 }
 
 .meta {
-  margin-bottom: 2px;
+  margin-bottom: rem(2px);
 }
 
 .author {
@@ -57,7 +57,7 @@
 .noteLabel {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: rem(4px);
   color: var(--mantine-color-yellow-light-color);
 }
 
@@ -69,16 +69,16 @@
 }
 
 .edited {
-  margin-inline-start: 4px;
+  margin-inline-start: rem(4px);
 }
 
 /* Toolbar over the top end corner; shown on hover, keyboard focus and while its menu is open */
 .actions {
   position: absolute;
-  top: -14px;
+  top: rem(-14px);
   inset-inline-end: var(--mantine-spacing-md);
   z-index: 1;
-  padding: 2px;
+  padding: rem(2px);
   border: 1px solid var(--mantine-color-default-border);
   border-radius: var(--mantine-radius-md);
   background-color: var(--mantine-color-body);
@@ -98,9 +98,9 @@
   display: inline-flex;
   align-items: center;
   gap: var(--mantine-spacing-xs);
-  margin-top: 4px;
-  padding-block: 2px;
-  padding-inline: 2px 8px;
+  margin-top: rem(4px);
+  padding-block: rem(2px);
+  padding-inline: rem(2px) rem(8px);
   border: 1px solid transparent;
   border-radius: var(--mantine-radius-md);
 
@@ -116,5 +116,5 @@
 
 .event {
   margin-top: var(--mantine-spacing-xs);
-  padding: 4px var(--mantine-spacing-md);
+  padding: rem(4px) var(--mantine-spacing-md);
 }

@@ -57,3 +57,5 @@ will be 0.1.0.
   bar and field, `MarkdownBody` code headers, thread summaries, `MessagesShell` pane borders and
   overlay aside, and the `AssistantThread` tool badge use logical sides, so they mirror under
   `dir="rtl"`
+- Sizes in the CSS modules use `rem()`, so spacing follows the root font size and
+  `theme.scale` (same pixels at the default 16px root); 1px borders and focus outlines stay in px

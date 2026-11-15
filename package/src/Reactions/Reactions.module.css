@@ -1,15 +1,15 @@
 .root {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 4px;
+  gap: rem(4px);
+  margin-top: rem(4px);
 }
 
 .reaction {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 1px 8px;
+  gap: rem(4px);
+  padding: rem(1px) rem(8px);
   border: 1px solid var(--mantine-color-default-border);
   border-radius: var(--mantine-radius-xl);
   font-size: var(--mantine-font-size-xs);
