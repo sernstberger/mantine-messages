@@ -564,7 +564,8 @@ component takes `labels`, a partial object that is merged over the English defau
 Labels that depend on a number or a person are functions, so the translation can inflect them:
 `Inbox` `labels.unread(count)`, `TeamThread` `labels.replies(count)`, `ChatThread`
 `labels.repliedTo({ author, original, own, toOwn })` and `MessageActions` `labels.more({ author, own })`.
-Times and dates follow `locale` on the lists.
+Times, dates and file sizes follow `locale`, on each list or for every component at once in
+`MessagesProvider` (see [Dates and time zones](#dates-and-time-zones)).
 
 ```tsx
 <ChatThread
@@ -577,6 +578,50 @@ Times and dates follow `locale` on the lists.
 ```
 
 The types are `InboxLabels`, `ChatThreadLabels` and so on, or `Inbox.Labels`.
+
+## Dates and time zones
+
+Times, "Today" and "Yesterday" dividers, inbox times and "5 minutes ago" depend on three settings:
+the locale, the time zone and the current moment. `MessagesProvider` sets them for every component
+below it, the way `DatesProvider` does for `@mantine/dates`:
+
+- `locale`: `'en'` by default, for times, dates and file sizes
+- `timeZone`: an IANA name such as `'America/New_York'`; it decides the time shown and where each
+  day starts. Without it the runtime's zone is used
+- `now`: the moment "Today", "Yesterday", weekdays and relative times count from; the current time
+  by default
+
+`ChatThread`, `TeamThread`, `ThreadPanel.Replies`, `Inbox` and `MessageList` also take `locale` and
+`timeZone` props, and `Attachments` takes `locale`; a prop wins over the provider. `useMessagesContext`
+returns the settings with `getLocale(prop)` and `getTimeZone(prop)` for your own rows.
+
+```tsx
+import { MessagesProvider } from 'mantine-messages';
+
+function App({ children, user }) {
+  return (
+    <MessagesProvider settings={{ locale: user.locale, timeZone: user.timeZone }}>
+      {children}
+    </MessagesProvider>
+  );
+}
+```
+
+### Server rendering
+
+A server renders in its own time zone and at its own moment, and the browser hydrates in the
+reader's, so a page that shows "9:30 PM" on the server and "11:30 AM" in Tokyo, or "Today" a second
+before midnight and "Yesterday" after, fails hydration. Pass the same settings to both renders:
+the reader's `timeZone` (from their profile or a cookie) and the server's `now`, sent with the page.
+To keep relative times moving after hydration, update `now` in state from an effect, for example
+every minute with `useInterval` from `@mantine/hooks`. Keep `settings.now` the same `Date` between
+renders otherwise, since memoized rows render again when it changes.
+
+The demo below fixes `now` at 15:30 UTC and switches `timeZone`. The times move with the zone,
+and so do the dividers: in Tokyo it is already past midnight, so "Morning! Any luck with that
+invoice?" moves under Yesterday and only the last two messages are Today.
+
+<Demo data={demos.timeZones} />
 
 ## Keyboard
 
