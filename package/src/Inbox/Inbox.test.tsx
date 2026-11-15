@@ -58,8 +58,10 @@ describe('Inbox', () => {
     expect(screen.getByRole('button', { name: /Design/ })).toHaveAttribute('aria-current', 'true');
   });
 
-  it('shows the empty label', () => {
-    render(<Inbox conversations={[]} emptyLabel="Nothing yet" />);
+  it('shows the empty label, No conversations by default', () => {
+    const { rerender } = render(<Inbox conversations={[]} />);
+    expect(screen.getByText('No conversations')).toBeInTheDocument();
+    rerender(<Inbox conversations={[]} labels={{ empty: 'Nothing yet' }} />);
     expect(screen.getByText('Nothing yet')).toBeInTheDocument();
   });
 

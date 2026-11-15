@@ -54,6 +54,8 @@ will be 0.1.0.
 
 ### Changed
 
+- `Inbox`: `emptyLabel` is now `labels.empty`, next to `labels.noResults`, so all of its text is
+  in `labels`
 - `MessageList`: `labels.unread` is now `labels.newMessages`, the key `ChatThread`, `TeamThread`
   and `ThreadPanel` already use
 - `MessageList` is built with Mantine's `genericFactory`, so `<MessageList<T>>` is typed without a
