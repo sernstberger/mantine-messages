@@ -15,10 +15,12 @@ What you get:
 
 - **Smoke**: every story in Storybook's `index.json`, in light and dark, in Chromium, Firefox and
   WebKit. It renders, Mantine's CSS is on the page, the color scheme is applied, and nothing is
-  logged to `console.error` or thrown. Tag a story `no-smoke` to leave it out.
+  logged to `console.error` or thrown. Tag a story `no-smoke` to leave it out, or declare the
+  console errors it shows on purpose (see Expected console errors).
 - **Helpers** for your own specs (`e2e/*.spec.ts`), imported from `./support/story`:
   - `test`, `expect`: Playwright's, plus a fixture that fails the test on any console error or
-    page error (`test.use({ allowConsole: [/pattern/] })` to allow one)
+    page error (`test.use({ allowConsole: [/pattern/] })` to allow one), and `watchConsole(page,
+    allow)` for a page you open yourself
   - `openStory(page, id, { theme, reducedMotion, args })`: opens `iframe.html?id=…`, waits for
     the story, fonts and color scheme; throws Storybook's error if the story fails
   - `scrollMetrics(locator)`, `scrollTo(locator, top | 'bottom')`: the nearest scrolling
@@ -54,6 +56,25 @@ What you get:
   spec then runs as one test with a step per story.
 - `npm run e2e:ui`: Playwright's UI mode, against the dev server.
 - On failure: `npx playwright show-report` (traces and screenshots are kept for failed tests).
+
+## Expected console errors
+
+A story that fails on purpose (a viewer that fetches a missing file) logs a 404 and an error.
+Declare them on the story, and the smoke spec, in the static build and under the dev server,
+ignores matching messages for that story only; it still renders and is still checked:
+
+```ts
+export const LoadError: Story = {
+  args: { src: '/missing.md' },
+  parameters: { e2e: { allowConsole: [/404/, /Failed to load/] } },
+};
+```
+
+Entries are `RegExp`s or strings (read as a pattern), matched against the text of each
+`console.error` and page error. The static `vite preview` answers a missing file with HTML, so
+no 404 is logged there; the dev server logs one, which is why the declaration is needed. The same
+applies to a spec: `openStory` reads the parameter when it opens the story. For a whole file,
+`test.use({ allowConsole: [...] })`.
 
 ## Writing specs
 

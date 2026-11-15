@@ -21,30 +21,40 @@ interface Fixtures {
   /** Console messages that do not fail the test; `test.use({ allowConsole: [/ResizeObserver/] })` */
   allowConsole: RegExp[];
 
-  /** Console errors and page errors seen so far; the test fails if any are left at the end */
-  consoleErrors: string[];
+  /** Lists the console errors and page errors not allowed; the test fails if any are left at the end */
+  consoleErrors: () => string[];
+}
+
+const storyAllowed = new WeakMap<Page, RegExp[]>();
+
+/**
+ * Records console errors and page errors on `page`. Returns a function that lists those not
+ * matched by `allow` or by the `parameters.e2e.allowConsole` of the story last opened with
+ * `openStory`
+ */
+export function watchConsole(page: Page, allow: RegExp[] = []) {
+  const seen: string[] = [];
+
+  page.on('console', (message) => {
+    if (message.type() === 'error') {
+      seen.push(message.text());
+    }
+  });
+  page.on('pageerror', (error) => seen.push(error.message));
+
+  return () => {
+    const patterns = [...allow, ...(storyAllowed.get(page) ?? [])];
+    return seen.filter((text) => !patterns.some((pattern) => pattern.test(text)));
+  };
 }
 
 export const test = base.extend<Fixtures>({
   allowConsole: [[], { option: true }],
   consoleErrors: [
     async ({ page, allowConsole }, use) => {
-      const errors: string[] = [];
-      const allowed = (text: string) => allowConsole.some((pattern) => pattern.test(text));
-
-      page.on('console', (message) => {
-        if (message.type() === 'error' && !allowed(message.text())) {
-          errors.push(`console.error: ${message.text()}`);
-        }
-      });
-      page.on('pageerror', (error) => {
-        if (!allowed(error.message)) {
-          errors.push(`page error: ${error.message}`);
-        }
-      });
-
-      await use(errors);
-      expect(errors, 'console errors and page errors').toEqual([]);
+      const unexpected = watchConsole(page, allowConsole);
+      await use(unexpected);
+      expect(unexpected(), 'console errors and page errors').toEqual([]);
     },
     { auto: true },
   ],
@@ -66,9 +76,24 @@ export function storyUrl(id: string, { theme = 'light', args }: StoryOptions = {
   return `/iframe.html?${params}`;
 }
 
+async function expectedConsole(page: Page) {
+  const declared = await page.evaluate(() => {
+    const preview = (window as any).__STORYBOOK_PREVIEW__;
+    const allow = preview?.currentRender?.story?.parameters?.e2e?.allowConsole ?? [];
+    return (allow as Array<RegExp | string>).map((item) =>
+      typeof item === 'string'
+        ? { source: item, flags: '' }
+        : { source: item.source, flags: item.flags }
+    );
+  });
+
+  return declared.map(({ source, flags }) => new RegExp(source, flags));
+}
+
 /**
  * Opens a story and waits until it has rendered, its fonts have loaded and Mantine has applied
- * the color scheme. Throws Storybook's own error when the story fails to render. Returns the
+ * the color scheme. Console errors that the story declares in `parameters.e2e.allowConsole` do
+ * not fail the test. Throws Storybook's own error when the story fails to render. Returns the
  * story's root element
  */
 export async function openStory(page: Page, id: string, options: StoryOptions = {}) {
@@ -76,7 +101,6 @@ export async function openStory(page: Page, id: string, options: StoryOptions = 
   await page.emulateMedia({ reducedMotion: reducedMotion ? 'reduce' : 'no-preference' });
   await page.goto(storyUrl(id, options));
 
-  // Storybook marks <body> with the phase it is in; wait for a final one
   const phase = await page.waitForFunction(() => {
     const { classList } = document.body;
     return ['sb-show-main', 'sb-show-errordisplay', 'sb-show-nopreview'].find((name) =>
@@ -94,6 +118,7 @@ export async function openStory(page: Page, id: string, options: StoryOptions = 
     throw new Error(`Story "${id}" threw: ${await page.locator('#error-message').innerText()}`);
   }
 
+  storyAllowed.set(page, await expectedConsole(page));
   await page.evaluate(() => document.fonts.ready);
   await expect(page.locator('html')).toHaveAttribute('data-mantine-color-scheme', theme);
 
