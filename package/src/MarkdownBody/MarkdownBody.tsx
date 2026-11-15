@@ -18,10 +18,13 @@ import {
   VisuallyHidden,
 } from '@mantine/core';
 import React, { memo, useMemo } from 'react';
-import Markdown, { type Components, type Options } from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { CheckIcon, CopyIcon } from '../icons';
 import classes from './MarkdownBody.module.css';
+import {
+  type MarkdownAdapter,
+  type MarkdownRenderers,
+  useMarkdownAdapter,
+} from './MarkdownAdapterProvider';
 import { splitMarkdownBlocks } from './split-blocks';
 
 export type MarkdownBodyStylesNames =
@@ -51,16 +54,10 @@ export interface MarkdownBodyProps
   children: string;
 
   /**
-   * Renderers by tag name, replacing the built-in ones for links (`a`), inline code (`code`) and
-   * code blocks (`pre`), for example `pre` with `@mantine/code-highlight`
+   * Renders the markdown, replacing the adapter of the nearest `MarkdownAdapterProvider` for this
+   * instance. Without either, the text shows as plain text
    */
-  components?: Components;
-
-  /**
-   * Remark plugins, run after remark-gfm. A plugin can change where blocks end, so with plugins
-   * the text is parsed whole instead of block by block
-   */
-  remarkPlugins?: Options['remarkPlugins'];
+  adapter?: MarkdownAdapter;
 
   /** Text, for translation */
   labels?: Partial<MarkdownBodyLabels>;
@@ -143,24 +140,16 @@ function MarkdownPre({ children }: React.ComponentPropsWithoutRef<'pre'>) {
   );
 }
 
-const defaultComponents: Components = { a: MarkdownLink, code: MarkdownCode, pre: MarkdownPre };
-
-type PluginList = NonNullable<Options['remarkPlugins']>;
+const renderers: MarkdownRenderers = { a: MarkdownLink, code: MarkdownCode, pre: MarkdownPre };
 
 const MarkdownSegment = memo(function MarkdownSegment({
   text,
-  components,
-  remarkPlugins,
+  adapter,
 }: {
   text: string;
-  components: Components;
-  remarkPlugins: PluginList;
+  adapter: MarkdownAdapter;
 }) {
-  return (
-    <Markdown remarkPlugins={remarkPlugins} components={components}>
-      {text}
-    </Markdown>
-  );
+  return adapter.render(text, renderers);
 });
 
 export const MarkdownBody = factory<MarkdownBodyFactory>((_props) => {
@@ -175,8 +164,7 @@ export const MarkdownBody = factory<MarkdownBodyFactory>((_props) => {
     attributes,
     ref,
     children,
-    components,
-    remarkPlugins,
+    adapter: adapterProp,
     labels,
     ...others
   } = props;
@@ -194,13 +182,14 @@ export const MarkdownBody = factory<MarkdownBodyFactory>((_props) => {
     attributes,
   });
 
-  const plugins = useMemo<PluginList>(() => [remarkGfm, ...(remarkPlugins ?? [])], [remarkPlugins]);
-  const allComponents = useMemo(() => ({ ...defaultComponents, ...components }), [components]);
+  const contextAdapter = useMarkdownAdapter();
+  const adapter = adapterProp ?? contextAdapter;
+  const split = adapter.splitBlocks ?? true;
 
   // Block by block, so a streaming answer reparses only its last block
   const blocks = useMemo(
-    () => (remarkPlugins ? [children] : splitMarkdownBlocks(children)),
-    [children, remarkPlugins]
+    () => (split ? splitMarkdownBlocks(children) : [children]),
+    [children, split]
   );
 
   return (
@@ -208,9 +197,9 @@ export const MarkdownBody = factory<MarkdownBodyFactory>((_props) => {
       <Typography ref={ref} unstyled={unstyled} {...getStyles('root')} {...others}>
         {blocks.map((block, index) => (
           <React.Fragment key={index}>
-            {/* react-markdown puts a newline between top-level elements */}
+            {/* markdown renderers put a newline between top-level elements */}
             {index > 0 && '\n'}
-            <MarkdownSegment text={block} components={allComponents} remarkPlugins={plugins} />
+            <MarkdownSegment text={block} adapter={adapter} />
           </React.Fragment>
         ))}
       </Typography>

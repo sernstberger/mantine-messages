@@ -2,7 +2,11 @@ import { render, screen, tests } from '@mantine-tests/core';
 import { act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React, { useState } from 'react';
+import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { markdownRenders } from '../../../test-utils/react-markdown.mock';
+import { MarkdownAdapterProvider } from '../MarkdownBody/MarkdownAdapterProvider';
+import { createReactMarkdownAdapter } from '../MarkdownBody/react-markdown-adapter';
 import type { MessageListHandlers } from '../MessageList/MessageList';
 import type { AssistantMessage } from '../types';
 import {
@@ -12,6 +16,8 @@ import {
 } from './AssistantThread';
 import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
 import { itHasStaticVarsResolver } from '../../../test-utils/it-has-static-vars-resolver';
+
+const adapter = createReactMarkdownAdapter(Markdown, { remarkPlugins: [remarkGfm] });
 
 const at = (minute: number) => new Date(2026, 10, 15, 9, minute);
 
@@ -86,7 +92,11 @@ function setup(initial: AssistantMessage[], props: Partial<AssistantThreadProps>
     return <AssistantThread messages={messages} {...props} />;
   }
 
-  const view = render(<Harness />);
+  const view = render(
+    <MarkdownAdapterProvider adapter={adapter}>
+      <Harness />
+    </MarkdownAdapterProvider>
+  );
   return { ...view, update: (messages: AssistantMessage[]) => act(() => update(messages)) };
 }
 
@@ -150,13 +160,29 @@ describe('AssistantThread', () => {
     scrollIntoView.mockRestore();
   });
 
+  it('shows answers as plain text, with their line breaks, without a markdown adapter', () => {
+    const text = 'Use **bold**\nand `code`';
+    const { container } = render(
+      <AssistantThread
+        messages={[prompt, { ...answer, parts: [{ type: 'text', text, state: 'done' }] }]}
+      />
+    );
+    const body = container.querySelector('.mantine-MarkdownBody-root')!;
+    expect(body.innerHTML).toBe('Use **bold**<br>and `code`');
+    expect(screen.queryByTestId('markdown')).not.toBeInTheDocument();
+  });
+
   it('renders an empty log without messages', () => {
     render(<AssistantThread messages={[]} />);
     expect(screen.getByRole('log')).toBeEmptyDOMElement();
   });
 
   it('renders parts in order, with reasoning and tools as collapsible steps', async () => {
-    render(<AssistantThread {...defaultProps} labels={{ thoughts: 'Reasoning' }} />);
+    render(
+      <MarkdownAdapterProvider adapter={adapter}>
+        <AssistantThread {...defaultProps} labels={{ thoughts: 'Reasoning' }} />
+      </MarkdownAdapterProvider>
+    );
     const reasoning = screen.getByRole('button', { name: 'Reasoning' });
     expect(reasoning).toHaveAttribute('aria-expanded', 'false');
     expect(screen.queryByText('The user wants a hook.')).not.toBeInTheDocument();

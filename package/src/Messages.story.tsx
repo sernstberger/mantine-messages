@@ -15,8 +15,19 @@ import { ChatThread } from './ChatThread/ChatThread';
 import { TeamThread, type TeamThreadItem } from './TeamThread/TeamThread';
 import { ThreadPanel } from './ThreadPanel/ThreadPanel';
 import type { ChatMessage, Conversation } from './types';
+import { MarkdownAdapterProvider } from './MarkdownBody/MarkdownAdapterProvider';
+import { markdownAdapter } from '../../.storybook/markdown-adapter';
 
-export default { title: 'Messages' };
+export default {
+  title: 'Messages',
+  decorators: [
+    (Story: React.ComponentType) => (
+      <MarkdownAdapterProvider adapter={markdownAdapter}>
+        <Story />
+      </MarkdownAdapterProvider>
+    ),
+  ],
+};
 
 export function Messenger() {
   const [selected, setSelected] = useState('maya');

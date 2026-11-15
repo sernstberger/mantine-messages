@@ -4,10 +4,13 @@ import type { MessageAvatarFactory, MessageBodyFactory, MessageMetaFactory } fro
 describe('mantine-messages', () => {
   it('exports the components and helpers', () => {
     expect(Object.keys(messages).sort()).toEqual([
+      'AssistantThread',
       'Attachments',
       'ChatThread',
       'Composer',
       'Inbox',
+      'MarkdownAdapterProvider',
+      'MarkdownBody',
       'Message',
       'MessageActions',
       'MessageList',
@@ -15,9 +18,13 @@ describe('mantine-messages', () => {
       'Reactions',
       'TeamThread',
       'ThreadPanel',
+      'createReactMarkdownAdapter',
+      'getAssistantText',
       'getPreview',
+      'plainTextMarkdownAdapter',
       'stripMarkdown',
       'truncate',
+      'useMarkdownAdapter',
       'useMessageList',
     ]);
     expect(Object.values(messages).every((value) => value !== undefined)).toBe(true);
