@@ -12,18 +12,24 @@ import {
   useProps,
   useStyles,
 } from '@mantine/core';
-import React, { useImperativeHandle } from 'react';
+import React, { memo, useImperativeHandle } from 'react';
 import type { MessageBase } from '../types';
 import { dayKey } from '../utils/dates';
 import { formatDay } from '../utils/format';
 import classes from './MessageList.module.css';
-import { useMessageList } from './use-message-list';
+import { useMessageList, type MessageListJumpOptions } from './use-message-list';
 
 export type MessageListStylesNames = 'root' | 'list' | 'divider' | 'unread' | 'loader' | 'item';
 
 export interface MessageListLabels {
   /** Line above the first unread item */
   newMessages: string;
+
+  /** Accessible name of the log, unless `aria-label` is set */
+  log: string;
+
+  /** Accessible label of the loader shown while older items load */
+  loadingOlder: string;
 }
 
 export interface MessageListItemContext<T extends MessageBase> {
@@ -40,14 +46,14 @@ export interface MessageListItemContext<T extends MessageBase> {
   /** True for 1.6 seconds after `jumpTo` this item */
   highlighted: boolean;
 
-  /** Scrolls to the item with this `id` and flashes it */
-  jumpTo: (id: string) => void;
+  /** Scrolls to the item with this `id`, flashes it and moves focus to it (see `MessageListJumpOptions`) */
+  jumpTo: (id: string, options?: MessageListJumpOptions) => void;
 }
 
 /** What `controlRef` gives code outside the list */
 export interface MessageListControl {
-  /** Scrolls to the item with this `id` and flashes it */
-  jumpTo: (id: string) => void;
+  /** Scrolls to the item with this `id`, flashes it and moves focus to it (see `MessageListJumpOptions`) */
+  jumpTo: (id: string, options?: MessageListJumpOptions) => void;
 }
 
 export interface MessageListProps<T extends MessageBase = MessageBase>
@@ -57,7 +63,11 @@ export interface MessageListProps<T extends MessageBase = MessageBase>
 
   // Method syntax keeps these bivariant, so MessageListProps<T> fits the factory's MessageListProps
 
-  /** Renders one item */
+  /**
+   * Renders one item. Each item is memoised on its own data and context, so keep this function
+   * stable (`useCallback`, or defined outside the component) and only the items that changed
+   * render again; a new function each render renders every item
+   */
   renderItem(item: T, context: MessageListItemContext<T>): React.ReactNode;
 
   /** Whether `item` continues the group of `previous`; without it every item is its own group */
@@ -108,7 +118,25 @@ const defaultProps = {
   autoScroll: true,
 } satisfies Partial<MessageListProps>;
 
-const defaultLabels: MessageListLabels = { newMessages: 'New messages' };
+const defaultLabels: MessageListLabels = {
+  newMessages: 'New messages',
+  log: 'Messages',
+  loadingOlder: 'Loading older messages',
+};
+
+interface ItemContentProps<T extends MessageBase> extends MessageListItemContext<T> {
+  item: T;
+  renderItem: MessageListProps<T>['renderItem'];
+}
+
+// One item's content, rendered again only when its item, neighbours, flags or renderItem change
+const ItemContent = memo(function ItemContent<T extends MessageBase>({
+  item,
+  renderItem,
+  ...context
+}: ItemContentProps<T>) {
+  return renderItem(item, context);
+}) as <T extends MessageBase>(props: ItemContentProps<T>) => React.ReactNode;
 
 /** A scrolling list of items; `<MessageList<T>>` types `renderItem` with your item type */
 export const MessageList = genericFactory<MessageListFactory>((_props) => {
@@ -137,6 +165,7 @@ export const MessageList = genericFactory<MessageListFactory>((_props) => {
     controlRef,
     role = 'log',
     'aria-live': ariaLive = 'polite',
+    'aria-label': ariaLabel,
     ...others
   } = props;
 
@@ -154,7 +183,7 @@ export const MessageList = genericFactory<MessageListFactory>((_props) => {
   });
 
   const last = items[items.length - 1];
-  const { viewportRef, onScrollPositionChange, jumpTo, highlightedId } = useMessageList({
+  const { viewportRef, onScrollPositionChange, jumpTo, highlightedId, busy } = useMessageList({
     autoScroll: !!autoScroll,
     firstId: items[0]?.id,
     lastId: last?.id,
@@ -164,7 +193,7 @@ export const MessageList = genericFactory<MessageListFactory>((_props) => {
     loadingOlder,
   });
   const allLabels = { ...defaultLabels, ...labels };
-  useImperativeHandle(controlRef, () => ({ jumpTo }));
+  useImperativeHandle(controlRef, () => ({ jumpTo }), [jumpTo]);
 
   const newDay = (a: MessageBase | undefined, b: MessageBase) =>
     !!withDateDividers && (!a || dayKey(a.createdAt) !== dayKey(b.createdAt));
@@ -177,10 +206,16 @@ export const MessageList = genericFactory<MessageListFactory>((_props) => {
       {...getStyles('root')}
       {...others}
     >
-      <Box role={role} aria-live={ariaLive} {...getStyles('list')}>
+      <Box
+        role={role}
+        aria-live={ariaLive}
+        aria-label={ariaLabel ?? allLabels.log}
+        aria-busy={busy || undefined}
+        {...getStyles('list')}
+      >
         {loadingOlder && (
           <Center {...getStyles('loader')}>
-            <Loader size="sm" />
+            <Loader size="sm" role="progressbar" aria-label={allLabels.loadingOlder} />
           </Center>
         )}
         {items.map((item, index) => {
@@ -200,15 +235,17 @@ export const MessageList = genericFactory<MessageListFactory>((_props) => {
                 />
               )}
               <Box data-item-id={item.id} {...getStyles('item')}>
-                {renderItem(item, {
-                  index,
-                  previous,
-                  next,
-                  groupStart,
-                  groupEnd,
-                  highlighted: highlightedId === item.id,
-                  jumpTo,
-                })}
+                <ItemContent
+                  item={item}
+                  renderItem={renderItem}
+                  index={index}
+                  previous={previous}
+                  next={next}
+                  groupStart={groupStart}
+                  groupEnd={groupEnd}
+                  highlighted={highlightedId === item.id}
+                  jumpTo={jumpTo}
+                />
               </Box>
               {item.id === unreadAfterId && next && (
                 <Divider

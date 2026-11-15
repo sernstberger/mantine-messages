@@ -75,6 +75,11 @@ stays where it was while older messages are added above. `unreadAfterId` draws a
 line after the last read message; its text is `labels.newMessages`, the same key on `MessageList`,
 `ChatThread`, `TeamThread` and `ThreadPanel`, so one translation object fits them all.
 
+The list is a `role="log"` named by `labels.log` ("Messages"), or by `aria-label` when you pass
+one. While older messages load, and in the update that adds them, it is `aria-busy`, so screen
+readers do not read the whole page of history out as new messages; the loader at the top is
+labelled `labels.loadingOlder`.
+
 ## Building your own layout
 
 `MessageList` is the engine under `ChatThread`: give it any items with `id`, `authorId` and
@@ -82,15 +87,29 @@ line after the last read message; its text is `labels.newMessages`, the same key
 scrolling and jumps.
 
 ```tsx
+const renderNote = useCallback(
+  (note: Note, { groupStart }: MessageListItemContext<Note>) => (
+    <NoteRow note={note} showName={groupStart} />
+  ),
+  []
+);
+
 <MessageList
   items={notes}
   groupWith={(previous, note) => previous.authorId === note.authorId}
-  renderItem={(note, { groupStart }) => <NoteRow note={note} showName={groupStart} />}
+  renderItem={renderNote}
 />
 ```
 
-Inside `renderItem`, `jumpTo(id)` scrolls to an item and flashes it (`highlighted` is true for 1.6
-seconds). To jump from outside the list, for example from a sidebar, pass `controlRef`; it gets
+Each item is memoised on the item, its neighbours and its context, so when the list renders again
+only new and changed items render. That needs a stable `renderItem`: wrap it in `useCallback` or
+define it outside the component. A new function on every render still works, but renders every
+item each time.
+
+Inside `renderItem`, `jumpTo(id)` scrolls to an item, flashes it (`highlighted` is true for 1.6
+seconds) and moves keyboard focus to it, so screen readers read it and Tab continues from there.
+Pass `jumpTo(id, { focus: false })` when focus must stay put, for example while the user types in
+a search box that jumps to matches. To jump from outside the list, for example from a sidebar, pass `controlRef`; it gets
 `{ jumpTo }`. `ChatThread`, `TeamThread` and `AssistantThread` take `controlRef` too and pass it to
 their list.
 

@@ -35,7 +35,7 @@ export type {
   MessageListControl,
 } from './MessageList/MessageList';
 export { useMessageList } from './MessageList/use-message-list';
-export type { UseMessageListOptions } from './MessageList/use-message-list';
+export type { MessageListJumpOptions, UseMessageListOptions } from './MessageList/use-message-list';
 export { MessageActions } from './MessageActions/MessageActions';
 export type {
   MessageActionsProps,

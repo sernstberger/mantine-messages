@@ -67,9 +67,24 @@ describe('ChatThread', () => {
     scrollIntoView.mockRestore();
   });
 
+  it('names the log and the history loader from its labels', () => {
+    render(
+      <ChatThread
+        {...defaultProps}
+        loadingOlder
+        labels={{ log: 'Chat with Maya', loadingOlder: 'Fetching' }}
+      />
+    );
+    expect(screen.getByRole('log', { name: 'Chat with Maya' })).toHaveAttribute(
+      'aria-busy',
+      'true'
+    );
+    expect(screen.getByRole('progressbar', { name: 'Fetching' })).toBeInTheDocument();
+  });
+
   it('is a live log with a divider and every message', () => {
     render(<ChatThread {...defaultProps} />);
-    expect(screen.getByRole('log')).toBeInTheDocument();
+    expect(screen.getByRole('log', { name: 'Messages' })).toBeInTheDocument();
     expect(screen.getByRole('separator')).toBeInTheDocument();
     expect(screen.getByText('Hi there')).toBeInTheDocument();
     expect(screen.getByText('Hello!')).toHaveAttribute('data-own');

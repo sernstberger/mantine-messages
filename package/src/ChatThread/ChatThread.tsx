@@ -57,6 +57,12 @@ export interface ChatThreadLabels extends Record<MessageStatus, string> {
 
   /** Line above the first unread message */
   newMessages: string;
+
+  /** Accessible name of the message log, unless `aria-label` is set */
+  log: string;
+
+  /** Accessible label of the loader shown while older messages load */
+  loadingOlder: string;
 }
 
 export interface ChatThreadProps
@@ -145,6 +151,8 @@ const defaultLabels: ChatThreadLabels = {
   repliedTo: ({ author, original, own, toOwn }) =>
     `${own ? 'You' : author} replied to ${toOwn ? (own ? 'yourself' : 'you') : original}`,
   newMessages: 'New messages',
+  log: 'Messages',
+  loadingOlder: 'Loading older messages',
 };
 
 const defaultProps: Partial<ChatThreadProps> = {
@@ -266,7 +274,11 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
       onLoadOlder={onLoadOlder}
       hasOlder={hasOlder}
       loadingOlder={loadingOlder}
-      labels={{ newMessages: allLabels.newMessages }}
+      labels={{
+        newMessages: allLabels.newMessages,
+        log: allLabels.log,
+        loadingOlder: allLabels.loadingOlder,
+      }}
       unstyled={unstyled}
       classNames={Object.fromEntries(listParts.map((part) => [part, listStyles[part].className]))}
       styles={Object.fromEntries(listParts.map((part) => [part, listStyles[part].style]))}

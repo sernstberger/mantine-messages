@@ -151,6 +151,46 @@ describe('MessageList scrolling', () => {
     jest.useRealTimers();
   });
 
+  it('moves focus to the item it jumps to, without a second scroll', () => {
+    const control = React.createRef<MessageListControl>();
+    render(
+      <MessageList
+        items={start}
+        controlRef={control}
+        renderItem={(entry) => <span>{entry.id}</span>}
+      />,
+      { wrapper: MantineProvider }
+    );
+    const target = document.querySelector<HTMLElement>('[data-item-id="b"]')!;
+    const focus = jest.spyOn(target, 'focus');
+    act(() => control.current!.jumpTo('b'));
+    expect(target).toHaveFocus();
+    expect(target).toHaveAttribute('tabindex', '-1');
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+  });
+
+  it('leaves focus alone with { focus: false }, and ignores an unknown id', () => {
+    const control = React.createRef<MessageListControl>();
+    render(
+      <>
+        <input aria-label="Search" />
+        <MessageList
+          items={start}
+          controlRef={control}
+          renderItem={(entry) => <span>{entry.id}</span>}
+        />
+      </>,
+      { wrapper: MantineProvider }
+    );
+    const search = screen.getByRole('textbox', { name: 'Search' });
+    search.focus();
+    act(() => control.current!.jumpTo('b', { focus: false }));
+    expect(search).toHaveFocus();
+    expect(document.querySelector('[data-item-id="b"]')).not.toHaveAttribute('tabindex');
+    expect(() => act(() => control.current!.jumpTo('missing'))).not.toThrow();
+    expect(search).toHaveFocus();
+  });
+
   it('never scrolls with autoScroll={false}', () => {
     const { rerender } = setup({ autoScroll: false, isOwn: () => true });
     rerender([...start, item('d')]);

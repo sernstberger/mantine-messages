@@ -1,5 +1,14 @@
 import { useIsomorphicEffect, useReducedMotion, useTimeout } from '@mantine/hooks';
-import { useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+/** Options of `jumpTo` */
+export interface MessageListJumpOptions {
+  /**
+   * Move keyboard focus to the item, so screen readers read it and Tab continues from it,
+   * `true` by default; pass `false` when focus must stay where it is, for example in a search box
+   */
+  focus?: boolean;
+}
 
 export interface UseMessageListOptions {
   /** Keep the newest item in view */
@@ -49,6 +58,23 @@ export function useMessageList({
   // `firstId` that onLoadOlder was last called for: scroll events can arrive before the app
   // re-renders with loadingOlder, so without this one scroll could ask twice
   const requestedFor = useRef<string | undefined>(undefined);
+
+  // Older items arriving at the top must not be read out as new messages by the live log, so the
+  // log stays aria-busy while they load and for the render that inserts them (React's "adjust
+  // state while rendering" pattern, so the flag is already set in the commit that adds them)
+  const [ids, setIds] = useState({ first: firstId, last: lastId });
+  const [settling, setSettling] = useState(false);
+
+  if (ids.first !== firstId || ids.last !== lastId) {
+    setIds({ first: firstId, last: lastId });
+    setSettling(ids.first !== undefined && firstId !== ids.first && lastId === ids.last);
+  }
+
+  useEffect(() => {
+    if (settling) {
+      setSettling(false);
+    }
+  }, [settling]);
 
   // When loading ends without new items (for example it failed), the user may ask again
   useIsomorphicEffect(() => {
@@ -117,14 +143,37 @@ export function useMessageList({
     }
   };
 
-  const jumpTo = (id: string) => {
-    Array.from(viewportRef.current!.querySelectorAll<HTMLElement>('[data-item-id]'))
-      .find((element) => element.dataset.itemId === id)
-      ?.scrollIntoView({ block: 'center', behavior: reduceMotion ? 'auto' : 'smooth' });
-    flash.clear();
-    setHighlightedId(id);
-    flash.start();
-  };
+  // Stable, so rows memoised on their context do not re-render when the list does
+  const latest = useRef({ reduceMotion, flash });
+  latest.current = { reduceMotion, flash };
+  const jumpTo = useCallback((id: string, { focus = true }: MessageListJumpOptions = {}) => {
+    const target = Array.from(
+      viewportRef.current!.querySelectorAll<HTMLElement>('[data-item-id]')
+    ).find((element) => element.dataset.itemId === id);
 
-  return { viewportRef, onScrollPositionChange, jumpTo, highlightedId };
+    if (target) {
+      target.scrollIntoView({
+        block: 'center',
+        behavior: latest.current.reduceMotion ? 'auto' : 'smooth',
+      });
+
+      if (focus) {
+        // Focusable from code only, so the item adds no tab stop
+        target.tabIndex = -1;
+        target.focus({ preventScroll: true });
+      }
+    }
+
+    latest.current.flash.clear();
+    setHighlightedId(id);
+    latest.current.flash.start();
+  }, []);
+
+  return {
+    viewportRef,
+    onScrollPositionChange,
+    jumpTo,
+    highlightedId,
+    busy: loadingOlder || settling,
+  };
 }

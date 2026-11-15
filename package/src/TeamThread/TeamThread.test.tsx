@@ -194,10 +194,12 @@ describe('TeamThread', () => {
         loadingOlder
         hasOlder
         onLoadOlder={() => {}}
-        labels={{ newMessages: 'Unread' }}
+        labels={{ newMessages: 'Unread', log: '#launch', loadingOlder: 'Fetching' }}
       />
     );
     expect(screen.getByText('Unread')).toBeInTheDocument();
     expect(container.querySelector('.mantine-TeamThread-loader')).toBeInTheDocument();
+    expect(screen.getByRole('log', { name: '#launch' })).toHaveAttribute('aria-busy', 'true');
+    expect(screen.getByRole('progressbar', { name: 'Fetching' })).toBeInTheDocument();
   });
 });

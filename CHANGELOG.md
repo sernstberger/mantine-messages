@@ -72,6 +72,15 @@ will be 0.1.0.
   `dir="rtl"`
 - Sizes in the CSS modules use `rem()`, so spacing follows the root font size and
   `theme.scale` (same pixels at the default 16px root); 1px borders and focus outlines stay in px
+- `MessageList`: the log is named (`labels.log`, "Messages", or `aria-label`), is `aria-busy`
+  while older items load and in the update that prepends them, so screen readers do not read old
+  history out as new, and the history loader is a labelled progressbar (`labels.loadingOlder`);
+  `ChatThread` and `TeamThread` take both labels
+- `MessageList`: `jumpTo` moves keyboard focus to the item it scrolls to (the item gets
+  `tabindex="-1"`, focused without a second scroll); `jumpTo(id, { focus: false })` keeps focus
+  where it is. Type: `MessageListJumpOptions`
+- `MessageList`: items are memoised, so a render of the list renders only new and changed items
+  when `renderItem` is stable (`useCallback`); `jumpTo` is now stable across renders
 - Times, dates, relative times and file sizes reuse one `Intl` formatter per locale and options
   instead of building one per call (about 50 times cheaper per message)
 
