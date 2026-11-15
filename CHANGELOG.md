@@ -82,6 +82,14 @@ will be 0.1.0.
   and footnote definitions in the text, the text is still parsed whole. Custom renderers get
   `node` positions relative to their block. `npm run check:markdown` checks the blocks against
   react-markdown
+- `AssistantThread`: answers and prompts are memoized, and inline `onRegenerate`, `onEdit` and
+  `labels` no longer break the memo, so a token renders only the streaming answer instead of
+  re-running `getAssistantText` and `stripMarkdown` for every answer in the thread
+- `AssistantThread`: after editing a prompt, Escape or Cancel returns focus to its Edit button and
+  sending focuses the prompt (it was lost to the page)
+- `AssistantThread`: screen readers hear `labels.thinking` once when an answer starts (the status
+  region was silent until the answer finished), the streaming answer is `aria-busy`, and the
+  Thinking indicator is an image with a name (its label sat on an element without a role)
 - Every component passes Mantine's `attributes` prop to its Styles API, so
   `attributes={{ root: {...}, item: {...} }}` reaches the root and inner parts instead of leaking
   onto the root element

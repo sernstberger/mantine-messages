@@ -238,8 +238,10 @@ Each `AssistantMessage` has a `role` (`'user'` or `'assistant'`) and `parts`, re
 its state (running, done, failed) and, when opened, its input and output as JSON.
 
 To stream, set the answer's `status` to `'streaming'` and update its last part as tokens arrive.
-Finished parts are memoized, so only the streaming part renders again, and a cursor blinks at its
-end. The list follows the answer as it grows while the user is at the bottom. Finish with
+Answers and prompts are memoized on the message object, so a token renders only the streaming
+answer (which re-parses only its last markdown block), and a cursor blinks at its end. Replace a
+message with a new object when it changes, as below, rather than changing it in place. Inline
+`onRegenerate`, `onEdit` and `labels` are fine: they do not render finished answers again. The list follows the answer as it grows while the user is at the bottom. Finish with
 `'done'`, or `'error'` with an `error` text to show an alert with Retry.
 
 ```tsx
@@ -258,8 +260,10 @@ setMessages((current) => {
   after it and ask again
 
 Screen readers: the list is a `role="log"` with `aria-live="off"`, so tokens are not read out.
-When an answer finishes, its text goes to a visually hidden status region and is read once.
-Errors are read by their alert.
+When an answer starts, a visually hidden status region says `labels.thinking` once, and the answer
+is `aria-busy` while it streams; when it finishes, its text goes to the status region and is read
+once. Errors are read by their alert. After editing a prompt, Escape or Cancel returns focus to its
+Edit button, and sending focuses the prompt (or the newest prompt, when the app replaced it).
 
 <Demo data={demos.assistant} />
 

@@ -177,8 +177,9 @@ describe('AssistantThread', () => {
       labels: { thinking: 'Working on it' },
     });
     const status = screen.getByRole('status');
-    expect(screen.getByLabelText('Working on it')).toBeInTheDocument();
-    expect(status).toBeEmptyDOMElement();
+    expect(screen.getByRole('img', { name: 'Working on it' })).toBeInTheDocument();
+    // Said once as the answer starts, not per token
+    expect(status).toHaveTextContent('Working on it');
 
     update([
       prompt,
@@ -195,7 +196,7 @@ describe('AssistantThread', () => {
     expect(container.querySelector('.mantine-AssistantThread-text')).toHaveAttribute(
       'data-streaming'
     );
-    expect(status).toBeEmptyDOMElement();
+    expect(status).toHaveTextContent('Working on it');
 
     update([
       prompt,
