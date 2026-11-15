@@ -57,6 +57,16 @@ Long threads
   `MessageListRowsHandlers`, `MessageListRowProps`, `MessageListRowFactory`, `MessageListRowData`,
   `MessageListItemRow`, `MessageListDividerRow`, `MessageListUnreadRow`
 
+Dates and time zones
+
+- `MessagesProvider` with `settings` `{ locale, timeZone, now }`, `useMessagesContext` and
+  `MESSAGES_PROVIDER_DEFAULT_SETTINGS`, like `@mantine/dates`' `DatesProvider`: one place for the
+  locale, the IANA time zone and the moment relative times count from, so a server render and the
+  browser show the same times. Types: `MessagesProviderProps`, `MessagesProviderSettings`,
+  `MessagesProviderValue`
+- `timeZone` on `ChatThread`, `TeamThread`, `ThreadPanel.Replies`, `Inbox` and `MessageList`; it
+  sets the times shown and where date dividers start a new day. Props win over the provider
+
 Custom rows
 
 - `ChatThread.renderMessage` and the parts `ChatThread.Message`, `.Avatar`, `.Quote`, `.Bubble`,
@@ -131,6 +141,8 @@ The package is not published, so these ship without aliases.
 - `MessageList` is built with Mantine's `genericFactory`, so `<MessageList<T>>` is typed without a
   cast and `MessageListFactory` carries the generic `signature`; `MessageListBase` is no longer
   exported (use `MessageList`)
+- `locale` is `'en'` by default (from `MessagesProvider`) instead of the runtime's locale, as in
+  `@mantine/dates`, so the server and the browser agree; set it on the provider or per component
 - `ChatThread`, `TeamThread`: the copy action copies the message's whole `body` (markdown
   included) instead of its plain-text preview
 - `ThreadPanel`: the title is a heading (`Title`), `h2` by default

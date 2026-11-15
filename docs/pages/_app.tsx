@@ -6,10 +6,12 @@ import '@mantinex/demo/styles.css';
 import 'mantine-messages/styles.css';
 import { CodeHighlightAdapterProvider, createShikiAdapter } from '@mantine/code-highlight';
 import { MantineProvider } from '@mantine/core';
+import { MessagesProvider } from 'mantine-messages';
 import { AppProps } from 'next/app';
 import Head from 'next/head';
 import React from 'react';
 import favicon from '../assets/favicon.svg';
+import { DEMO_NOW, DEMO_TIME_ZONE } from '../demos/data';
 import { theme } from '../theme';
 
 async function loadShiki() {
@@ -36,7 +38,9 @@ export default function App({ Component, pageProps }: AppProps) {
         <link rel="shortcut icon" href={favicon.src} />
       </Head>
       <CodeHighlightAdapterProvider adapter={shikiAdapter}>
-        <Component {...pageProps} />
+        <MessagesProvider settings={{ timeZone: DEMO_TIME_ZONE, now: DEMO_NOW }}>
+          <Component {...pageProps} />
+        </MessagesProvider>
       </CodeHighlightAdapterProvider>
     </MantineProvider>
   );

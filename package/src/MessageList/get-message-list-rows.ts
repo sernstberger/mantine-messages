@@ -1,5 +1,5 @@
 import type { MessageBase, MessageDate } from '../types';
-import { dayKey } from '../utils/dates';
+import { dayNumber } from '../utils/format';
 
 /** An item of the list, with its neighbours and group flags */
 export interface MessageListItemRow<T extends MessageBase = MessageBase> {
@@ -44,15 +44,17 @@ export interface GetMessageListRowsOptions<T extends MessageBase> {
   groupWith?: (previous: T, item: T) => boolean;
   withDateDividers: boolean;
   unreadAfterId?: string | null;
+  timeZone?: string;
 }
 
 export function getMessageListRows<T extends MessageBase>(
   items: T[],
-  { groupWith, withDateDividers, unreadAfterId }: GetMessageListRowsOptions<T>
+  { groupWith, withDateDividers, unreadAfterId, timeZone }: GetMessageListRowsOptions<T>
 ): MessageListRowData<T>[] {
   const rows: MessageListRowData<T>[] = [];
   const newDay = (a: T | undefined, b: T) =>
-    withDateDividers && (!a || dayKey(a.createdAt) !== dayKey(b.createdAt));
+    withDateDividers &&
+    (!a || dayNumber(a.createdAt, timeZone) !== dayNumber(b.createdAt, timeZone));
 
   items.forEach((item, index) => {
     const previous = items[index - 1];
@@ -60,7 +62,11 @@ export function getMessageListRows<T extends MessageBase>(
     const dayStarts = newDay(previous, item);
 
     if (dayStarts) {
-      rows.push({ type: 'divider', key: `day:${dayKey(item.createdAt)}`, date: item.createdAt });
+      rows.push({
+        type: 'divider',
+        key: `day:${dayNumber(item.createdAt, timeZone)}`,
+        date: item.createdAt,
+      });
     }
 
     rows.push({

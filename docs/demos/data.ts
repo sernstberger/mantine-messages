@@ -1,9 +1,23 @@
 import type { Conversation, ChatMessage, MessagesUser } from 'mantine-messages';
 
-const now = new Date();
+/**
+ * The docs render on the server and hydrate in the browser, so the demos fix the moment and the time
+ * zone they show: `MessagesProvider` in `_app.tsx` passes both to every component
+ */
+export const DEMO_NOW = new Date(Date.UTC(2026, 10, 15, 15, 30));
+export const DEMO_TIME_ZONE = 'UTC';
+
 const at = (daysAgo: number, hours: number, minutes: number) =>
-  new Date(now.getFullYear(), now.getMonth(), now.getDate() - daysAgo, hours, minutes);
-const minutesAgo = (minutes: number) => new Date(now.getTime() - minutes * 60 * 1000);
+  new Date(
+    Date.UTC(
+      DEMO_NOW.getUTCFullYear(),
+      DEMO_NOW.getUTCMonth(),
+      DEMO_NOW.getUTCDate() - daysAgo,
+      hours,
+      minutes
+    )
+  );
+const minutesAgo = (minutes: number) => new Date(DEMO_NOW.getTime() - minutes * 60 * 1000);
 
 export const users: MessagesUser[] = [
   { id: 'me', name: 'You' },

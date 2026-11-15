@@ -16,6 +16,7 @@ import {
 } from '@mantine/core';
 import React from 'react';
 import { FileIcon } from '../icons';
+import { useMessagesContext } from '../MessagesProvider/use-messages-context';
 import type { MessageAttachment } from '../types';
 import { formatBytes } from '../utils/format';
 import classes from './Attachments.module.css';
@@ -39,7 +40,7 @@ export interface AttachmentsProps
   /** Called when the user opens a file; without it each file is a link to its `url` */
   onOpen?: (attachment: MessageAttachment) => void;
 
-  /** Locale for file sizes, the browser's by default */
+  /** Locale for file sizes, from `MessagesProvider` (`'en'` without one) by default */
   locale?: string;
 
   /** Key of `theme.radius` or any valid CSS value to set `border-radius` of images and files, numbers are converted to rem @default 'md' */
@@ -92,6 +93,7 @@ export const Attachments = factory<AttachmentsFactory>((_props) => {
     attributes,
     varsResolver,
   });
+  const { getLocale } = useMessagesContext();
 
   return (
     <Box ref={ref} {...getStyles('root')} {...others}>
@@ -124,7 +126,7 @@ export const Attachments = factory<AttachmentsFactory>((_props) => {
               </Text>
               {attachment.size !== undefined && (
                 <Text component="span" size="xs" unstyled={unstyled} {...getStyles('fileSize')}>
-                  {formatBytes(attachment.size, locale)}
+                  {formatBytes(attachment.size, getLocale(locale))}
                 </Text>
               )}
             </>

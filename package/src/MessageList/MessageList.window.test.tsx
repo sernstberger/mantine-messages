@@ -3,6 +3,7 @@ import { act, render, screen } from '@testing-library/react';
 import React, { useImperativeHandle, useState } from 'react';
 import { getRenderError } from '../../../test-utils/get-render-error';
 import type { MessageBase } from '../types';
+import { dayNumber } from '../utils/format';
 import {
   MessageList,
   MessageListHandlers,
@@ -83,9 +84,9 @@ describe('MessageList windowing', () => {
     setup({ rowsComponent: makeWindow(2) });
     const { rows, viewportRef } = seen[seen.length - 1];
     expect(rows.map((row) => `${row.type}:${row.key}`)).toEqual([
-      'divider:day:2026-10-14',
+      `divider:day:${dayNumber(items[0].createdAt)}`,
       'item:a',
-      'divider:day:2026-10-15',
+      `divider:day:${dayNumber(items[1].createdAt)}`,
       'item:b',
       'unread:unread',
       'item:c',

@@ -18,7 +18,8 @@ import {
 } from '@mantine/core';
 import React, { memo, useImperativeHandle, useMemo } from 'react';
 import type { MessageBase } from '../types';
-import { formatDay } from '../utils/format';
+import { useDateSettings } from '../MessagesProvider/use-messages-context';
+import { formatDay, type DateSettings } from '../utils/format';
 import { getMessageListRows, type MessageListRowData } from './get-message-list-rows';
 import classes from './MessageList.module.css';
 import { useMessageList, type MessageListJumpOptions } from './use-message-list';
@@ -98,8 +99,11 @@ export interface MessageListProps<T extends MessageBase = MessageBase>
   /** Whether the current user wrote the item; the list always scrolls to their new items */
   isOwn?(item: T): boolean;
 
-  /** Locale for date dividers, the browser's by default */
+  /** Locale for date dividers, from `MessagesProvider` (`'en'` without one) by default */
   locale?: string;
+
+  /** IANA time zone that decides where days start, from `MessagesProvider` (the runtime's without one) by default */
+  timeZone?: string;
 
   /** Divider with the date before each new day, `true` by default */
   withDateDividers?: boolean;
@@ -147,7 +151,7 @@ export type MessageListFactory = Factory<{
 interface MessageListContextValue {
   getStyles: GetStylesApi<MessageListFactory>;
   unstyled: boolean | undefined;
-  locale: string | undefined;
+  dates: DateSettings;
   newMessages: string;
   renderItem: MessageListProps['renderItem'];
   highlightedId: string | null;
@@ -225,7 +229,7 @@ export const MessageListRow = factory<MessageListRowFactory>((_props) => {
 
   return row.type === 'divider' ? (
     <Divider
-      label={formatDay(row.date, ctx.locale)}
+      label={formatDay(row.date, ctx.dates)}
       labelPosition="center"
       unstyled={ctx.unstyled}
       {...ctx.getStyles('divider', stylesOptions)}
@@ -267,6 +271,7 @@ export const MessageList = genericFactory<MessageListFactory>((_props) => {
     groupWith,
     isOwn,
     locale,
+    timeZone,
     withDateDividers,
     unreadAfterId,
     autoScroll,
@@ -295,9 +300,16 @@ export const MessageList = genericFactory<MessageListFactory>((_props) => {
     attributes,
   });
 
+  const dates = useDateSettings(locale, timeZone);
   const rows = useMemo(
-    () => getMessageListRows(items, { groupWith, withDateDividers, unreadAfterId }),
-    [items, groupWith, withDateDividers, unreadAfterId]
+    () =>
+      getMessageListRows(items, {
+        groupWith,
+        withDateDividers,
+        unreadAfterId,
+        timeZone: dates.timeZone,
+      }),
+    [items, groupWith, withDateDividers, unreadAfterId, dates.timeZone]
   );
 
   const last = items[items.length - 1];
@@ -345,7 +357,7 @@ export const MessageList = genericFactory<MessageListFactory>((_props) => {
           value={{
             getStyles,
             unstyled,
-            locale,
+            dates,
             newMessages: allLabels.newMessages,
             renderItem,
             highlightedId,

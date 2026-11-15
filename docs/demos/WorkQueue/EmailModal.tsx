@@ -1,4 +1,5 @@
 import { Divider, Modal, Stack, Text } from '@mantine/core';
+import { useMessagesContext } from 'mantine-messages';
 import React from 'react';
 import { formatDateTime } from './queue';
 import type { EmailItem } from './types';
@@ -34,6 +35,8 @@ export function EmailBody({ email }: { email: EmailItem }) {
 
 /** The full email: headers, then the body */
 export function EmailModal({ email, onClose }: EmailModalProps) {
+  const dates = useMessagesContext();
+
   return (
     <Modal
       opened={email !== null}
@@ -50,7 +53,7 @@ export function EmailModal({ email, onClose }: EmailModalProps) {
             </Header>
             <Header label="To">{email.to.join(', ')}</Header>
             {email.cc && <Header label="Cc">{email.cc.join(', ')}</Header>}
-            <Header label="Date">{formatDateTime(new Date(email.createdAt))}</Header>
+            <Header label="Date">{formatDateTime(new Date(email.createdAt), dates)}</Header>
           </Stack>
           <Divider my="sm" />
           <EmailBody email={email} />

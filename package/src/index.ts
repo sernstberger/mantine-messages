@@ -183,6 +183,16 @@ export type {
   MarkdownRenderers,
 } from './MarkdownBody/MarkdownAdapterProvider';
 export { plainTextMarkdownAdapter } from './MarkdownBody/plain-text-adapter';
+export {
+  MESSAGES_PROVIDER_DEFAULT_SETTINGS,
+  MessagesProvider,
+} from './MessagesProvider/MessagesProvider';
+export type {
+  MessagesProviderProps,
+  MessagesProviderSettings,
+  MessagesProviderValue,
+} from './MessagesProvider/MessagesProvider';
+export { useMessagesContext } from './MessagesProvider/use-messages-context';
 export { createReactMarkdownAdapter } from './MarkdownBody/react-markdown-adapter';
 export type { ReactMarkdownAdapterOptions } from './MarkdownBody/react-markdown-adapter';
 export { getAssistantText } from './AssistantThread/assistant-text';

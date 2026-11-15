@@ -34,8 +34,9 @@ import {
 } from '../MessageList/MessageList';
 import { Reactions } from '../Reactions/Reactions';
 import type { ChatMessage, MessageAttachment, MessageStatus, MessagesUser } from '../types';
+import { useDateSettings } from '../MessagesProvider/use-messages-context';
 import { toDate } from '../utils/dates';
-import { formatTime } from '../utils/format';
+import { type DateSettings, formatTime } from '../utils/format';
 import { getCachedPreview } from '../utils/preview';
 import classes from './ChatThread.module.css';
 
@@ -128,8 +129,11 @@ export interface ChatThreadProps
   /** `id` of the person looking at the thread; their messages sit on the right */
   currentUserId: string;
 
-  /** Locale for times and date dividers, the browser's by default */
+  /** Locale for times and date dividers, from `MessagesProvider` (`'en'` without one) by default */
   locale?: string;
+
+  /** IANA time zone for times and date dividers, from `MessagesProvider` (the runtime's without one) by default */
+  timeZone?: string;
 
   /** Longest gap, in milliseconds, between two messages of one group, 5 minutes by default */
   groupWindow?: number;
@@ -285,7 +289,7 @@ interface ChatThreadContextValue {
   renderBody?: (message: ChatMessage) => React.ReactNode;
   renderMessage: (message: ChatMessage, context: ChatThreadMessageContext) => React.ReactNode;
   actions: MessageAction[];
-  locale?: string;
+  dates: DateSettings;
   onReply?: (message: ChatMessage) => void;
   onReact?: (message: ChatMessage) => void;
   onEdit?: (message: ChatMessage) => void;
@@ -568,7 +572,7 @@ export const ChatThreadAttachments = factory<ChatThreadAttachmentsFactory>((_pro
     <Attachments
       ref={ref}
       attachments={message.attachments}
-      locale={ctx.locale}
+      locale={ctx.dates.locale}
       onOpen={onOpenAttachment && ((attachment) => onOpenAttachment(message, attachment))}
       unstyled={ctx.unstyled}
       {...ctx.getStyles('attachments', { className, style, classNames, styles })}
@@ -726,7 +730,7 @@ export const ChatThreadMessage = factory<ChatThreadMessageFactory>((_props) => {
   const name = nameOf(ctx.usersById, message.authorId);
   const showAuthor = !own && !!ctx.withAuthors;
   const date = toDate(message.createdAt);
-  const time = formatTime(date, ctx.locale);
+  const time = formatTime(date, ctx.dates);
 
   return (
     <ChatThreadMessageProvider
@@ -796,6 +800,7 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
     users,
     currentUserId,
     locale,
+    timeZone,
     groupWindow,
     withAuthors,
     renderBody,
@@ -841,6 +846,7 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
     [messages]
   );
   const allLabels = useMemo(() => ({ ...defaultLabels, ...labels }), [labels]);
+  const dates = useDateSettings(locale, timeZone);
   const lastOwnId = useMemo(
     () => messages.findLast((message) => message.authorId === currentUserId)?.id,
     [messages, currentUserId]
@@ -864,7 +870,7 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
       renderBody,
       renderMessage: renderMessage ?? defaultRenderMessage,
       actions,
-      locale,
+      dates,
       onReply: has[0] ? (message) => handlers.current.onReply!(message) : undefined,
       onReact: has[1] ? (message) => handlers.current.onReact!(message) : undefined,
       onEdit: has[2] ? (message) => handlers.current.onEdit!(message) : undefined,
@@ -890,7 +896,7 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
       renderBody,
       renderMessage,
       actions,
-      locale,
+      dates,
       ...has,
     ]
   );
@@ -933,6 +939,7 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
         groupWith={sameGroup}
         isOwn={(message) => message.authorId === currentUserId}
         locale={locale}
+        timeZone={timeZone}
         autoScroll={autoScroll}
         unreadAfterId={unreadAfterId}
         onLoadOlder={onLoadOlder}

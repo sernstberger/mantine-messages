@@ -9,7 +9,7 @@ import {
   type MessageListRowsProps,
 } from 'mantine-messages';
 import React, { useImperativeHandle, useRef } from 'react';
-import { messages as sample, users } from './data';
+import { DEMO_NOW, messages as sample, users } from './data';
 
 const code = `
 import { useImperativeHandle, useRef } from 'react';
@@ -22,7 +22,7 @@ import {
   type MessageListHandlers,
   type MessageListRowsProps,
 } from 'mantine-messages';
-import { messages as sample, users } from './data';
+import { DEMO_NOW, messages as sample, users } from './data';
 
 const ROW_ESTIMATE = 64;
 
@@ -67,7 +67,7 @@ const messages: ChatMessage[] = Array.from({ length: 10_000 }, (_, index) => ({
   ...sample[index % sample.length],
   id: \`m-\${index + 1}\`,
   authorId: index % 3 === 0 ? 'me' : 'maya',
-  createdAt: new Date(Date.now() - (10_000 - index) * 37 * 60 * 1000),
+  createdAt: new Date(DEMO_NOW.getTime() - (10_000 - index) * 37 * 60 * 1000),
 }));
 
 function Demo() {
@@ -134,7 +134,7 @@ const messages: ChatMessage[] = Array.from({ length: 10_000 }, (_, index) => ({
   ...sample[index % sample.length],
   id: `m-${index + 1}`,
   authorId: index % 3 === 0 ? 'me' : 'maya',
-  createdAt: new Date(Date.now() - (10_000 - index) * 37 * 60 * 1000),
+  createdAt: new Date(DEMO_NOW.getTime() - (10_000 - index) * 37 * 60 * 1000),
 }));
 
 function Demo() {

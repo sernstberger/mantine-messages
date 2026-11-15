@@ -19,11 +19,13 @@ describe('mantine-messages', () => {
       'ChatThread',
       'Composer',
       'Inbox',
+      'MESSAGES_PROVIDER_DEFAULT_SETTINGS',
       'MarkdownAdapterProvider',
       'MarkdownBody',
       'Message',
       'MessageActions',
       'MessageList',
+      'MessagesProvider',
       'MessagesShell',
       'Reactions',
       'TeamThread',
@@ -36,6 +38,7 @@ describe('mantine-messages', () => {
       'truncate',
       'useMarkdownAdapter',
       'useMessageList',
+      'useMessagesContext',
     ]);
     expect(Object.values(messages).every((value) => value !== undefined)).toBe(true);
   });
