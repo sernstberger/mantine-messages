@@ -1,0 +1,24 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  padding: var(--mantine-spacing-md);
+}
+
+.divider {
+  margin-block: var(--mantine-spacing-sm);
+  font-weight: 500;
+}
+
+.unread {
+  margin-block: var(--mantine-spacing-xs);
+  font-weight: 600;
+}
+
+.loader {
+  padding-block: var(--mantine-spacing-sm);
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+}

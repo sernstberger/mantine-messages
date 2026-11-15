@@ -1,0 +1,217 @@
+import {
+  Box,
+  BoxProps,
+  Center,
+  Divider,
+  ElementProps,
+  factory,
+  Factory,
+  Loader,
+  ScrollArea,
+  StylesApiProps,
+  useProps,
+  useStyles,
+} from '@mantine/core';
+import React from 'react';
+import type { MessageBase } from '../types';
+import { dayKey } from '../utils/dates';
+import { formatDay } from '../utils/format';
+import classes from './MessageList.module.css';
+import { useMessageList } from './use-message-list';
+
+export type MessageListStylesNames = 'root' | 'list' | 'divider' | 'unread' | 'loader' | 'item';
+
+export interface MessageListLabels {
+  /** Line above the first unread item */
+  unread: string;
+}
+
+export interface MessageListItemContext<T extends MessageBase> {
+  index: number;
+  previous?: T;
+  next?: T;
+
+  /** First item of a group: the first item, after a date divider, or when `groupWith` says no */
+  groupStart: boolean;
+
+  /** Last item of a group */
+  groupEnd: boolean;
+
+  /** True for 1.6 seconds after `jumpTo` this item */
+  highlighted: boolean;
+
+  /** Scrolls to the item with this `id` and flashes it */
+  jumpTo: (id: string) => void;
+}
+
+export interface MessageListProps<T extends MessageBase = MessageBase>
+  extends BoxProps, StylesApiProps<MessageListFactory>, ElementProps<'div'> {
+  /** Items, oldest first */
+  items: T[];
+
+  /** Renders one item */
+  renderItem: (item: T, context: MessageListItemContext<T>) => React.ReactNode;
+
+  /** Whether `item` continues the group of `previous`; without it every item is its own group */
+  groupWith?: (previous: T, item: T) => boolean;
+
+  /** Whether the current user wrote the item; the list always scrolls to their new items */
+  isOwn?: (item: T) => boolean;
+
+  /** Locale for date dividers, the browser's by default */
+  locale?: string;
+
+  /** Divider with the date before each new day, `true` by default */
+  withDateDividers?: boolean;
+
+  /** `id` of the last read item; a "New messages" line follows it */
+  unreadAfterId?: string | null;
+
+  /** Keep the newest item in view, `true` by default */
+  autoScroll?: boolean;
+
+  /** Called when the user scrolls near the top while `hasOlder` and not `loadingOlder` */
+  onLoadOlder?: () => void;
+
+  /** More items exist before the first one */
+  hasOlder?: boolean;
+
+  /** Older items are loading; shows a loader at the top */
+  loadingOlder?: boolean;
+
+  /** Text, for translation */
+  labels?: Partial<MessageListLabels>;
+}
+
+export type MessageListFactory = Factory<{
+  props: MessageListProps<any>;
+  ref: HTMLDivElement;
+  stylesNames: MessageListStylesNames;
+}>;
+
+const defaultProps: Partial<MessageListProps> = {
+  withDateDividers: true,
+  autoScroll: true,
+};
+
+const defaultLabels: MessageListLabels = { unread: 'New messages' };
+
+export const MessageListBase = factory<MessageListFactory>((_props) => {
+  const props = useProps('MessageList', defaultProps, _props);
+  const {
+    classNames,
+    className,
+    style,
+    styles,
+    unstyled,
+    vars,
+    ref,
+    items,
+    renderItem,
+    groupWith,
+    isOwn,
+    locale,
+    withDateDividers,
+    unreadAfterId,
+    autoScroll,
+    onLoadOlder,
+    hasOlder,
+    loadingOlder,
+    labels,
+    role = 'log',
+    'aria-live': ariaLive = 'polite',
+    ...others
+  } = props;
+
+  const getStyles = useStyles<MessageListFactory>({
+    name: 'MessageList',
+    classes,
+    props,
+    className,
+    style,
+    classNames,
+    styles,
+    unstyled,
+    vars,
+  });
+
+  const last = items[items.length - 1];
+  const { viewportRef, onScrollPositionChange, jumpTo, highlightedId } = useMessageList({
+    autoScroll: !!autoScroll,
+    firstId: items[0]?.id,
+    lastId: last?.id,
+    lastIsOwn: !!last && !!isOwn?.(last),
+    onLoadOlder,
+    hasOlder,
+    loadingOlder,
+  });
+  const allLabels = { ...defaultLabels, ...labels };
+
+  const newDay = (a: MessageBase | undefined, b: MessageBase) =>
+    !!withDateDividers && (!a || dayKey(a.createdAt) !== dayKey(b.createdAt));
+
+  return (
+    <ScrollArea
+      ref={ref}
+      viewportRef={viewportRef}
+      onScrollPositionChange={onScrollPositionChange}
+      {...getStyles('root')}
+      {...others}
+    >
+      <Box role={role} aria-live={ariaLive} {...getStyles('list')}>
+        {loadingOlder && (
+          <Center {...getStyles('loader')}>
+            <Loader size="sm" />
+          </Center>
+        )}
+        {items.map((item, index) => {
+          const previous = items[index - 1];
+          const next = items[index + 1];
+          const dayStarts = newDay(previous, item);
+          const groupStart = !previous || dayStarts || !groupWith?.(previous, item);
+          const groupEnd = !next || newDay(item, next) || !groupWith?.(item, next);
+
+          return (
+            <React.Fragment key={item.id}>
+              {dayStarts && (
+                <Divider
+                  label={formatDay(item.createdAt, locale)}
+                  labelPosition="center"
+                  {...getStyles('divider')}
+                />
+              )}
+              <Box data-item-id={item.id} {...getStyles('item')}>
+                {renderItem(item, {
+                  index,
+                  previous,
+                  next,
+                  groupStart,
+                  groupEnd,
+                  highlighted: highlightedId === item.id,
+                  jumpTo,
+                })}
+              </Box>
+              {item.id === unreadAfterId && next && (
+                <Divider
+                  label={allLabels.unread}
+                  labelPosition="center"
+                  color="red"
+                  {...getStyles('unread')}
+                />
+              )}
+            </React.Fragment>
+          );
+        })}
+      </Box>
+    </ScrollArea>
+  );
+});
+
+MessageListBase.displayName = 'MessageList';
+MessageListBase.classes = classes;
+
+/** `MessageListBase` with a generic signature, so `renderItem` gets the item type */
+export const MessageList = MessageListBase as unknown as (<T extends MessageBase>(
+  props: MessageListProps<T> & { ref?: React.Ref<HTMLDivElement> }
+) => React.JSX.Element) &
+  Omit<typeof MessageListBase, never>;

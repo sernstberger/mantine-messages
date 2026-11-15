@@ -6,10 +6,13 @@ describe('mantine-messages', () => {
       'ChatThread',
       'Composer',
       'Inbox',
+      'MessageList',
+      'MessageListBase',
       'getPreview',
       'groupMessages',
       'stripMarkdown',
       'truncate',
+      'useMessageList',
     ]);
     expect(Object.values(messages).every((value) => value !== undefined)).toBe(true);
   });
