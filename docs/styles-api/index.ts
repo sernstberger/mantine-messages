@@ -62,7 +62,16 @@ export const ChatThreadStylesApi: StylesApiData<ChatThreadFactory> = {
     meta: 'Time under the last message of a group',
     status: 'Status of your last message',
   },
-  vars: {},
+  vars: {
+    root: {
+      '--chat-thread-radius': 'Corner radius of bubbles and quotes, from `radius`',
+      '--chat-thread-own-bg': 'Background of your bubbles, from `color`',
+      '--chat-thread-own-color': 'Text color of your bubbles, from `color` and `autoContrast`',
+      '--chat-thread-avatar-size':
+        'Width and height of avatars and the space beside grouped messages, from `avatarSize`',
+      '--chat-thread-row-max-width': 'Largest width of a message row, 80% by default',
+    },
+  },
   modifiers: [
     { modifier: 'data-own', selector: ['row', 'bubble'], condition: 'Written by `currentUserId`' },
     { modifier: 'data-group-start', selector: 'row', condition: 'First message of a group' },
