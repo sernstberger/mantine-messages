@@ -124,6 +124,14 @@ test.describe('split view', () => {
       await expect(details).toBeHidden();
       await expect(toggle).toHaveAttribute('aria-expanded', 'false');
 
+      // Escape closes it while the focus is on the toggle
+      await toggle.click();
+      await expect(details).toBeVisible();
+      await toggle.focus();
+      await page.keyboard.press('Escape');
+      await expect(details).toBeHidden();
+      await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+
       // A click on the dimmed conversation beside it closes it too
       await toggle.click();
       await expect(details).toBeVisible();

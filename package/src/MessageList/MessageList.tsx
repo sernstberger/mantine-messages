@@ -214,7 +214,12 @@ export const MessageList = genericFactory<MessageListFactory>((_props) => {
       >
         {loadingOlder && (
           <Center {...getStyles('loader')}>
-            <Loader size="sm" role="progressbar" aria-label={allLabels.loadingOlder} />
+            <Loader
+              size="sm"
+              unstyled={unstyled}
+              role="progressbar"
+              aria-label={allLabels.loadingOlder}
+            />
           </Center>
         )}
         {items.map((item, index) => {
@@ -230,6 +235,7 @@ export const MessageList = genericFactory<MessageListFactory>((_props) => {
                 <Divider
                   label={formatDay(item.createdAt, locale)}
                   labelPosition="center"
+                  unstyled={unstyled}
                   {...getStyles('divider')}
                 />
               )}
@@ -251,6 +257,7 @@ export const MessageList = genericFactory<MessageListFactory>((_props) => {
                   label={allLabels.newMessages}
                   labelPosition="center"
                   color="red"
+                  unstyled={unstyled}
                   {...getStyles('unread')}
                 />
               )}

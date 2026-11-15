@@ -1,4 +1,4 @@
-import { MantineProvider } from '@mantine/core';
+import { Divider, Loader, MantineProvider } from '@mantine/core';
 import { tests } from '@mantine-tests/core';
 import { render, screen } from '@testing-library/react';
 import React from 'react';
@@ -134,6 +134,27 @@ describe('MessageList', () => {
     });
     expect(container.querySelector('.mantine-MessageList-loader')).toBeInTheDocument();
     expect(screen.getByRole('progressbar', { name: 'Fetching history' })).toBeInTheDocument();
+  });
+
+  it('passes unstyled to its loader and dividers', () => {
+    const { container } = renderList({
+      loadingOlder: true,
+      hasOlder: true,
+      unreadAfterId: 'b',
+      unstyled: true,
+    });
+    const parts = [Loader, Divider].map((Component) => ({
+      Component,
+      elements: [
+        ...container.querySelectorAll(`.mantine-${Component.displayName!.split('/').pop()}-root`),
+      ],
+    }));
+    for (const { Component, elements } of parts) {
+      expect(elements.length).toBeGreaterThan(0);
+      for (const element of elements) {
+        expect(element).not.toHaveClass(Component.classes.root);
+      }
+    }
   });
 
   it('names the log, from labels or aria-label', () => {
