@@ -20,6 +20,8 @@
 }
 
 .sectionLabel {
+  color: var(--mantine-color-dimmed);
+  font-weight: 600;
   padding: rem(4px) var(--mantine-spacing-sm);
 }
 
@@ -28,16 +30,20 @@
   align-items: center;
   gap: var(--mantine-spacing-sm);
   padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
-  border-radius: var(--mantine-radius-md);
+  border-radius: var(--inbox-radius, var(--mantine-radius-md));
 
   @mixin hover {
     background-color: var(--mantine-color-default-hover);
   }
 
   /* not :where(), and :hover too, so it beats the hover backgrounds above */
-  &[data-active],
+  &[data-active] {
+    background-color: var(--inbox-active-bg, var(--mantine-primary-color-light));
+    color: var(--inbox-active-color, inherit);
+  }
+
   &[data-active]:hover {
-    background-color: var(--mantine-primary-color-light);
+    background-color: var(--inbox-active-hover, var(--mantine-primary-color-light));
   }
 }
 
@@ -52,6 +58,10 @@
   align-items: baseline;
   flex: 1;
   min-width: 0;
+}
+
+.time {
+  color: var(--mantine-color-dimmed);
 }
 
 .title {

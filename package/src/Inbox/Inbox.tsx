@@ -3,10 +3,14 @@ import {
   Badge,
   Box,
   BoxProps,
+  createVarsResolver,
   ElementProps,
   EmptyState,
   factory,
   Factory,
+  getRadius,
+  MantineColor,
+  MantineRadius,
   StylesApiProps,
   Text,
   TextInput,
@@ -114,12 +118,26 @@ export interface InboxProps
 
   /** Text, for translation */
   labels?: Partial<InboxLabels>;
+
+  /** Key of `theme.radius` or any valid CSS value to set `border-radius` of rows and the search box, numbers are converted to rem @default 'md' */
+  radius?: MantineRadius;
+
+  /** Key of `theme.colors` or any valid CSS color to color the open conversation and the unread badges @default theme.primaryColor */
+  color?: MantineColor;
+
+  /** If set, adjusts the text color of the open conversation based on `color` */
+  autoContrast?: boolean;
 }
+
+export type InboxCssVariables = {
+  root: '--inbox-radius' | '--inbox-active-bg' | '--inbox-active-color' | '--inbox-active-hover';
+};
 
 export type InboxFactory = Factory<{
   props: InboxProps;
   ref: HTMLDivElement;
   stylesNames: InboxStylesNames;
+  vars: InboxCssVariables;
 }>;
 
 const defaultLabels: InboxLabels = {
@@ -144,6 +162,26 @@ const builtInSections = (labels: InboxLabels): InboxSection[] => [
   { id: 'direct', label: labels.direct, match: () => true },
 ];
 
+const varsResolver = createVarsResolver<InboxFactory>(
+  (theme, { radius, color, variant, autoContrast }) => {
+    const colors = theme.variantColorResolver({
+      color: color || theme.primaryColor,
+      theme,
+      variant: variant || 'light',
+      autoContrast,
+    });
+
+    return {
+      root: {
+        '--inbox-radius': radius === undefined ? undefined : getRadius(radius),
+        '--inbox-active-bg': color || variant ? colors.background : undefined,
+        '--inbox-active-color': color || variant ? colors.color : undefined,
+        '--inbox-active-hover': color || variant ? colors.hover : undefined,
+      },
+    };
+  }
+);
+
 type GetStyles = GetStylesApi<InboxFactory>;
 
 interface InboxRowProps {
@@ -152,6 +190,8 @@ interface InboxRowProps {
   locale: string | undefined;
   labels: InboxLabels;
   getStyles: GetStyles;
+  color: MantineColor | undefined;
+  unstyled: boolean | undefined;
   onSelect: (id: string) => void;
 }
 
@@ -161,6 +201,8 @@ const InboxRow = memo(function InboxRow({
   locale,
   labels,
   getStyles,
+  color,
+  unstyled,
   onSelect,
 }: InboxRowProps) {
   const unread = conversation.unreadCount ?? 0;
@@ -171,26 +213,39 @@ const InboxRow = memo(function InboxRow({
       aria-current={active ? 'true' : undefined}
       mod={{ active, unread: unread > 0, muted: conversation.muted, channel }}
       onClick={() => onSelect(conversation.id)}
+      unstyled={unstyled}
       {...getStyles('item')}
     >
-      <Avatar src={conversation.avatar} name={conversation.title} {...getStyles('avatar')}>
+      <Avatar
+        src={conversation.avatar}
+        name={conversation.title}
+        unstyled={unstyled}
+        {...getStyles('avatar')}
+      >
         {channel && <HashIcon />}
       </Avatar>
       <Box {...getStyles('body')}>
-        <Text component="span" size="sm" truncate {...getStyles('title')}>
+        <Text component="span" size="sm" truncate unstyled={unstyled} {...getStyles('title')}>
           {conversation.title}
         </Text>
         {conversation.lastMessage && (
-          <Text component="span" size="xs" c="dimmed" {...getStyles('time')}>
+          <Text component="span" size="xs" unstyled={unstyled} {...getStyles('time')}>
             {formatShort(conversation.lastMessage.createdAt, locale)}
           </Text>
         )}
-        <Text component="span" size="sm" truncate {...getStyles('preview')}>
+        <Text component="span" size="sm" truncate unstyled={unstyled} {...getStyles('preview')}>
           {conversation.lastMessage && getPreview(conversation.lastMessage)}
         </Text>
         {unread > 0 && (
           // aria-hidden: the bare number reads as "3"; screen readers get labels.unread instead
-          <Badge size="sm" circle={unread < 10} aria-hidden {...getStyles('unread')}>
+          <Badge
+            size="sm"
+            circle={unread < 10}
+            color={color}
+            aria-hidden
+            unstyled={unstyled}
+            {...getStyles('unread')}
+          >
             {unread > 99 ? '99+' : unread}
           </Badge>
         )}
@@ -223,6 +278,9 @@ export const Inbox = factory<InboxFactory>((_props) => {
     onSearchChange,
     sections,
     labels,
+    radius,
+    color,
+    autoContrast,
     ...others
   } = props;
 
@@ -238,6 +296,7 @@ export const Inbox = factory<InboxFactory>((_props) => {
     unstyled,
     vars,
     attributes,
+    varsResolver,
   });
 
   const [selected, setSelected] = useUncontrolled<string | null>({
@@ -311,6 +370,8 @@ export const Inbox = factory<InboxFactory>((_props) => {
       locale={locale}
       labels={allLabels}
       getStyles={rowStyles}
+      color={color}
+      unstyled={unstyled}
       onSelect={onSelect}
     />
   );
@@ -327,7 +388,7 @@ export const Inbox = factory<InboxFactory>((_props) => {
 
       return (
         <Box key={section.id} role="group" aria-labelledby={labelId} {...getStyles('section')}>
-          <Text id={labelId} size="xs" fw={600} c="dimmed" {...getStyles('sectionLabel')}>
+          <Text id={labelId} size="xs" unstyled={unstyled} {...getStyles('sectionLabel')}>
             {section.label}
           </Text>
           {sectionMembers.map(renderConversation)}
@@ -340,8 +401,9 @@ export const Inbox = factory<InboxFactory>((_props) => {
       {withSearch && (
         <TextInput
           size="xs"
-          radius="md"
+          radius={radius ?? 'md'}
           leftSection={<SearchIcon size={14} />}
+          unstyled={unstyled}
           placeholder={allLabels.search}
           aria-label={allLabels.search}
           value={query}
@@ -352,6 +414,7 @@ export const Inbox = factory<InboxFactory>((_props) => {
       {shown.length === 0 && (
         <EmptyState
           size="sm"
+          unstyled={unstyled}
           title={conversations.length === 0 ? allLabels.empty : allLabels.noResults}
           {...getStyles('empty')}
         />
@@ -364,3 +427,4 @@ export const Inbox = factory<InboxFactory>((_props) => {
 
 Inbox.displayName = 'Inbox';
 Inbox.classes = classes;
+Inbox.varsResolver = varsResolver;

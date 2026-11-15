@@ -30,7 +30,16 @@ export const InboxStylesApi: StylesApiData<InboxFactory> = {
     unread: 'Unread count badge',
     empty: 'Shown when there are no conversations or the search matches none',
   },
-  vars: {},
+  vars: {
+    root: {
+      '--inbox-radius': 'Corner radius of rows and the search box, from `radius`',
+      '--inbox-active-bg': 'Background of the open conversation, from `color` and `variant`',
+      '--inbox-active-color':
+        'Text color of the open conversation, from `color`, `variant` and `autoContrast`',
+      '--inbox-active-hover':
+        'Background of the open conversation while hovered, from `color` and `variant`',
+    },
+  },
   modifiers: [
     { modifier: 'data-active', selector: 'item', condition: 'The conversation is open' },
     { modifier: 'data-unread', selector: 'item', condition: '`unreadCount` is above 0' },
