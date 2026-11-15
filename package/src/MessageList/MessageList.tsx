@@ -105,13 +105,19 @@ export interface MessageListProps<T extends MessageBase = MessageBase>
   /** IANA time zone that decides where days start, from `MessagesProvider` (the runtime's without one) by default */
   timeZone?: string;
 
-  /** Divider with the date before each new day, `true` by default */
+  /**
+   * Divider with the date before each new day
+   * @default true
+   */
   withDateDividers?: boolean;
 
   /** `id` of the last read item; a "New messages" line follows it */
   unreadAfterId?: string | null;
 
-  /** Keep the newest item in view, `true` by default */
+  /**
+   * Keep the newest item in view
+   * @default true
+   */
   autoScroll?: boolean;
 
   /** Called when the user scrolls near the top while `hasOlder` and not `loadingOlder` */
@@ -211,7 +217,11 @@ export const MessageListRow = factory<MessageListRowFactory>((_props) => {
 
   if (row.type === 'item') {
     return (
-      <Box data-item-id={row.key} {...ctx.getStyles('item', stylesOptions)} {...others}>
+      <Box
+        data-item-id={row.key}
+        {...ctx.getStyles('item', { ...stylesOptions, focusable: true })}
+        {...others}
+      >
         <ItemContent
           item={row.item}
           renderItem={ctx.renderItem}
@@ -344,7 +354,7 @@ export const MessageList = genericFactory<MessageListFactory>((_props) => {
         {...getStyles('list')}
       >
         {loadingOlder && (
-          <Center {...getStyles('loader')}>
+          <Center unstyled={unstyled} {...getStyles('loader')}>
             <Loader
               size="sm"
               unstyled={unstyled}

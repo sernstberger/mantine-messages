@@ -109,7 +109,7 @@ export const MessageListStylesApi: StylesApiData<MessageListFactory> = {
     divider: 'Date divider',
     unread: '"New messages" line',
     loader: 'Loader floating at the top while older items load',
-    item: 'Wrapper of one item, scrolled to by jumps',
+    item: "Wrapper of one item, scrolled to by jumps; shows the theme's focus ring when a jump focuses it",
   },
   vars: {},
 };
@@ -322,7 +322,7 @@ export const AssistantThreadStylesApi: StylesApiData<AssistantThreadFactory> = {
     root: 'Root element, a Mantine ScrollArea',
     list: 'Column of prompts and answers, a log that does not read tokens aloud',
     item: 'Wrapper of one prompt or answer',
-    turn: 'One prompt or answer, in a centred column',
+    turn: "One prompt or answer, in a centred column; a prompt shows the theme's focus ring when focus lands on it after an edit",
     bubble: 'Text of a prompt',
     answer: 'Parts of an answer, in order',
     text: 'One text part, rendered with MarkdownBody',

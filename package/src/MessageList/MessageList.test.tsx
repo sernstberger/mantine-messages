@@ -1,4 +1,4 @@
-import { Divider, Loader, MantineProvider, ScrollArea } from '@mantine/core';
+import { Center, Divider, Loader, MantineProvider, ScrollArea } from '@mantine/core';
 import { tests } from '@mantine-tests/core';
 import { render, screen } from '@testing-library/react';
 import React from 'react';
@@ -39,6 +39,27 @@ const renderList = (props: Partial<MessageListProps<Note>> = {}) =>
   );
 
 describe('MessageList', () => {
+  tests.axe([
+    <MessageList<Note>
+      items={items}
+      renderItem={(item) => item.text}
+      unreadAfterId="b"
+      hasOlder
+      loadingOlder
+    />,
+  ]);
+
+  it('gives items the focus class of the theme, so the ring follows theme.focusRing', () => {
+    const { rerender } = renderList();
+    expect(document.querySelector('[data-item-id="a"]')).toHaveClass('mantine-focus-auto');
+    rerender(
+      <MantineProvider theme={{ focusRing: 'never' }}>
+        <MessageList<Note> items={items} renderItem={(item) => item.text} />
+      </MantineProvider>
+    );
+    expect(document.querySelector('[data-item-id="a"]')).toHaveClass('mantine-focus-never');
+  });
+
   it('types renderItem with the item type, and takes a ref', () => {
     const ref = React.createRef<HTMLDivElement>();
     render(
@@ -143,7 +164,7 @@ describe('MessageList', () => {
       unreadAfterId: 'b',
       unstyled: true,
     });
-    const parts = [Loader, Divider].map((Component) => ({
+    const parts = [Center, Loader, Divider].map((Component) => ({
       Component,
       elements: [
         ...container.querySelectorAll(`.mantine-${Component.displayName!.split('/').pop()}-root`),

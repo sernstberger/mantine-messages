@@ -56,13 +56,32 @@ const CALENDAR_DAY: Intl.DateTimeFormatOptions = {
   day: 'numeric',
 };
 
+// One formatter per time zone, so the hot path (a day number for every item) builds no cache key
+const dayFormatters = new Map<string, Intl.DateTimeFormat>();
+
 export function dayNumber(value: MessageDate, timeZone?: string) {
-  const parts = getDateTimeFormat('en-US', { ...CALENDAR_DAY, timeZone }).formatToParts(
-    toDate(value)
-  );
-  const { year, month, day } = Object.fromEntries(
-    parts.map((part) => [part.type, Number(part.value)])
-  );
+  const zone = timeZone ?? '';
+  let format = dayFormatters.get(zone);
+
+  if (!format) {
+    format = getDateTimeFormat('en-US', { ...CALENDAR_DAY, timeZone });
+    dayFormatters.set(zone, format);
+  }
+
+  let year = 0;
+  let month = 0;
+  let day = 0;
+
+  for (const part of format.formatToParts(toDate(value))) {
+    if (part.type === 'year') {
+      year = Number(part.value);
+    } else if (part.type === 'month') {
+      month = Number(part.value);
+    } else if (part.type === 'day') {
+      day = Number(part.value);
+    }
+  }
+
   return Date.UTC(year, month - 1, day) / DAY;
 }
 

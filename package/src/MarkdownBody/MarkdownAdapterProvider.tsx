@@ -21,8 +21,9 @@ export interface MarkdownAdapter {
   render: (markdown: string, renderers: MarkdownRenderers) => React.ReactNode;
 
   /**
-   * `true` by default: MarkdownBody renders block by block, so a streaming answer reparses only its
-   * last block. Set `false` when a plugin can change where blocks end: the text is then rendered whole
+   * MarkdownBody renders block by block, so a streaming answer reparses only its last block. Set
+   * `false` when a plugin can change where blocks end: the text is then rendered whole
+   * @default true
    */
   splitBlocks?: boolean;
 }

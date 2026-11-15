@@ -52,19 +52,20 @@ export function getMessageListRows<T extends MessageBase>(
   { groupWith, withDateDividers, unreadAfterId, timeZone }: GetMessageListRowsOptions<T>
 ): MessageListRowData<T>[] {
   const rows: MessageListRowData<T>[] = [];
-  const newDay = (a: T | undefined, b: T) =>
-    withDateDividers &&
-    (!a || dayNumber(a.createdAt, timeZone) !== dayNumber(b.createdAt, timeZone));
+  // Each item's day is computed once; the divider, groupStart and groupEnd all compare these
+  const days = withDateDividers ? items.map((item) => dayNumber(item.createdAt, timeZone)) : [];
+  const newDay = (index: number) =>
+    withDateDividers && (index === 0 || days[index - 1] !== days[index]);
 
   items.forEach((item, index) => {
     const previous = items[index - 1];
     const next = items[index + 1];
-    const dayStarts = newDay(previous, item);
+    const dayStarts = newDay(index);
 
     if (dayStarts) {
       rows.push({
         type: 'divider',
-        key: `day:${dayNumber(item.createdAt, timeZone)}`,
+        key: `day:${days[index]}`,
         date: item.createdAt,
       });
     }
@@ -77,7 +78,7 @@ export function getMessageListRows<T extends MessageBase>(
       previous,
       next,
       groupStart: !previous || dayStarts || !groupWith?.(previous, item),
-      groupEnd: !next || newDay(item, next) || !groupWith?.(item, next),
+      groupEnd: !next || newDay(index + 1) || !groupWith?.(item, next),
     });
 
     if (item.id === unreadAfterId && next) {
