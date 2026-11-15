@@ -103,7 +103,10 @@ export function TicketView({
         </Box>
         {withSidebar && (
           <Box
-            style={{ borderInlineStart: '1px solid var(--mantine-color-default-border)', display: 'flex' }}
+            style={{
+              borderInlineStart: '1px solid var(--mantine-color-default-border)',
+              display: 'flex',
+            }}
           >
             <TicketSidebar
               ticket={ticket}
