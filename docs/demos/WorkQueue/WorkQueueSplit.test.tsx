@@ -87,15 +87,17 @@ describe('WorkQueueSplit', () => {
     expect(within(conversation()).getByText('T-1033 · Kwame Mensah')).toBeInTheDocument();
   });
 
-  it('searches, filters and sorts from the toolbar', async () => {
+  it('searches the list from the toolbar', async () => {
+    const user = userEvent.setup({ delay: null });
     render(<WorkQueueSplit now={now} />);
-    await userEvent.type(
-      screen.getByRole('textbox', { name: 'Search tickets' }),
-      'nothing like it'
-    );
+    await user.type(screen.getByRole('textbox', { name: 'Search tickets' }), 'nothing like it');
     expect(screen.getByText('No tickets match')).toBeInTheDocument();
-    await userEvent.clear(screen.getByRole('textbox', { name: 'Search tickets' }));
+    await user.clear(screen.getByRole('textbox', { name: 'Search tickets' }));
+    expect(rows()).toHaveLength(10);
+  });
 
+  it('filters the list from the toolbar', async () => {
+    render(<WorkQueueSplit now={now} />);
     await userEvent.click(screen.getByRole('button', { name: 'Filters' }));
     const popover = screen.getByRole('dialog');
     expect(within(popover).getByRole('button', { name: 'Clear filters' })).toBeDisabled();
@@ -107,7 +109,10 @@ describe('WorkQueueSplit', () => {
     expect(rows()).toEqual(['Charged twice for the March invoice, Nora Feld, unread']);
     await userEvent.click(within(popover).getByRole('button', { name: 'Clear filters' }));
     expect(rows()).toHaveLength(10);
+  });
 
+  it('sorts the list and switches views from the toolbar', async () => {
+    render(<WorkQueueSplit now={now} />);
     await userEvent.click(screen.getByRole('button', { name: 'Sort by SLA, ascending' }));
     await userEvent.click(screen.getByRole('menuitem', { name: 'Age' }));
     expect(rows()[0]).toBe('Webhook deliveries failing with 410, Fatima Zahra, unread');

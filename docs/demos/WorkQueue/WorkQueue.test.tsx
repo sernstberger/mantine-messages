@@ -37,7 +37,7 @@ describe('WorkQueue', () => {
     expect(subjects()).toEqual(['Change of invoice address']);
   });
 
-  it('closes, assigns and tags the selected tickets, then clears the selection', async () => {
+  it('assigns the selected tickets from the bulk bar, then clears the selection', async () => {
     render(<WorkQueue now={now} />);
     await userEvent.click(screen.getByRole('checkbox', { name: 'Select T-1042' }));
     await userEvent.click(screen.getByRole('checkbox', { name: 'Select T-1039' }));
@@ -47,18 +47,27 @@ describe('WorkQueue', () => {
     await userEvent.click(screen.getByRole('menuitem', { name: 'Priya Raman' }));
     expect(screen.queryByText('2 selected')).toBeNull();
     expect(screen.getAllByText('Priya Raman').length).toBeGreaterThanOrEqual(3);
+  });
 
+  it('tags the selected tickets from the bulk bar', async () => {
+    render(<WorkQueue now={now} />);
     await userEvent.click(screen.getByRole('checkbox', { name: 'Select T-1042' }));
     await userEvent.click(screen.getByRole('button', { name: 'Tag' }));
     await userEvent.click(screen.getByRole('menuitem', { name: '#vip' }));
     expect(screen.getByText('T-1042 · Nora Feld · #billing · #vip')).toBeInTheDocument();
+  });
 
+  it('closes the selected tickets from the bulk bar', async () => {
+    render(<WorkQueue now={now} />);
     await userEvent.click(screen.getByRole('checkbox', { name: 'Select T-1042' }));
     await userEvent.click(screen.getByRole('button', { name: 'Close tickets' }));
     expect(screen.getByText('Inbox 9')).toBeInTheDocument();
     expect(screen.getByText('Closed 2')).toBeInTheDocument();
     expect(subjects()).not.toContain('Charged twice for the March invoice');
+  });
 
+  it('clears the selection from the bulk bar', async () => {
+    render(<WorkQueue now={now} />);
     await userEvent.click(screen.getByRole('checkbox', { name: 'Select T-1041' }));
     await userEvent.click(screen.getByRole('button', { name: 'Clear selection' }));
     expect(screen.queryByText('1 selected')).toBeNull();
