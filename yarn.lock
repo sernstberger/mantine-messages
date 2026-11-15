@@ -8662,7 +8662,7 @@ __metadata:
     mantine-docgen-script: "npm:^1.5.0"
     new-github-release-url: "npm:^2.0.0"
     open: "npm:^10.1.2"
-    oxc-config-mantine: "npm:^1.0.0"
+    oxc-config-mantine: "npm:^1.0.3"
     oxfmt: "npm:^0.55.0"
     oxlint: "npm:^1.70.0"
     postcss: "npm:^8.5.4"
@@ -10153,13 +10153,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oxc-config-mantine@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "oxc-config-mantine@npm:1.0.0"
+"oxc-config-mantine@npm:^1.0.3":
+  version: 1.0.3
+  resolution: "oxc-config-mantine@npm:1.0.3"
   peerDependencies:
-    oxfmt: ^0.55.0
+    oxfmt: ">=0.55.0"
     oxlint: ^1.70.0
-  checksum: 10c0/0adcb4872a889984b2f8f3cd60a105c23d3902a50ba9545a35c312de02b2768fefe9a2cd245134b4efb5442a63848299607d537912feff9844450c6c7c0ba9a8
+  checksum: 10c0/4b831d4941d84198118c413d9aaf86bbbbbe1c657c9db9161f3e7b5678618adac6bfa3195fad7b8bef0caae5f951a17c7fb8368b85af9c113fa2004576ae6886
   languageName: node
   linkType: hard
 
