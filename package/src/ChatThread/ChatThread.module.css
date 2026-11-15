@@ -43,6 +43,11 @@
     background-color: alpha(var(--mantine-color-white), 0.2);
   }
 
+  /* A code block keeps its own background, so its text must not take the bubble's white */
+  &[data-own] :where(pre) {
+    color: var(--mantine-color-text);
+  }
+
   &:where([data-status='sending']) {
     opacity: 0.6;
   }

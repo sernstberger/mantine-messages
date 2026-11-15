@@ -10,6 +10,8 @@ import type {
   TeamThreadFactory,
   ThreadPanelFactory,
 } from 'mantine-messages';
+import type { AssistantThreadFactory } from 'mantine-messages/assistant';
+import type { MarkdownBodyFactory } from 'mantine-messages/markdown';
 import type { StylesApiData } from '../components/styles-api.types';
 
 export const InboxStylesApi: StylesApiData<InboxFactory> = {
@@ -132,6 +134,11 @@ export const ComposerStylesApi: StylesApiData<ComposerFactory> = {
   },
   vars: {},
   modifiers: [
+    {
+      modifier: 'data-streaming',
+      selector: 'send',
+      condition: '`streaming` is set: the button stops the answer',
+    },
     { modifier: 'data-mode', selector: 'root', condition: '`value` of the chosen mode' },
     { modifier: 'data-note', selector: 'root', condition: 'The chosen mode has `note: true`' },
   ],
@@ -200,6 +207,58 @@ export const ThreadPanelStylesApi: StylesApiData<ThreadPanelFactory> = {
   vars: {},
 };
 
+export const MarkdownBodyStylesApi: StylesApiData<MarkdownBodyFactory> = {
+  selectors: {
+    root: 'Root element, a Mantine Typography',
+    link: 'Link; opens in a new tab',
+    code: 'Inline code',
+    codeBlock: 'Fenced code block: header and code',
+    codeHeader: 'Language and copy button above a code block',
+    copy: 'Copy button of a code block',
+    pre: 'Code of a code block',
+  },
+  vars: {},
+};
+
+export const AssistantThreadStylesApi: StylesApiData<AssistantThreadFactory> = {
+  selectors: {
+    root: 'Root element, a Mantine ScrollArea',
+    list: 'Column of prompts and answers, a log that does not read tokens aloud',
+    item: 'Wrapper of one prompt or answer',
+    turn: 'One prompt or answer, in a centred column',
+    bubble: 'Text of a prompt',
+    answer: 'Parts of an answer, in order',
+    text: 'One text part, rendered with MarkdownBody',
+    thinking: 'Dots shown before the first part of an answer arrives',
+    step: 'Reasoning or tool step',
+    stepHeader: 'Button that opens a step: name and state',
+    stepBody: 'Reasoning text, or a tool’s input and output',
+    stepCode: 'Input or output of a tool, as JSON',
+    error: 'Alert under a failed answer, with Retry',
+    actions: 'Copy, Regenerate and Edit',
+    editor: 'Text box and buttons while a prompt is edited',
+  },
+  vars: {},
+  modifiers: [
+    {
+      modifier: 'data-role',
+      selector: 'turn',
+      condition: '`user` for prompts, `assistant` for answers',
+    },
+    {
+      modifier: 'data-status',
+      selector: 'turn',
+      condition: 'The answer has a `status`: streaming, done or error',
+    },
+    {
+      modifier: 'data-streaming',
+      selector: 'text',
+      condition: 'The part is streaming: a cursor blinks at its end',
+    },
+    { modifier: 'data-expanded', selector: 'stepHeader', condition: 'The step is open' },
+  ],
+};
+
 export const STYLES_API_DATA = {
   Inbox: InboxStylesApi,
   ChatThread: ChatThreadStylesApi,
@@ -211,4 +270,6 @@ export const STYLES_API_DATA = {
   Message: MessageStylesApi,
   TeamThread: TeamThreadStylesApi,
   ThreadPanel: ThreadPanelStylesApi,
+  MarkdownBody: MarkdownBodyStylesApi,
+  AssistantThread: AssistantThreadStylesApi,
 };

@@ -23,6 +23,8 @@ export default function HomePage() {
           'MessageActions',
           'Reactions',
           'Attachments',
+          'MarkdownBody',
+          'AssistantThread',
         ]}
         componentsStyles={[
           'Inbox',
@@ -35,6 +37,8 @@ export default function HomePage() {
           'MessageActions',
           'Reactions',
           'Attachments',
+          'MarkdownBody',
+          'AssistantThread',
         ]}
         stylesApiData={STYLES_API_DATA}
       >

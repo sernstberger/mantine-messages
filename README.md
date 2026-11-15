@@ -16,6 +16,11 @@ Mantine Styles API, light and dark themes, and keyboard and screen reader suppor
 | `TeamThread` | Slack-style rows: compact follow-ups, event lines, internal notes, "12 replies" thread summaries, reactions and files |
 | `ThreadPanel` | A thread beside the channel: the parent, a reply count, the replies and your composer |
 | `Message` | The parts of a row (`Message.Avatar`, `Message.Body`, `Message.Meta`) for your own layouts |
+| `MarkdownBody` | From `mantine-messages/markdown`: safe markdown with Mantine typography, code blocks and copy buttons |
+| `AssistantThread` | From `mantine-messages/assistant`: LLM chat with streamed answers, reasoning and tool steps, Stop, Regenerate, edit and resend |
+
+Markdown and the assistant need two optional peers: `yarn add react-markdown remark-gfm`. The root
+entry never imports them.
 
 All three share the `Conversation`, `ChatMessage` and `MessagesUser` types. You bring the data; the
 components never fetch anything.

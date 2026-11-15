@@ -12,6 +12,14 @@ import '@mantine/core/styles.css';
 import 'mantine-messages/styles.css';
 ```
 
+Markdown and the assistant live in their own entries, `mantine-messages/markdown` and
+`mantine-messages/assistant`, with two optional peers. Install them only if you use those entries;
+`mantine-messages` itself never imports them:
+
+<InstallScript packages="react-markdown remark-gfm" />
+
+The one `styles.css` covers every entry.
+
 ## Usage
 
 `Inbox`, `ChatThread` and `Composer` share one set of types: `Conversation`, `Message` and
@@ -131,6 +139,69 @@ column. Its parts share one Styles API.
   </Message.Body>
 </Message>
 ```
+
+## Markdown
+
+`MarkdownBody` from `mantine-messages/markdown` renders GitHub flavoured markdown (tables, task
+lists, strikethrough) with Mantine `Typography` styles. It is safe by default: raw HTML shows as
+text and never becomes elements, `javascript:` links are dropped, links open in a new tab with
+`rel="noreferrer"`, and code blocks show their language and a copy button.
+
+`ChatThread` shows `body` as plain text. Render markdown messages with `renderBody`:
+
+```tsx
+import { ChatThread } from 'mantine-messages';
+import { MarkdownBody } from 'mantine-messages/markdown';
+
+<ChatThread
+  messages={messages}
+  users={users}
+  currentUserId="me"
+  renderBody={(message) =>
+    message.format === 'markdown' ? <MarkdownBody>{message.body}</MarkdownBody> : message.body
+  }
+/>
+```
+
+Replace a built-in renderer with `components`, for example code blocks highlighted by
+`@mantine/code-highlight`: `<MarkdownBody components={{ pre: HighlightedPre }}>`. Add remark
+plugins with `remarkPlugins`; they run after remark-gfm.
+
+## Assistant
+
+`AssistantThread` from `mantine-messages/assistant` is a chat with a model: prompts are compact
+bubbles on the right, answers are full width. It renders text with `MarkdownBody`, so it needs the
+same two peers.
+
+Each `AssistantMessage` has a `role` (`'user'` or `'assistant'`) and `parts`, rendered in order:
+`text` (markdown), `reasoning` and `tool`. Reasoning and tools are collapsible steps; a tool shows
+its state (running, done, failed) and, when opened, its input and output as JSON.
+
+To stream, set the answer's `status` to `'streaming'` and update its last part as tokens arrive.
+Finished parts are memoized, so only the streaming part renders again, and a cursor blinks at its
+end. The list follows the answer as it grows while the user is at the bottom. Finish with
+`'done'`, or `'error'` with an `error` text to show an alert with Retry.
+
+```tsx
+setMessages((current) => {
+  const answer = current[current.length - 1];
+  const parts = [...answer.parts];
+  const last = parts[parts.length - 1];
+  parts[parts.length - 1] = { ...last, text: `${last.text}${token}` };
+  return [...current.slice(0, -1), { ...answer, parts }];
+});
+```
+
+- Stop: pass `streaming` and `onStop` to `Composer`; its send button becomes a stop button
+- Regenerate: `onRegenerate(message)` shows Regenerate on the last answer and Retry on an error
+- Edit and resend: `onEdit(message, text)` lets the user edit a prompt in place; drop the answers
+  after it and ask again
+
+Screen readers: the list is a `role="log"` with `aria-live="off"`, so tokens are not read out.
+When an answer finishes, its text goes to a visually hidden status region and is read once.
+Errors are read by their alert.
+
+<Demo data={demos.assistant} />
 
 ## Inbox
 

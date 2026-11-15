@@ -24,3 +24,13 @@ will be 0.1.0.
 - `Message`, `Message.Avatar`, `Message.Body`, `Message.Meta`: building blocks for message rows
 - `Composer`: `modes` with `draft.mode`, and note styling for a mode with `note: true`
 - `Inbox`: a search box (`withSearch`), sections (`sections`), and a `#` on channels
+- `mantine-messages/markdown`: `MarkdownBody`, safe markdown with code blocks and copy buttons;
+  react-markdown and remark-gfm are optional peers, never imported by the root entry
+- `mantine-messages/assistant`: `AssistantThread` for LLM chat: streamed answers with markdown,
+  collapsible reasoning and tool steps, regenerate, edit and resend, and finished answers
+  announced to screen readers; `getAssistantText`
+- `ChatThread`: `renderBody`, for example to render markdown messages with `MarkdownBody`
+- `Composer`: `streaming` and `onStop` turn the send button into a stop button
+- `MessageList`: follows the newest item while it grows, for streamed answers
+- Types: `AssistantMessage`, `AssistantPart`
+- A build check that the root entry reaches no optional peer (`npm run check:peers`, part of `npm test`)
