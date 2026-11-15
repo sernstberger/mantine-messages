@@ -1,15 +1,24 @@
+.root {
+  --chat-thread-avatar-size-xs: rem(16px);
+  --chat-thread-avatar-size-sm: rem(26px);
+  --chat-thread-avatar-size-md: rem(38px);
+  --chat-thread-avatar-size-lg: rem(56px);
+  --chat-thread-avatar-size-xl: rem(84px);
+}
+
 .avatar {
   flex-shrink: 0;
 }
 
 .author {
+  color: var(--mantine-color-dimmed);
   padding-inline: var(--mantine-spacing-sm);
 }
 
 .bubble {
   position: relative;
   padding: rem(6px) rem(12px);
-  border-radius: var(--mantine-radius-lg);
+  border-radius: var(--chat-thread-radius, var(--mantine-radius-lg));
   font-size: var(--mantine-font-size-sm);
   line-height: 1.45;
   white-space: pre-wrap;
@@ -26,8 +35,8 @@
 
   /* not :where(), so it beats the light and dark backgrounds above */
   &[data-own] {
-    background-color: var(--mantine-primary-color-filled);
-    color: var(--mantine-primary-color-contrast);
+    background-color: var(--chat-thread-own-bg, var(--mantine-primary-color-filled));
+    color: var(--chat-thread-own-color, var(--mantine-primary-color-contrast));
   }
 
   &[data-own] :where(a, code) {
@@ -78,13 +87,14 @@
   gap: rem(4px);
   margin-top: rem(6px);
   padding-inline: var(--mantine-spacing-sm);
+  color: var(--mantine-color-dimmed);
 }
 
 .quote {
   max-width: 100%;
   margin-bottom: rem(-10px);
   padding: rem(6px) rem(12px) rem(14px);
-  border-radius: var(--mantine-radius-lg);
+  border-radius: var(--chat-thread-radius, var(--mantine-radius-lg));
   color: var(--mantine-color-dimmed);
   text-align: start;
   white-space: pre-wrap;
@@ -105,6 +115,7 @@
 }
 
 .meta {
+  color: var(--mantine-color-dimmed);
   padding-inline: var(--mantine-spacing-sm);
 }
 
@@ -118,7 +129,7 @@
   display: flex;
   align-items: flex-end;
   gap: var(--mantine-spacing-xs);
-  max-width: 80%;
+  max-width: var(--chat-thread-row-max-width, 80%);
   margin-top: rem(2px);
 
   &:where([data-group-start]) {
@@ -132,7 +143,7 @@
 
 .avatarSpace {
   flex-shrink: 0;
-  width: rem(26px);
+  width: var(--chat-thread-avatar-size, rem(26px));
 }
 
 .line {
