@@ -3,7 +3,7 @@ import { act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Composer } from '../Composer/Composer';
-import type { MessageListControl } from '../MessageList/MessageList';
+import type { MessageListHandlers } from '../MessageList/MessageList';
 import type { ChatMessage, MessagesUser } from '../types';
 import { ThreadPanel, ThreadPanelProps, ThreadPanelStylesNames } from './ThreadPanel';
 import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
@@ -138,9 +138,9 @@ describe('ThreadPanel', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('passes history loading, grouping and controlRef to the thread', () => {
+  it('passes history loading, grouping and handlersRef to the thread', () => {
     const scrollIntoView = jest.spyOn(Element.prototype, 'scrollIntoView');
-    const control = React.createRef<MessageListControl>();
+    const control = React.createRef<MessageListHandlers>();
     const sameAuthor: ChatMessage[] = [
       { id: 's1', authorId: 'theo', body: 'One', createdAt: at(2), threadId: 'p' },
       { id: 's2', authorId: 'theo', body: 'Two', createdAt: at(3), threadId: 'p' },
@@ -149,7 +149,7 @@ describe('ThreadPanel', () => {
       <ThreadPanel
         {...defaultProps}
         replies={sameAuthor}
-        controlRef={control}
+        handlersRef={control}
         hasOlder
         loadingOlder
         onLoadOlder={() => {}}

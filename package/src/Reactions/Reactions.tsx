@@ -33,14 +33,14 @@ export interface ReactionsLabels {
 }
 
 export interface ReactionsProps
-  extends BoxProps, StylesApiProps<ReactionsFactory>, ElementProps<'div', 'onToggle'> {
+  extends BoxProps, StylesApiProps<ReactionsFactory>, ElementProps<'div'> {
   reactions: MessageReaction[];
 
   /** `id` of the person looking; their reactions are marked */
   currentUserId: string;
 
   /** Called with the emoji the user clicks; makes each reaction a toggle button */
-  onToggle?: (emoji: string) => void;
+  onToggleReaction?: (emoji: string) => void;
 
   /** Text, for translation */
   labels?: Partial<ReactionsLabels>;
@@ -98,7 +98,7 @@ export const Reactions = factory<ReactionsFactory>((_props) => {
     ref,
     reactions,
     currentUserId,
-    onToggle,
+    onToggleReaction,
     labels,
     radius,
     color,
@@ -142,14 +142,14 @@ export const Reactions = factory<ReactionsFactory>((_props) => {
           </>
         );
 
-        return onToggle ? (
+        return onToggleReaction ? (
           <UnstyledButton
             key={emoji}
             aria-label={label}
             aria-pressed={mine}
             mod={{ active: mine }}
             unstyled={unstyled}
-            onClick={() => onToggle(emoji)}
+            onClick={() => onToggleReaction(emoji)}
             {...getStyles('reaction')}
           >
             {content}

@@ -2,7 +2,7 @@ import { DirectionProvider } from '@mantine/core';
 import { render, screen } from '@mantine-tests/core';
 import { act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { MessageListControl } from 'mantine-messages';
+import type { MessageListHandlers } from 'mantine-messages';
 import React, { useState } from 'react';
 import { createTickets, users } from './data';
 import { EmailModal } from './EmailModal';
@@ -60,13 +60,13 @@ describe('TicketTimeline', () => {
     expect(onOpenEmail).toHaveBeenCalledWith(email);
   });
 
-  it('jumps to an item and flashes it through controlRef', () => {
-    const control = React.createRef<MessageListControl>();
+  it('jumps to an item and flashes it through handlersRef', () => {
+    const control = React.createRef<MessageListHandlers>();
     render(
       <TicketTimeline
         items={ticket.items}
         users={users}
-        controlRef={control}
+        handlersRef={control}
         onOpenEmail={jest.fn()}
       />
     );

@@ -3,7 +3,7 @@ import { act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React, { useState } from 'react';
 import { markdownRenders } from '../../../test-utils/react-markdown.mock';
-import type { MessageListControl } from '../MessageList/MessageList';
+import type { MessageListHandlers } from '../MessageList/MessageList';
 import type { AssistantMessage } from '../types';
 import {
   AssistantThread,
@@ -141,10 +141,10 @@ describe('AssistantThread', () => {
     );
   });
 
-  it('passes controlRef to the inner MessageList', () => {
+  it('passes handlersRef to the inner MessageList', () => {
     const scrollIntoView = jest.spyOn(Element.prototype, 'scrollIntoView');
-    const control = React.createRef<MessageListControl>();
-    render(<AssistantThread {...defaultProps} controlRef={control} />);
+    const control = React.createRef<MessageListHandlers>();
+    render(<AssistantThread {...defaultProps} handlersRef={control} />);
     act(() => control.current!.jumpTo('a1'));
     expect(scrollIntoView.mock.contexts[0]).toBe(document.querySelector('[data-item-id="a1"]'));
     scrollIntoView.mockRestore();

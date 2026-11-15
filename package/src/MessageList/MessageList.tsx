@@ -50,8 +50,8 @@ export interface MessageListItemContext<T extends MessageBase> {
   jumpTo: (id: string, options?: MessageListJumpOptions) => void;
 }
 
-/** What `controlRef` gives code outside the list */
-export interface MessageListControl {
+/** What `handlersRef` gives code outside the list */
+export interface MessageListHandlers {
   /** Scrolls to the item with this `id`, flashes it and moves focus to it (see `MessageListJumpOptions`) */
   jumpTo: (id: string, options?: MessageListJumpOptions) => void;
 }
@@ -101,7 +101,7 @@ export interface MessageListProps<T extends MessageBase = MessageBase>
   labels?: Partial<MessageListLabels>;
 
   /** Gets `{ jumpTo }`, so code outside the list can scroll to an item and flash it */
-  controlRef?: React.Ref<MessageListControl>;
+  handlersRef?: React.Ref<MessageListHandlers>;
 }
 
 export type MessageListFactory = Factory<{
@@ -161,7 +161,7 @@ export const MessageList = genericFactory<MessageListFactory>((_props) => {
     hasOlder,
     loadingOlder,
     labels,
-    controlRef,
+    handlersRef,
     role = 'log',
     'aria-live': ariaLive = 'polite',
     'aria-label': ariaLabel,
@@ -192,7 +192,7 @@ export const MessageList = genericFactory<MessageListFactory>((_props) => {
     loadingOlder,
   });
   const allLabels = { ...defaultLabels, ...labels };
-  useImperativeHandle(controlRef, () => ({ jumpTo }), [jumpTo]);
+  useImperativeHandle(handlersRef, () => ({ jumpTo }), [jumpTo]);
 
   const newDay = (a: MessageBase | undefined, b: MessageBase) =>
     !!withDateDividers && (!a || dayKey(a.createdAt) !== dayKey(b.createdAt));

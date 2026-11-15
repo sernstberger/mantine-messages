@@ -56,14 +56,14 @@ describe('MessageActions', () => {
 
   it('puts actions past maxVisible in a More menu, with custom items', async () => {
     const onArchive = jest.fn();
-    const onThread = jest.fn();
+    const onOpenThread = jest.fn();
     const onEdit = jest.fn();
     const { container } = render(
       <MessageActions
         maxVisible={2}
         text="Hi"
         onReact={() => {}}
-        onThread={onThread}
+        onOpenThread={onOpenThread}
         onEdit={onEdit}
         actions={[
           'react',
@@ -83,7 +83,7 @@ describe('MessageActions', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'More actions' }));
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Reply in thread' }));
-    expect(onThread).toHaveBeenCalled();
+    expect(onOpenThread).toHaveBeenCalled();
     await userEvent.click(screen.getByRole('button', { name: 'More actions' }));
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Edit' }));
     expect(onEdit).toHaveBeenCalled();
@@ -137,7 +137,7 @@ describe('MessageActions', () => {
           onReply={() => {}}
           onReact={() => {}}
           onEdit={() => {}}
-          onThread={() => {}}
+          onOpenThread={() => {}}
           actions={['reply', 'react', 'thread', 'edit']}
           onKeyDown={onKeyDown}
         />

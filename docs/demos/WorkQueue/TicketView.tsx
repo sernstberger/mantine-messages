@@ -3,7 +3,7 @@ import {
   Composer,
   type ComposerDraft,
   type ComposerMode,
-  type MessageListControl,
+  type MessageListHandlers,
   type MessagesUser,
 } from 'mantine-messages';
 import React, { useRef, useState } from 'react';
@@ -24,7 +24,7 @@ export interface TicketViewProps {
   onBack?: () => void;
 
   /** The timeline's control, for a sidebar the layout draws elsewhere; one of its own by default */
-  controlRef?: React.RefObject<MessageListControl | null>;
+  handlersRef?: React.RefObject<MessageListHandlers | null>;
 
   /** Draws the sidebar beside the timeline, true by default */
   withSidebar?: boolean;
@@ -52,12 +52,12 @@ export function TicketView({
   now,
   dispatch,
   onBack,
-  controlRef,
+  handlersRef,
   withSidebar = true,
   headerSection,
 }: TicketViewProps) {
-  const ownTimeline = useRef<MessageListControl>(null);
-  const timeline = controlRef ?? ownTimeline;
+  const ownTimeline = useRef<MessageListHandlers>(null);
+  const timeline = handlersRef ?? ownTimeline;
   const [email, setEmail] = useState<EmailItem | null>(null);
   const nameOf = nameGetter(users);
 
@@ -96,7 +96,7 @@ export function TicketView({
           <TicketTimeline
             items={ticket.items}
             users={users}
-            controlRef={timeline}
+            handlersRef={timeline}
             onOpenEmail={setEmail}
           />
           <Composer m="sm" modes={MODES} onSend={send} />

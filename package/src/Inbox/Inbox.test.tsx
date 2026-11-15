@@ -235,7 +235,7 @@ describe('Inbox search and sections', () => {
 
   it('filters with a controlled search and says when nothing matches', () => {
     const { container } = render(
-      <Inbox conversations={team} search="zzz" labels={{ noResults: 'Nothing here' }} />
+      <Inbox conversations={team} searchValue="zzz" labels={{ noResults: 'Nothing here' }} />
     );
     expect(container.querySelector('.mantine-Inbox-empty')).toHaveTextContent('Nothing here');
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
@@ -282,7 +282,7 @@ describe('Inbox search and sections', () => {
 
   it('takes the result count text from labels', async () => {
     render(
-      <Inbox conversations={team} search="maya" labels={{ results: (n) => `${n} résultat` }} />
+      <Inbox conversations={team} searchValue="maya" labels={{ results: (n) => `${n} résultat` }} />
     );
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('1 résultat'));
   });

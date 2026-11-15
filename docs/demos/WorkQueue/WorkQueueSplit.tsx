@@ -1,5 +1,5 @@
 import { Box, EmptyState, ScrollArea } from '@mantine/core';
-import { type MessageListControl, MessagesShell } from 'mantine-messages';
+import { type MessageListHandlers, MessagesShell } from 'mantine-messages';
 import React, { useEffect, useRef, useState } from 'react';
 import { BulkActions } from './BulkActions';
 import { ListToolbar } from './ListToolbar';
@@ -27,7 +27,7 @@ export interface WorkQueueSplitProps {
 export function WorkQueueSplit({ now: nowProp, defaultTicketId, h = 640 }: WorkQueueSplitProps) {
   const queue = useWorkQueue(nowProp);
   const { dispatch } = queue;
-  const timeline = useRef<MessageListControl>(null);
+  const timeline = useRef<MessageListHandlers>(null);
   const [detailsOpened, setDetailsOpened] = useState(false);
   // Stays open after leaving the view (closed, snoozed) until another ticket is picked
   const [openId, setOpenId] = useState(() => defaultTicketId ?? queue.visible[0]?.id);
@@ -94,7 +94,7 @@ export function WorkQueueSplit({ now: nowProp, defaultTicketId, h = 640 }: WorkQ
             agents={queue.agents}
             now={queue.now}
             dispatch={dispatch}
-            controlRef={timeline}
+            handlersRef={timeline}
             withSidebar={false}
             headerSection={<MessagesShell.AsideToggle />}
           />

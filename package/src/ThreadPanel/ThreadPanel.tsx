@@ -15,7 +15,7 @@ import {
 } from '@mantine/core';
 import { useIsomorphicEffect, useMergedRef } from '@mantine/hooks';
 import React, { useEffect, useRef } from 'react';
-import type { MessageListControl } from '../MessageList/MessageList';
+import type { MessageListHandlers } from '../MessageList/MessageList';
 import type { MessageAction } from '../MessageActions/MessageActions';
 import { TeamThread, type TeamThreadLabels } from '../TeamThread/TeamThread';
 import type { ChatMessage, MessageAttachment, MessagesUser } from '../types';
@@ -104,7 +104,7 @@ export interface ThreadPanelProps
   loadingOlder?: boolean;
 
   /** Gets `{ jumpTo }` of the thread's list, to scroll to a reply and flash it */
-  controlRef?: React.Ref<MessageListControl>;
+  handlersRef?: React.Ref<MessageListHandlers>;
 
   /** Text, for translation */
   labels?: Partial<ThreadPanelLabels>;
@@ -159,7 +159,7 @@ export const ThreadPanel = factory<ThreadPanelFactory>((_props) => {
     onLoadOlder,
     hasOlder,
     loadingOlder,
-    controlRef,
+    handlersRef,
     labels,
     children,
     ...others
@@ -273,7 +273,7 @@ export const ThreadPanel = factory<ThreadPanelFactory>((_props) => {
         onLoadOlder={onLoadOlder}
         hasOlder={hasOlder}
         loadingOlder={loadingOlder}
-        controlRef={controlRef}
+        handlersRef={handlersRef}
         labels={threadLabels}
         unstyled={unstyled}
         {...getStyles('thread')}

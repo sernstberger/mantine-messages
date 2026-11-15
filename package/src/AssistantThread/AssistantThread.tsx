@@ -29,7 +29,7 @@ import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from '
 import { ChevronIcon, RegenerateIcon } from '../icons';
 import { MarkdownBody } from '../MarkdownBody/MarkdownBody';
 import { MessageActions, type MessageAction } from '../MessageActions/MessageActions';
-import { MessageList, type MessageListControl } from '../MessageList/MessageList';
+import { MessageList, type MessageListHandlers } from '../MessageList/MessageList';
 import type { AssistantMessage, AssistantPart } from '../types';
 import { stripMarkdown } from '../utils/preview';
 import { formatJson, getAssistantText } from './assistant-text';
@@ -114,7 +114,7 @@ export interface AssistantThreadProps
   labels?: Partial<AssistantThreadLabels>;
 
   /** Gets `{ jumpTo }` of the inner `MessageList`, to scroll to a message and flash it */
-  controlRef?: React.Ref<MessageListControl>;
+  handlersRef?: React.Ref<MessageListHandlers>;
 
   /** Key of `theme.radius` or any valid CSS value to set `border-radius` of prompt bubbles, numbers are converted to rem @default 'xl' */
   radius?: MantineRadius;
@@ -556,7 +556,7 @@ export const AssistantThread = factory<AssistantThreadFactory>((_props) => {
     onRegenerate,
     onEdit,
     labels,
-    controlRef,
+    handlersRef,
     radius,
     // 'off': the status region below announces each finished answer once instead
     'aria-live': ariaLive = 'off',
@@ -660,7 +660,7 @@ export const AssistantThread = factory<AssistantThreadFactory>((_props) => {
     <>
       <MessageList<AssistantMessage>
         ref={mergedRef}
-        controlRef={controlRef}
+        handlersRef={handlersRef}
         items={messages}
         isOwn={(message) => message.role === 'user'}
         withDateDividers={false}

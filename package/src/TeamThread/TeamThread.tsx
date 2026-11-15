@@ -23,7 +23,7 @@ import { Message } from '../Message/Message';
 import { MessageActions, type MessageAction } from '../MessageActions/MessageActions';
 import {
   MessageList,
-  type MessageListControl,
+  type MessageListHandlers,
   type MessageListItemContext,
 } from '../MessageList/MessageList';
 import { Reactions } from '../Reactions/Reactions';
@@ -155,7 +155,7 @@ export interface TeamThreadProps
   labels?: Partial<TeamThreadLabels>;
 
   /** Gets `{ jumpTo }` of the inner `MessageList`, to scroll to a message and flash it */
-  controlRef?: React.Ref<MessageListControl>;
+  handlersRef?: React.Ref<MessageListHandlers>;
 
   /** Width and height of avatars, numbers are converted to rem @default 36 */
   avatarSize?: MantineSize | (string & {}) | number;
@@ -341,7 +341,7 @@ const TeamRow = memo(function TeamRow({
             reactions={message.reactions}
             currentUserId={currentUserId}
             unstyled={shared.unstyled}
-            onToggle={onToggleReaction && ((emoji) => onToggleReaction(message, emoji))}
+            onToggleReaction={onToggleReaction && ((emoji) => onToggleReaction(message, emoji))}
             {...getStyles('reactions')}
           />
         )}
@@ -355,7 +355,7 @@ const TeamRow = memo(function TeamRow({
         own={own}
         unstyled={shared.unstyled}
         onReact={onReact && (() => onReact(message))}
-        onThread={onOpenThread && !threadParentId ? () => onOpenThread(message) : undefined}
+        onOpenThread={onOpenThread && !threadParentId ? () => onOpenThread(message) : undefined}
         onEdit={onEdit && own ? () => onEdit(message) : undefined}
         {...getStyles('actions')}
       />
@@ -393,7 +393,7 @@ export const TeamThread = factory<TeamThreadFactory>((_props) => {
     hasOlder,
     loadingOlder,
     labels,
-    controlRef,
+    handlersRef,
     avatarSize,
     ...others
   } = props;
@@ -528,7 +528,7 @@ export const TeamThread = factory<TeamThreadFactory>((_props) => {
   return (
     <MessageList<TeamThreadItem>
       ref={ref}
-      controlRef={controlRef}
+      handlersRef={handlersRef}
       items={items}
       groupWith={sameGroup}
       isOwn={(item) => item.authorId === currentUserId}

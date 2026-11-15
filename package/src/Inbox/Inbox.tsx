@@ -105,7 +105,7 @@ export interface InboxProps
   search?: string;
 
   /** Search text at first, uncontrolled */
-  defaultSearch?: string;
+  defaultSearchValue?: string;
 
   /** Called when the search text changes */
   onSearchChange?: (search: string) => void;
@@ -274,7 +274,7 @@ export const Inbox = factory<InboxFactory>((_props) => {
     locale,
     withSearch,
     search,
-    defaultSearch,
+    defaultSearchValue,
     onSearchChange,
     sections,
     labels,
@@ -307,7 +307,7 @@ export const Inbox = factory<InboxFactory>((_props) => {
   });
   const [query, setQuery] = useUncontrolled({
     value: search,
-    defaultValue: defaultSearch,
+    defaultValue: defaultSearchValue,
     finalValue: '',
     onChange: onSearchChange,
   });

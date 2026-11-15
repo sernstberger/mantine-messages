@@ -2,7 +2,7 @@ import { MantineProvider } from '@mantine/core';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import type { MessageBase } from '../types';
-import { MessageList, MessageListControl, MessageListProps } from './MessageList';
+import { MessageList, MessageListHandlers, MessageListProps } from './MessageList';
 
 const item = (id: string, authorId = 'maya'): MessageBase => ({
   id,
@@ -128,14 +128,14 @@ describe('MessageList scrolling', () => {
     jest.useRealTimers();
   });
 
-  it('jumps and flashes from outside the list through controlRef', () => {
+  it('jumps and flashes from outside the list through handlersRef', () => {
     jest.useFakeTimers({ doNotFake: ['Date'] });
     const scrollIntoView = jest.spyOn(Element.prototype, 'scrollIntoView');
-    const control = React.createRef<MessageListControl>();
+    const control = React.createRef<MessageListHandlers>();
     render(
       <MessageList
         items={start}
-        controlRef={control}
+        handlersRef={control}
         renderItem={(entry, context) => (
           <span data-highlighted={context.highlighted}>{entry.id}</span>
         )}
@@ -152,11 +152,11 @@ describe('MessageList scrolling', () => {
   });
 
   it('moves focus to the item it jumps to, without a second scroll', () => {
-    const control = React.createRef<MessageListControl>();
+    const control = React.createRef<MessageListHandlers>();
     render(
       <MessageList
         items={start}
-        controlRef={control}
+        handlersRef={control}
         renderItem={(entry) => <span>{entry.id}</span>}
       />,
       { wrapper: MantineProvider }
@@ -170,13 +170,13 @@ describe('MessageList scrolling', () => {
   });
 
   it('leaves focus alone with { focus: false }, and ignores an unknown id', () => {
-    const control = React.createRef<MessageListControl>();
+    const control = React.createRef<MessageListHandlers>();
     render(
       <>
         <input aria-label="Search" />
         <MessageList
           items={start}
-          controlRef={control}
+          handlersRef={control}
           renderItem={(entry) => <span>{entry.id}</span>}
         />
       </>,

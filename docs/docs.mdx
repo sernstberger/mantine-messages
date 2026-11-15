@@ -128,17 +128,17 @@ every row.
 Inside `renderItem`, `jumpTo(id)` scrolls to an item, flashes it (`highlighted` is true for 1.6
 seconds) and moves keyboard focus to it, so screen readers read it and Tab continues from there.
 Pass `jumpTo(id, { focus: false })` when focus must stay put, for example while the user types in
-a search box that jumps to matches. To jump from outside the list, for example from a sidebar, pass `controlRef`; it gets
-`{ jumpTo }`. `ChatThread`, `TeamThread` and `AssistantThread` take `controlRef` too and pass it to
+a search box that jumps to matches. To jump from outside the list, for example from a sidebar, pass `handlersRef`; it gets
+`{ jumpTo }`. `ChatThread`, `TeamThread` and `AssistantThread` take `handlersRef` too and pass it to
 their list.
 
 ```tsx
 import { useRef } from 'react';
-import { MessageList, type MessageListControl } from 'mantine-messages';
+import { MessageList, type MessageListHandlers } from 'mantine-messages';
 
-const list = useRef<MessageListControl>(null);
+const list = useRef<MessageListHandlers>(null);
 
-<MessageList controlRef={list} items={notes} renderItem={renderNote} />
+<MessageList handlersRef={list} items={notes} renderItem={renderNote} />
 <Button onClick={() => list.current?.jumpTo('n42')}>Show the first reply</Button>
 ```
 
@@ -187,7 +187,7 @@ Pass channel messages only; thread replies (messages with `threadId`) go to `Thr
 shows the parent, a reply count and the replies, with your `Composer` as its children. Its title
 is an `h2` heading; set `titleOrder` to fit your page's outline. The close button shows when
 `onClose` is set (or with `withCloseButton`) and takes `closeButtonProps`. Long threads page like
-`TeamThread`: `hasOlder`, `loadingOlder`, `onLoadOlder`, and `controlRef` to jump to a reply;
+`TeamThread`: `hasOlder`, `loadingOlder`, `onLoadOlder`, and `handlersRef` to jump to a reply;
 `groupWindow` and `autoScroll` pass through too.
 
 Keyboard and screen readers: when the panel opens (or shows another thread) from a focused
@@ -329,7 +329,7 @@ types; the package knows nothing about them.
   added
 - Actions: assign, status, priority and snooze until a time; a snoozed ticket leaves the Inbox
   until then. Each change adds an event to the timeline, and the Activity list beside it jumps to
-  that event through `controlRef`
+  that event through `handlersRef`
 
 <Demo data={demos.workQueue} />
 
@@ -353,7 +353,7 @@ tickets, filters, sort, selection and bulk actions.
 Use `value` and `onChange` to control which one is open, or `defaultValue` to leave it to the
 component.
 
-`withSearch` adds a search box that filters by title (`search`, `defaultSearch` and
+`withSearch` adds a search box that filters by title (`search`, `defaultSearchValue` and
 `onSearchChange` control it). `sections` groups the list: `true` gives Pinned, Channels and Direct
 messages from `pinned` and `kind`, or pass `{ id, label, match }` objects; each conversation goes in
 the first section that matches. Channels show a `#`.

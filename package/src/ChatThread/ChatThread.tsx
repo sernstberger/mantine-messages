@@ -26,7 +26,7 @@ import { ReplyIcon } from '../icons';
 import { MessageActions, type MessageAction } from '../MessageActions/MessageActions';
 import {
   MessageList,
-  type MessageListControl,
+  type MessageListHandlers,
   type MessageListItemContext,
 } from '../MessageList/MessageList';
 import { Reactions } from '../Reactions/Reactions';
@@ -156,7 +156,7 @@ export interface ChatThreadProps
   labels?: Partial<ChatThreadLabels>;
 
   /** Gets `{ jumpTo }` of the inner `MessageList`, to scroll to a message and flash it */
-  controlRef?: React.Ref<MessageListControl>;
+  handlersRef?: React.Ref<MessageListHandlers>;
 
   /** Key of `theme.radius` or any valid CSS value to set `border-radius` of bubbles and quotes, numbers are converted to rem @default 'lg' */
   radius?: MantineRadius;
@@ -377,7 +377,7 @@ const ChatRow = memo(function ChatRow({
           <Reactions
             reactions={message.reactions}
             currentUserId={currentUserId}
-            onToggle={onToggleReaction && ((emoji) => onToggleReaction(message, emoji))}
+            onToggleReaction={onToggleReaction && ((emoji) => onToggleReaction(message, emoji))}
             unstyled={unstyled}
             {...getStyles('reactions')}
           />
@@ -428,7 +428,7 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
     hasOlder,
     loadingOlder,
     labels,
-    controlRef,
+    handlersRef,
     radius,
     color,
     autoContrast,
@@ -541,7 +541,7 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
   return (
     <MessageList<ChatMessage>
       ref={ref}
-      controlRef={controlRef}
+      handlersRef={handlersRef}
       items={messages}
       groupWith={sameGroup}
       isOwn={(message) => message.authorId === currentUserId}

@@ -87,7 +87,7 @@ export interface MessageActionsProps
   own?: boolean;
   onReply?: () => void;
   onReact?: () => void;
-  onThread?: () => void;
+  onOpenThread?: () => void;
   onEdit?: () => void;
 
   /** Buttons shown before the rest go in a menu, 3 by default */
@@ -181,7 +181,7 @@ export const MessageActions = factory<MessageActionsFactory>((_props) => {
     own,
     onReply,
     onReact,
-    onThread,
+    onOpenThread,
     onEdit,
     maxVisible,
     labels,
@@ -241,7 +241,7 @@ export const MessageActions = factory<MessageActionsFactory>((_props) => {
           case 'react':
             return item('react', react, <SmileIcon />, onReact);
           case 'thread':
-            return item('thread', thread, <ThreadIcon />, onThread);
+            return item('thread', thread, <ThreadIcon />, onOpenThread);
           case 'edit':
             return item('edit', edit, <EditIcon />, onEdit);
           default:
@@ -249,7 +249,7 @@ export const MessageActions = factory<MessageActionsFactory>((_props) => {
         }
       })
       .filter((action) => action !== null);
-  }, [actions, onReply, onReact, onThread, onEdit, reply, react, thread, edit]);
+  }, [actions, onReply, onReact, onOpenThread, onEdit, reply, react, thread, edit]);
 
   if (resolved.length === 0) {
     return null;

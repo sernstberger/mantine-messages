@@ -34,11 +34,11 @@ will be 0.1.0.
 - `MessageList`: follows the newest item while it grows, for streamed answers
 - Types: `AssistantMessage`, `AssistantPart`
 - A build check that the root entry reaches no optional peer (`npm run check:peers`, part of `npm test`)
-- `MessageList`: `controlRef` gets `{ jumpTo }`, so code outside the list can scroll to an item
+- `MessageList`: `handlersRef` gets `{ jumpTo }`, so code outside the list can scroll to an item
   and flash it; `ChatThread`, `TeamThread` and `AssistantThread` pass it on. Type:
-  `MessageListControl`
+  `MessageListHandlers`
 - `ThreadPanel`: `withCloseButton` and `closeButtonProps`, like Mantine's `Modal`; `hasOlder`,
-  `loadingOlder`, `onLoadOlder`, `controlRef`, `groupWindow` and `autoScroll` pass to the thread
+  `loadingOlder`, `onLoadOlder`, `handlersRef`, `groupWindow` and `autoScroll` pass to the thread
 - `Composer`: `inputRef`, `textareaProps` and `readOnly`, as on Mantine's inputs
 - Types: `MessageAvatarFactory`, `MessageBodyFactory`, `MessageMetaFactory`, for theme overrides
   and `extend` on `Message.Avatar`, `Message.Body` and `Message.Meta`

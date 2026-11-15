@@ -16,7 +16,7 @@ const getRoot = (container: HTMLElement) =>
   container.querySelector<HTMLElement>('.mantine-Reactions-root')!;
 
 describe('Reactions', () => {
-  tests.axe([<Reactions {...defaultProps} />, <Reactions {...defaultProps} onToggle={() => {}} />]);
+  tests.axe([<Reactions {...defaultProps} />, <Reactions {...defaultProps} onToggleReaction={() => {}} />]);
 
   tests.itSupportsSystemProps<ReactionsProps, ReactionsStylesNames>({
     component: Reactions,
@@ -46,18 +46,18 @@ describe('Reactions', () => {
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
-  it('toggles with onToggle, as pressed buttons, with custom labels', async () => {
-    const onToggle = jest.fn();
+  it('toggles with onToggleReaction, as pressed buttons, with custom labels', async () => {
+    const onToggleReaction = jest.fn();
     render(
       <Reactions
         {...defaultProps}
-        onToggle={onToggle}
+        onToggleReaction={onToggleReaction}
         labels={{ reaction: ({ emoji, count }) => `${emoji}=${count}` }}
       />
     );
     expect(screen.getByRole('button', { name: '👍=2' })).toHaveAttribute('aria-pressed', 'true');
     await userEvent.click(screen.getByRole('button', { name: '🎉=1' }));
-    expect(onToggle).toHaveBeenCalledWith('🎉');
+    expect(onToggleReaction).toHaveBeenCalledWith('🎉');
   });
 
   it('renders nothing without reactions', () => {
@@ -100,7 +100,7 @@ describe('Reactions', () => {
   });
 
   it('passes unstyled to the buttons', () => {
-    render(<Reactions {...defaultProps} onToggle={() => {}} unstyled />);
+    render(<Reactions {...defaultProps} onToggleReaction={() => {}} unstyled />);
     for (const element of screen.getAllByRole('button')) {
       expect([...element.classList].filter((name) => !name.startsWith('mantine-'))).toEqual([]);
     }

@@ -3,7 +3,7 @@ import { MantineProvider } from '@mantine/core';
 import { act, render as rtlRender } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
-import type { MessageListControl } from '../MessageList/MessageList';
+import type { MessageListHandlers } from '../MessageList/MessageList';
 import type { ChatMessage, MessagesUser } from '../types';
 import { ChatThread, ChatThreadProps, ChatThreadStylesNames } from './ChatThread';
 import { itHasStaticVarsResolver } from '../../../test-utils/it-has-static-vars-resolver';
@@ -190,10 +190,10 @@ describe('ChatThread', () => {
     selector: 'bubble',
   });
 
-  it('passes controlRef to the inner MessageList', () => {
+  it('passes handlersRef to the inner MessageList', () => {
     const scrollIntoView = jest.spyOn(Element.prototype, 'scrollIntoView');
-    const control = React.createRef<MessageListControl>();
-    render(<ChatThread {...defaultProps} controlRef={control} />);
+    const control = React.createRef<MessageListHandlers>();
+    render(<ChatThread {...defaultProps} handlersRef={control} />);
     act(() => control.current!.jumpTo('a'));
     expect(scrollIntoView.mock.contexts[0]).toBe(document.querySelector('[data-item-id="a"]'));
     scrollIntoView.mockRestore();

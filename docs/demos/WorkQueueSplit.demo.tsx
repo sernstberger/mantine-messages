@@ -5,11 +5,11 @@ import { WorkQueueSplit } from './WorkQueue/WorkQueueSplit';
 const code = `
 // Full source: https://github.com/sernstberger/mantine-messages/tree/main/docs/demos/WorkQueue
 import { useRef, useState } from 'react';
-import { MessagesShell, type MessageListControl } from 'mantine-messages';
+import { MessagesShell, type MessageListHandlers } from 'mantine-messages';
 
 function WorkQueueSplit() {
   const queue = useWorkQueue();
-  const timeline = useRef<MessageListControl>(null);
+  const timeline = useRef<MessageListHandlers>(null);
   const [openId, setOpenId] = useState(() => queue.visible[0]?.id);
   const open = queue.tickets.find((ticket) => ticket.id === openId);
 
@@ -22,7 +22,7 @@ function WorkQueueSplit() {
       <MessagesShell.Main aria-label="Conversation">
         <TicketView
           ticket={open}
-          controlRef={timeline}
+          handlersRef={timeline}
           withSidebar={false}
           headerSection={<MessagesShell.AsideToggle />}
         />

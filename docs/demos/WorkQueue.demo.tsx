@@ -5,18 +5,18 @@ import { WorkQueue } from './WorkQueue/WorkQueue';
 const code = `
 // Full source: https://github.com/sernstberger/mantine-messages/tree/main/docs/demos/WorkQueue
 import { useRef } from 'react';
-import { Composer, MessageList, type MessageListControl } from 'mantine-messages';
+import { Composer, MessageList, type MessageListHandlers } from 'mantine-messages';
 
 type TimelineItem = EmailItem | ChatMessage | SystemEvent;
 
 function Ticket({ ticket }: { ticket: Ticket }) {
-  const timeline = useRef<MessageListControl>(null);
+  const timeline = useRef<MessageListHandlers>(null);
 
   return (
     <>
       <MessageList<TimelineItem>
         items={ticket.items}
-        controlRef={timeline}
+        handlersRef={timeline}
         renderItem={(item, { highlighted }) =>
           !('kind' in item) ? <ChatRow message={item} highlighted={highlighted} />
           : item.kind === 'email' ? <EmailCard email={item} onOpen={setOpenEmail} />

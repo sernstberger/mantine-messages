@@ -3,7 +3,7 @@ import {
   Message,
   MessageList,
   type ChatMessage,
-  type MessageListControl,
+  type MessageListHandlers,
   type MessagesUser,
 } from 'mantine-messages';
 import React from 'react';
@@ -16,7 +16,7 @@ export interface TicketTimelineProps {
   users: MessagesUser[];
 
   /** Lets the ticket sidebar jump to an item and flash it */
-  controlRef?: React.Ref<MessageListControl>;
+  handlersRef?: React.Ref<MessageListHandlers>;
   onOpenEmail: (email: EmailItem) => void;
 }
 
@@ -24,7 +24,7 @@ const time = (item: TimelineItem) =>
   new Date(item.createdAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
 
 /** Emails, chat, internal notes and events of one ticket, in one list */
-export function TicketTimeline({ items, users, controlRef, onOpenEmail }: TicketTimelineProps) {
+export function TicketTimeline({ items, users, handlersRef, onOpenEmail }: TicketTimelineProps) {
   const nameOf = nameGetter(users);
   const { dir } = useDirection();
   const bar = dir === 'rtl' ? '-3px' : '3px';
@@ -82,7 +82,7 @@ export function TicketTimeline({ items, users, controlRef, onOpenEmail }: Ticket
   return (
     <MessageList<TimelineItem>
       items={items}
-      controlRef={controlRef}
+      handlersRef={handlersRef}
       isOwn={(item) => item.authorId === 'me'}
       style={{ flex: 1, minHeight: 0 }}
       renderItem={(item, { highlighted }) => (
