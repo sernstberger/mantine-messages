@@ -18,9 +18,7 @@ const config: StorybookConfig = {
   },
   // Telemetry also prints a notice and spawns the package manager during builds
   core: { disableTelemetry: true },
-  // The work-queue example in docs/demos imports 'mantine-messages' as an app does. Point that
-  // at the source, so its story needs no build and gets the package's CSS modules. Only the bare
-  // name: subpaths such as 'mantine-messages/markdown' are not aliased
+  // The work-queue example imports 'mantine-messages' by name; alias the bare name to the source
   viteFinal: (viteConfig) =>
     mergeConfig(viteConfig, {
       build: {

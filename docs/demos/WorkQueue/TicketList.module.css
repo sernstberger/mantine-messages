@@ -9,7 +9,6 @@
   border-bottom: 1px solid var(--mantine-color-default-border);
 }
 
-/* The start gutter holds the unread dot, or the checkbox on hover, focus and while selecting */
 .button {
   display: block;
   width: 100%;
@@ -26,7 +25,6 @@
   background-color: var(--mantine-primary-color-light);
 }
 
-/* The open ticket: tinted, with an edge in the primary colour */
 .row[data-open] .button {
   background-color: var(--mantine-primary-color-light);
   box-shadow: inset 3px 0 0 var(--mantine-primary-color-filled);

@@ -21,7 +21,6 @@ const defaultProps: MessagesShellProps = { children: panes };
 
 const { ResizeObserver: originalObserver } = window;
 
-/** The shell measures itself through ResizeObserver; this one reports `width` at once */
 function measureAs(width: number) {
   window.ResizeObserver = class {
     constructor(private callback: ResizeObserverCallback) {}

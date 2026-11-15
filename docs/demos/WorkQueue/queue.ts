@@ -115,7 +115,7 @@ export function filterTickets(
 
 const sortValue: Record<QueueSort['key'], (ticket: Ticket) => number> = {
   priority: (ticket) => PRIORITY_RANK[ticket.priority],
-  // Age grows as the creation time shrinks: ascending puts the newest first
+  // Negated: ascending age puts the newest first
   age: (ticket) => -ticket.createdAt.getTime(),
   sla: (ticket) => ticket.slaDueAt.getTime(),
 };
@@ -210,7 +210,6 @@ export const formatDateTime = (date: Date) =>
 export function snoozeOptions(now: Date) {
   const at9 = (days: number) =>
     new Date(now.getFullYear(), now.getMonth(), now.getDate() + days, 9, 0);
-  // Days until next Monday, 1 to 7
   const toMonday = (8 - now.getDay()) % 7 || 7;
 
   return [
@@ -227,10 +226,8 @@ export type QueueAction =
   | { type: 'addTag'; ids: string[]; tag: string; at: Date }
   | { type: 'snooze'; ids: string[]; until: Date | null; at: Date }
   | { type: 'send'; id: string; text: string; note: boolean; at: Date }
-  // Opening a ticket reads it; nothing is logged
   | { type: 'markRead'; id: string };
 
-/** What the change does to one ticket, and the event it logs; null when there is nothing to do */
 function describe(
   ticket: Ticket,
   action: Exclude<QueueAction, { type: 'send' } | { type: 'markRead' }>
@@ -277,7 +274,7 @@ const nextId = (ticket: Ticket) => `${ticket.id}-${ticket.items.length + 1}`;
 /** Changes to tickets; every change logs an event in the ticket's timeline */
 export function queueReducer(tickets: Ticket[], action: QueueAction): Ticket[] {
   if (action.type === 'markRead') {
-    // The same list when there is nothing to read, so opening a read ticket renders nothing new
+    // Same list when nothing is unread, so opening a read ticket does not re-render
     return tickets.some((ticket) => ticket.id === action.id && ticket.unread)
       ? tickets.map((ticket) => (ticket.id === action.id ? { ...ticket, unread: false } : ticket))
       : tickets;

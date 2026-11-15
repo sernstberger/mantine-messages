@@ -15,7 +15,6 @@ const prompt: AssistantMessage = {
   parts: [{ type: 'text', text: 'Write a debounce hook' }],
 };
 
-/** A finished answer that counts how often its parts are read, that is how often it renders */
 function countedAnswer(id: string, text: string) {
   const counter = { reads: 0 };
   const parts: AssistantMessage['parts'] = [{ type: 'text', text, state: 'done' }];
@@ -44,7 +43,6 @@ const streaming = (id: string, text: string): AssistantMessage => ({
   parts: [{ type: 'text', text, state: 'streaming' }],
 });
 
-/** Keeps messages and props in state; the callbacks and labels are new objects on every render */
 function setup(initial: AssistantMessage[], props: Partial<AssistantThreadProps> = {}) {
   let update: (messages: AssistantMessage[]) => void = () => {};
   let updateProps: (next: Partial<AssistantThreadProps>) => void = () => {};
@@ -58,7 +56,6 @@ function setup(initial: AssistantMessage[], props: Partial<AssistantThreadProps>
       <AssistantThread
         messages={messages}
         onRegenerate={() => {}}
-        // Replaces the edited prompt with a new message, as an app that resends it might
         onEdit={(message, text) =>
           setMessages((current) =>
             current.map((item) =>
@@ -89,7 +86,6 @@ describe('AssistantThread rendering', () => {
     const history = [prompt, older.message];
     const { update } = setup(history);
 
-    // Renders once more: it is no longer the last answer, so Regenerate leaves it
     update([...history, { ...prompt, id: 'p2' }, streaming('a1', 'One')]);
     older.counter.reads = 0;
     update([...history, { ...prompt, id: 'p2' }, streaming('a1', 'One two')]);
@@ -163,7 +159,6 @@ describe('AssistantThread focus after editing a prompt', () => {
     const { container } = setup([prompt, answer]);
     await userEvent.click(editButton());
     await userEvent.keyboard(' again{Enter}');
-    // The harness's onEdit replaces p1 with p2
     expect(container.querySelector('[data-item-id="p2"] > [data-role="user"]')).toHaveFocus();
   });
 

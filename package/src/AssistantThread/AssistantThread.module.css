@@ -1,4 +1,3 @@
-/* One prompt or answer, in a centred column like Claude and ChatGPT */
 .turn {
   display: flex;
   flex-direction: column;
@@ -12,7 +11,6 @@
     align-items: flex-end;
   }
 
-  /* A prompt takes focus after its edit is sent; the ring goes around its bubble, not the column */
   &:focus {
     outline: none;
   }
@@ -23,7 +21,6 @@
   }
 }
 
-/* A prompt: a compact bubble on the right */
 .bubble {
   max-width: 85%;
   padding: rem(8px) rem(14px);
@@ -42,7 +39,6 @@
   }
 }
 
-/* An answer: parts in order, full width */
 .answer {
   display: flex;
   flex-direction: column;
@@ -57,7 +53,6 @@
   }
 }
 
-/* The streaming cursor sits at the end of the last block of the text: MarkdownBody > last block */
 .text {
   min-width: 0;
 
@@ -82,7 +77,6 @@
   margin-block: rem(4px);
 }
 
-/* A reasoning or tool step */
 .step {
   border: 1px solid var(--mantine-color-default-border);
   border-radius: var(--mantine-radius-md);
@@ -133,7 +127,6 @@
   align-self: stretch;
 }
 
-/* Prompts show their actions on hover and focus, like ChatThread; answers always do */
 .actions {
   :where(.turn[data-role='user']) > & {
     opacity: 0;

@@ -93,7 +93,6 @@ describe('TeamThread', () => {
 
   it('gives screen readers the author of follow-ups and the time of every row', () => {
     render(<TeamThread {...defaultProps} locale="en-US" />);
-    // Follow-up b shows no name; a visually hidden one precedes its time
     expect(row('b').querySelector('.mantine-VisuallyHidden-root')).toHaveTextContent(
       'Maya Lindqvist'
     );
@@ -107,7 +106,6 @@ describe('TeamThread', () => {
       [at(2).toISOString(), '9:02 AM'],
     ]);
 
-    // The event's time is in the row, not only in a hover title
     expect(screen.getByText('Theo joined #launch')).toHaveTextContent(
       'Theo joined #launch 9:00 AM'
     );
@@ -183,7 +181,6 @@ describe('TeamThread', () => {
       screen.getByRole('toolbar', { name: "Actions for Maya Lindqvist's message" })
     ).toBeInTheDocument();
 
-    // Own message: react, thread, edit, copy is four, so edit and copy go in the menu
     expect(screen.getAllByRole('button', { name: /^More actions/ })).toHaveLength(1);
     await userEvent.click(screen.getByRole('button', { name: 'More actions for your message' }));
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Edit' }));
@@ -191,13 +188,11 @@ describe('TeamThread', () => {
   });
 
   it('renders again only the rows that changed', async () => {
-    // Each message row formats its time once per render, so this counts row renders
     const formatted = jest.spyOn(Date.prototype, 'toISOString');
     const view = (list: TeamThreadItem[], onReact: (message: ChatMessage) => void) => (
       <TeamThread {...defaultProps} items={list} onReact={onReact} selectedId="b" />
     );
-    // Testing Library's own render: Mantine's wraps the first render in a fragment, so its
-    // rerender would mount a new tree
+    // Testing Library's render: Mantine's wraps the first render in a fragment, so rerender remounts
     const { rerender } = rtlRender(view(items, jest.fn()), { wrapper: MantineProvider });
 
     formatted.mockClear();
@@ -207,7 +202,6 @@ describe('TeamThread', () => {
     await userEvent.click(screen.getByRole('button', { name: 'React: Body a' }));
     expect(onReact).toHaveBeenCalledWith(items[1]);
 
-    // A new message from Theo: its row renders, Maya's rows do not
     formatted.mockClear();
     const next = message('c', 'theo', 3);
     rerender(view([...items, next], onReact));

@@ -180,12 +180,10 @@ describe('MessageList', () => {
     rerender(view(later, true));
     expect(log).toHaveAttribute('aria-busy', 'true');
 
-    // The app stops loading and prepends in one update: the new item lands while still busy
     rerender(view(items, false));
     expect(busyWhenMounted.a).toBe('true');
     expect(log).not.toHaveAttribute('aria-busy');
 
-    // A new message at the end is not a prepend
     rerender(view([...items, note('e', 'me', 15, 3)], false));
     expect(busyWhenMounted.e).toBeNull();
   });
@@ -207,11 +205,9 @@ describe('MessageList', () => {
     const { rerender } = render(view(items));
     expect(renderItem).toHaveBeenCalledTimes(4);
 
-    // The parent renders again with the same items: no item renders
     rerender(view(items, 'other'));
     expect(renderItem).toHaveBeenCalledTimes(4);
 
-    // One new item: it renders, and the previous last item (its `next` and groupEnd changed)
     renderItem.mockClear();
     rerender(view([...items, note('e', 'me', 15, 3)]));
     expect(renderItem.mock.calls.map(([item]) => item.id)).toEqual(['d', 'e']);

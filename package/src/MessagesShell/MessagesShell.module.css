@@ -1,4 +1,3 @@
-/* Panes side by side at the full height the shell is given */
 .root {
   position: relative;
   display: flex;
@@ -45,7 +44,6 @@
     display: none;
   }
 
-  /* Collapsed and opened: over the end edge of Main */
   &[data-overlay] {
     position: absolute;
     top: 0;
@@ -57,7 +55,6 @@
   }
 }
 
-/* Behind the open collapsed aside */
 .asideBackdrop {
   position: absolute;
   inset: 0;

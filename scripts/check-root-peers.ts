@@ -19,7 +19,6 @@ const required = Object.keys(packageJson.peerDependencies).filter(
   (name) => !optional.includes(name)
 );
 
-// `from 'x'`, `import 'x'`, `import('x')`, `require('x')`
 const SPECIFIER = /(?:\bfrom\s*|\bimport\s*\(?\s*|\brequire\s*\(\s*)['"]([^'"]+)['"]/g;
 
 const packageName = (specifier: string) =>
@@ -80,7 +79,6 @@ for (const entry of ['esm/index.mjs', 'cjs/index.cjs']) {
   }
 }
 
-// The check must see an optional peer where it belongs, or it proves nothing
 const markdownEntry = path.join(dist, 'esm/markdown.mjs');
 
 if (!fs.existsSync(markdownEntry)) {

@@ -165,7 +165,6 @@ export const sampleChannels: Conversation[] = [
   },
 ];
 
-/** #launch: an event, a thread, a follow-up, a file, an edit, an internal note and reactions */
 export const sampleTeamItems: (ChatMessage | SystemEvent)[] = [
   {
     id: 'team-e1',

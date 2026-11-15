@@ -103,7 +103,6 @@ describe('Inbox', () => {
     render(<Inbox conversations={counted} defaultValue="maya" labels={{ muted: 'Quiet' }} />);
     reads = 0;
     await userEvent.click(screen.getByRole('button', { name: /Priya/ }));
-    // Maya (no longer active) and Priya (now active) render again; Design crit does not
     expect(reads).toBe(2 * 3);
   });
 
@@ -164,7 +163,6 @@ describe('Inbox search and sections', () => {
     render(<Inbox conversations={counted} withSearch sections />);
     reads = 0;
     await userEvent.type(screen.getByRole('textbox', { name: 'Search' }), 'a');
-    // "a" is in every title, so every row stays and none renders again
     expect(screen.getAllByRole('button')).toHaveLength(5);
     expect(reads).toBe(0);
   });
@@ -176,7 +174,6 @@ describe('Inbox search and sections', () => {
     expect(status).toBeEmptyDOMElement();
 
     await userEvent.type(box, 'l');
-    // Not per keystroke: the count comes a moment later
     expect(status).toBeEmptyDOMElement();
     await waitFor(() => expect(status).toHaveTextContent('4 conversations'));
 

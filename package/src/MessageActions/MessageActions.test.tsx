@@ -167,13 +167,11 @@ describe('MessageActions', () => {
     await userEvent.keyboard('{End}');
     expect(more).toHaveFocus();
 
-    // Tab leaves the toolbar, Shift+Tab comes back to the button last used
     await userEvent.tab();
     expect(screen.getByRole('button', { name: 'After' })).toHaveFocus();
     await userEvent.tab({ shift: true });
     expect(more).toHaveFocus();
 
-    // Other keys pass through; the consumer's onKeyDown runs for every key, Tab included
     await userEvent.keyboard('{ArrowDown}');
     expect(more).toHaveFocus();
     expect(onKeyDown).toHaveBeenCalledTimes(8);

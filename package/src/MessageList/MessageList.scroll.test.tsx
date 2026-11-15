@@ -229,7 +229,6 @@ describe('MessageList scrolling', () => {
       resized();
       expect(viewport.scrollTop).toBe(1100);
 
-      // Scrolled up to read: a resize leaves the view alone
       userScrollsTo(300);
       resized();
       expect(viewport.scrollTop).toBe(300);
@@ -242,7 +241,6 @@ describe('MessageList scrolling', () => {
       resized();
       expect(viewport.scrollTop).toBe(800);
 
-      // Turned on later: the observer reads the current value
       rerender(start, { autoScroll: true });
       resized();
       expect(viewport.scrollTop).toBe(1100);
@@ -297,13 +295,11 @@ describe('MessageList scrolling', () => {
     userScrollsTo(0);
     expect(onLoadOlder).toHaveBeenCalledTimes(1);
 
-    // Loading starts and ends without new items: the user may ask again
     rerender(start, { onLoadOlder, hasOlder: true, loadingOlder: true });
     rerender(start, { onLoadOlder, hasOlder: true, loadingOlder: false });
     userScrollsTo(0);
     expect(onLoadOlder).toHaveBeenCalledTimes(2);
 
-    // Older items arrive: the next scroll to the top asks for the page before them
     rerender([item('a'), ...start], { onLoadOlder, hasOlder: true });
     userScrollsTo(0);
     expect(onLoadOlder).toHaveBeenCalledTimes(3);
@@ -315,7 +311,6 @@ describe('MessageList scrolling', () => {
     rerender([...start]);
     expect(viewport.scrollTop).toBe(1300);
 
-    // Same height: nothing to follow
     rerender([...start]);
     expect(viewport.scrollTop).toBe(1300);
 

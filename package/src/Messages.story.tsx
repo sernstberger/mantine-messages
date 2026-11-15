@@ -56,7 +56,6 @@ export function Messenger() {
     setMessages((current) => [...current, { ...message, id, createdAt: new Date() }]);
   };
 
-  // Maya answers a moment after you send, so the thread has something to follow
   const send = ({ text: body }: ComposerDraft) => {
     add({ authorId: 'me', body, status: 'sent', replyToId: replyTo?.id });
     setReplyTo(null);
@@ -206,7 +205,6 @@ const isMessage = (item: TeamThreadItem): item is ChatMessage => !('kind' in ite
 const nameOf = (conversation: Conversation) =>
   conversation.kind === 'channel' ? `#${conversation.title}` : conversation.title;
 
-// Every channel but #launch starts empty, with a line saying so
 const firstItems = (conversation: Conversation): TeamThreadItem[] =>
   conversation.id === 'launch'
     ? sampleTeamItems
@@ -273,7 +271,6 @@ export function Team() {
       })
     );
 
-  // A message in the channel, or a reply that also bumps its parent's summary
   const post = (draft: ComposerDraft, threadId?: string) => {
     count.current += 1;
     const message: ChatMessage = {

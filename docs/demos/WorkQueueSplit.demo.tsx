@@ -2,14 +2,12 @@ import { MantineDemo } from '@mantinex/demo';
 import React from 'react';
 import { WorkQueueSplit } from './WorkQueue/WorkQueueSplit';
 
-// The same app state as the table layout (useWorkQueue), laid out on MessagesShell
 const code = `
 // Full source: https://github.com/sernstberger/mantine-messages/tree/main/docs/demos/WorkQueue
 import { useRef, useState } from 'react';
 import { MessagesShell, type MessageListControl } from 'mantine-messages';
 
 function WorkQueueSplit() {
-  // Tickets, filters, sort, selection and bulk actions, shared with the table layout
   const queue = useWorkQueue();
   const timeline = useRef<MessageListControl>(null);
   const [openId, setOpenId] = useState(() => queue.visible[0]?.id);

@@ -47,7 +47,6 @@ beforeEach(() => {
   markdownRenders.length = 0;
 });
 
-/** Keeps messages in state, so updates re-render the thread but not the MantineProvider around it */
 function setup(initial: AssistantMessage[], props: Partial<AssistantThreadProps> = {}) {
   let update: (messages: AssistantMessage[]) => void = () => {};
 
@@ -133,7 +132,6 @@ describe('AssistantThread', () => {
 
     const tool = screen.getByRole('button', { name: /search_docs/ });
     expect(tool).toHaveTextContent('Done');
-    // A logical margin, so the badge sits at the far end in RTL too
     expect(screen.getByText('Done').closest('.mantine-Badge-root')).toHaveStyle({
       marginInlineStart: 'auto',
     });
@@ -178,7 +176,6 @@ describe('AssistantThread', () => {
     });
     const status = screen.getByRole('status');
     expect(screen.getByRole('img', { name: 'Working on it' })).toBeInTheDocument();
-    // Said once as the answer starts, not per token
     expect(status).toHaveTextContent('Working on it');
 
     update([

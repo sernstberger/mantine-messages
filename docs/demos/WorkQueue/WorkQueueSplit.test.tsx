@@ -16,7 +16,6 @@ const details = () => document.querySelector<HTMLElement>('aside[aria-label="Tic
 
 const { ResizeObserver: originalObserver } = window;
 
-/** MessagesShell measures itself through ResizeObserver; this one reports `width` at once */
 function measureAs(width: number) {
   window.ResizeObserver = class {
     constructor(private callback: ResizeObserverCallback) {}

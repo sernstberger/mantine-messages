@@ -126,12 +126,12 @@ const defaultProps: Partial<MessageActionsProps> = { maxVisible: 3 };
 
 type Clipboard = ReturnType<typeof useClipboard>;
 
-// useClipboard keeps state and a timer, so only toolbars with a copy action mount one
+// useClipboard keeps a timer, so only toolbars with a copy action mount one
 function WithClipboard({ children }: { children: (clipboard: Clipboard) => React.ReactNode }) {
   return children(useClipboard({ timeout: 1500 }));
 }
 
-// Where each key moves focus; `step` is -1 in right-to-left layouts
+// `step` is -1 in right-to-left layouts
 const KEYS: Record<string, (index: number, count: number, step: number) => number> = {
   ArrowRight: (index, count, step) => (index + step + count) % count,
   ArrowLeft: (index, count, step) => (index - step + count) % count,
@@ -192,8 +192,7 @@ export const MessageActions = factory<MessageActionsFactory>((_props) => {
   const [active, setActive] = useState(0);
   const moreRef = useRef<HTMLButtonElement>(null);
 
-  // The menu mounts on the first click, which replaces the trigger: focus the new trigger before
-  // opening, so the menu gives focus back to it when it closes
+  // The menu replaces the trigger on first click: focus the new one so the menu returns focus to it
   useLayoutEffect(() => {
     if (menuMounted) {
       moreRef.current!.focus();
@@ -201,7 +200,6 @@ export const MessageActions = factory<MessageActionsFactory>((_props) => {
     }
   }, [menuMounted]);
 
-  // Every action but copy, whose label follows the clipboard; built only for names in `actions`
   const allLabels = { ...defaultLabels, ...labels };
   const { reply, react, thread, edit } = allLabels;
   const resolved = useMemo(() => {
@@ -254,7 +252,6 @@ export const MessageActions = factory<MessageActionsFactory>((_props) => {
     const rest = overflow ? items.slice(maxVisible! - 1) : [];
     const count = visible.length + (overflow ? 1 : 0);
 
-    // The one button in the tab order, kept in range when buttons go away
     const current = Math.min(active, count - 1);
     const stop = (index: number) => ({
       tabIndex: index === current ? 0 : -1,

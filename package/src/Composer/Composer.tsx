@@ -247,7 +247,6 @@ export const Composer = factory<ComposerFactory>((_props) => {
   const canSend = !disabled && !readOnly && !streaming && text.trim().length > 0;
   const allLabels = { ...defaultLabels, ...labels };
 
-  // Choosing a message to answer puts the cursor in the box
   const ownInputRef = useRef<HTMLTextAreaElement>(null);
   const mergedInputRef = useMergedRef(ownInputRef, inputRef);
   useEffect(() => {
@@ -266,19 +265,17 @@ export const Composer = factory<ComposerFactory>((_props) => {
         ...(replyTo && { replyToId: replyTo.id }),
       });
       setText('');
-      // Sending with the button disables it; keep the cursor in the box for the next message
+      // Clicking send disables the button, which would drop focus; keep it in the box
       ownInputRef.current!.focus();
     }
   };
 
-  // The reply bar describes the box, so screen readers say whom the message answers on focus
   const replyId = useId();
   const describedBy =
     [replyTo && replyId, textareaProps?.['aria-describedby']].filter(Boolean).join(' ') ||
     undefined;
 
-  // Set on the element: Mantine's input wrapper replaces an aria-describedby prop with the ids
-  // of its own description and error, which the composer does not use
+  // Set on the element: Mantine's input wrapper overrides an aria-describedby prop with its own ids
   useIsomorphicEffect(() => {
     if (describedBy) {
       ownInputRef.current!.setAttribute('aria-describedby', describedBy);

@@ -2,7 +2,6 @@ import { MantineDemo } from '@mantinex/demo';
 import React from 'react';
 import { WorkQueue } from './WorkQueue/WorkQueue';
 
-// The app is a dozen files; the code tab shows how the timeline is built, and links to the rest
 const code = `
 // Full source: https://github.com/sernstberger/mantine-messages/tree/main/docs/demos/WorkQueue
 import { useRef } from 'react';
@@ -31,7 +30,6 @@ function Ticket({ ticket }: { ticket: Ticket }) {
         ]}
         onSend={({ text, mode }) => send(ticket.id, text, mode === 'note')}
       />
-      {/* In the sidebar: jump to an event in the timeline and flash it */}
       <ActivityList ticket={ticket} onJumpTo={(id) => timeline.current?.jumpTo(id)} />
     </>
   );

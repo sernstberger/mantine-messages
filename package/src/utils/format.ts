@@ -3,8 +3,7 @@ import { toDate } from './dates';
 
 const DAY = 24 * 60 * 60 * 1000;
 
-// Building an Intl formatter costs about 50 times more than using one, and a thread formats a
-// time per message on every render, so each locale and option set gets one formatter
+// Building an Intl formatter costs about 50 times more than using one, so each one is shared
 const formatters = new Map<
   string,
   Intl.DateTimeFormat | Intl.RelativeTimeFormat | Intl.NumberFormat
@@ -27,12 +26,10 @@ function cached<T extends Intl.DateTimeFormat | Intl.RelativeTimeFormat | Intl.N
   return formatter;
 }
 
-/** One shared `Intl.DateTimeFormat` per locale and options */
 export function getDateTimeFormat(locale: string | undefined, options: Intl.DateTimeFormatOptions) {
   return cached('date', locale, options, () => new Intl.DateTimeFormat(locale, options));
 }
 
-/** One shared `Intl.RelativeTimeFormat` per locale and options */
 export function getRelativeTimeFormat(
   locale: string | undefined,
   options: Intl.RelativeTimeFormatOptions
@@ -40,7 +37,6 @@ export function getRelativeTimeFormat(
   return cached('relative', locale, options, () => new Intl.RelativeTimeFormat(locale, options));
 }
 
-/** One shared `Intl.NumberFormat` per locale and options */
 export function getNumberFormat(locale: string | undefined, options: Intl.NumberFormatOptions) {
   return cached('number', locale, options, () => new Intl.NumberFormat(locale, options));
 }
@@ -53,12 +49,10 @@ const sameDay = (a: Date, b: Date) =>
   a.getMonth() === b.getMonth() &&
   a.getDate() === b.getDate();
 
-/** Time of day, for example "9:41 AM" */
 export function formatTime(value: MessageDate, locale?: string) {
   return getDateTimeFormat(locale, TIME).format(toDate(value));
 }
 
-/** Label of a date divider: "Today", "Yesterday", a weekday in the last week, else a date */
 export function formatDay(value: MessageDate, locale?: string, now = new Date()) {
   const date = toDate(value);
   const relative = getRelativeTimeFormat(locale, NUMERIC_AUTO);
@@ -83,7 +77,6 @@ export function formatDay(value: MessageDate, locale?: string, now = new Date())
   }).format(date);
 }
 
-/** Short time for an inbox row: a time today, a weekday this week, else a short date */
 export function formatShort(value: MessageDate, locale?: string, now = new Date()) {
   const date = toDate(value);
 
@@ -100,7 +93,6 @@ export function formatShort(value: MessageDate, locale?: string, now = new Date(
 
 const capitalize = (text: string) => text.charAt(0).toLocaleUpperCase() + text.slice(1);
 
-/** File size, for example "512 B", "1.5 KB", "5 MB" */
 export function formatBytes(bytes: number, locale?: string) {
   const format = (value: number) =>
     getNumberFormat(locale, { maximumFractionDigits: 1 }).format(value);
@@ -122,7 +114,6 @@ const RELATIVE_UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
   ['minute', 60],
 ];
 
-/** Time from now in words: "now", "5 minutes ago", "2 hours ago", "yesterday" */
 export function formatRelative(value: MessageDate, locale?: string, now = new Date()) {
   const seconds = Math.round((toDate(value).getTime() - now.getTime()) / 1000);
   const relative = getRelativeTimeFormat(locale, NUMERIC_AUTO);

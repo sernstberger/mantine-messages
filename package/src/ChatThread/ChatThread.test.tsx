@@ -104,12 +104,10 @@ describe('ChatThread', () => {
     const view = (list: ChatMessage[], onReply?: (message: ChatMessage) => void) => (
       <ChatThread {...defaultProps} messages={list} renderBody={renderBody} onReply={onReply} />
     );
-    // Testing Library's own render: Mantine's wraps the first render in a fragment, so its
-    // rerender would mount a new tree
+    // Testing Library's render: Mantine's wraps the first render in a fragment, so rerender remounts
     const { rerender } = rtlRender(view(messages, first), { wrapper: MantineProvider });
     expect(renderBody).toHaveBeenCalledTimes(2);
 
-    // A new inline handler each render, as apps often pass: no row renders, the newest handler runs
     const second = jest.fn();
     rerender(view(messages, second));
     expect(renderBody).toHaveBeenCalledTimes(2);
@@ -117,7 +115,6 @@ describe('ChatThread', () => {
     expect(second).toHaveBeenCalledWith(messages[0]);
     expect(first).not.toHaveBeenCalled();
 
-    // A reply from Maya arrives: only it renders; b keeps its group, its status and its time
     renderBody.mockClear();
     const reply: ChatMessage = {
       id: 'c',
@@ -129,7 +126,6 @@ describe('ChatThread', () => {
     rerender(view([...messages, reply], second));
     expect(renderBody.mock.calls.map(([message]) => message.id)).toEqual(['c']);
 
-    // Taking the handler away renders the rows, without their reply buttons
     rerender(view([...messages, reply]));
     expect(screen.queryByRole('button', { name: /^Reply:/ })).not.toBeInTheDocument();
   });
@@ -155,9 +151,7 @@ describe('ChatThread', () => {
           .querySelectorAll('.mantine-VisuallyHidden-root')
       ).map((element) => element.textContent);
 
-    // a1 shows Maya's name and its time is not visible: only the time is hidden
     expect(hidden('a1')).toEqual([' 9:00 AM']);
-    // a2 follows without a name, and ends the group, so its time is visible
     expect(hidden('a2')).toEqual(['Maya Lindqvist: ']);
     expect(hidden('m1')).toEqual(['Du: ']);
 

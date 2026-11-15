@@ -10,8 +10,7 @@ const source = 'See [the docs](https://mantine.dev) and `useState`.\n\n```tsx\nc
 
 const defaultProps: MarkdownBodyProps = { children: source };
 
-// The render of @mantine-tests/core wraps the first element in a fragment: rerender the same way,
-// or React mounts a new tree
+// Mantine's render wraps the first element in a fragment: rerender the same way, or it remounts
 beforeEach(() => {
   markdownRenders.length = 0;
 });
@@ -79,7 +78,6 @@ describe('MarkdownBody', () => {
   it('parses only the last block as text streams in', () => {
     const first = 'Intro paragraph.\n\n- one\n- two\n\nThe answer';
     const { rerender } = render(<MarkdownBody>{first}</MarkdownBody>);
-    // A list goes with the block above it (see split-blocks)
     expect(markdownRenders).toHaveLength(2);
     markdownRenders.length = 0;
 

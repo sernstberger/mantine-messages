@@ -180,10 +180,7 @@ export const ThreadPanel = factory<ThreadPanelFactory>((_props) => {
 
   const { title: titleLabel, close: closeLabel, ...threadLabels } = { ...defaultLabels, ...labels };
 
-  // Focus moves in from the control that opened the panel and goes back to it on close. Not when
-  // nothing had focus (the panel was open as the page loaded): that would scroll the page to it.
-  // Escape does not close the panel: it is not a dialog, and Escape in its composer belongs to
-  // the composer
+  // Escape does not close the panel: it is not a dialog, and its composer owns Escape
   const rootRef = useRef<HTMLDivElement>(null);
   const mergedRef = useMergedRef(ref, rootRef);
   const titleRef = useRef<HTMLHeadingElement>(null);
@@ -194,6 +191,7 @@ export const ThreadPanel = factory<ThreadPanelFactory>((_props) => {
   useEffect(() => {
     const active = document.activeElement as HTMLElement;
 
+    // Nothing focused (open at page load): focusing the title would scroll the page to it
     if (!withFocusManagement || active === document.body) {
       return;
     }
@@ -204,8 +202,7 @@ export const ThreadPanel = factory<ThreadPanelFactory>((_props) => {
     }
   }, [parent.id, withFocusManagement]);
 
-  // A layout effect: its cleanup runs while the panel is still in the document, so it can tell
-  // whether focus was inside
+  // Layout effect: its cleanup runs while the panel is still in the document
   useIsomorphicEffect(() => {
     const root = rootRef.current!;
 

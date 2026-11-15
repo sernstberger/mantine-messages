@@ -18,7 +18,6 @@ import {
 } from './queue';
 import type { QueueFilters, Ticket } from './types';
 
-// A Monday
 const now = new Date(2026, 10, 16, 10, 0);
 const tickets = createTickets(now);
 const nameOf = nameGetter(users);
@@ -118,9 +117,7 @@ describe('times', () => {
     const [hour, tomorrow, monday] = snoozeOptions(now);
     expect(hour.until).toEqual(new Date(2026, 10, 16, 11, 0));
     expect(tomorrow.until).toEqual(new Date(2026, 10, 17, 9, 0));
-    // On a Monday, next Monday is a week away
     expect(monday.until).toEqual(new Date(2026, 10, 23, 9, 0));
-    // On a Friday, three days
     expect(snoozeOptions(new Date(2026, 10, 20, 15, 0))[2].until).toEqual(
       new Date(2026, 10, 23, 9, 0)
     );
@@ -129,7 +126,6 @@ describe('times', () => {
 
 describe('list previews', () => {
   it('previews the newest email, chat message or note, skipping events', () => {
-    // An email whose line breaks become spaces, followed by an event
     expect(previewOf(byId(tickets, 'T-1040'))).toBe(
       'Hi Aiko, Thanks for the report, we could reproduce it. A fix is planned for next week; until then, "Export as XLSX" keeps the accents. Priya'
     );
@@ -167,9 +163,7 @@ describe('queueReducer', () => {
       text: 'You assigned this to Maya Lindqvist',
       createdAt: at,
     });
-    // Already Maya's: unchanged, no event
     expect(byId(next, 'T-1036')).toBe(byId(tickets, 'T-1036'));
-    // Not selected: unchanged
     expect(byId(next, 'T-1041')).toBe(byId(tickets, 'T-1041'));
 
     next = queueReducer(next, { type: 'assign', ids: ['T-1042'], assignee: null, at });
@@ -190,7 +184,6 @@ describe('queueReducer', () => {
     });
     expect(byId(next, 'T-1032')).toBe(byId(tickets, 'T-1032'));
 
-    // Both are urgent already: nothing changes
     const closed = next;
     next = queueReducer(next, {
       type: 'setPriority',

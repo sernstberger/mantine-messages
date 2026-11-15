@@ -139,7 +139,6 @@ export const MessagesShellAside = factory<MessagesShellAsideFactory>((_props) =>
   return (
     <>
       {overlay && (
-        // Dims the panes behind the open aside; a click on it closes the aside
         <Box
           aria-hidden
           onClick={() => ctx.setAsideOpened(false)}
@@ -314,7 +313,6 @@ export const MessagesShell = factory<MessagesShellFactory>((_props) => {
     onChange: onAsideOpenedChange,
   });
 
-  // Until it is measured (and on the server) the shell counts as wide
   const asideCollapsed = width > 0 && width < asideBreakpoint;
 
   return (

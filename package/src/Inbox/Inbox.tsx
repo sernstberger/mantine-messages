@@ -134,7 +134,6 @@ const defaultLabels: InboxLabels = {
   results: (count) => (count === 1 ? '1 conversation' : `${count} conversations`),
 };
 
-// Pinned first, then channels, then everything else
 const builtInSections = (labels: InboxLabels): InboxSection[] => [
   { id: 'pinned', label: labels.pinned, match: (conversation) => !!conversation.pinned },
   {
@@ -156,10 +155,6 @@ interface InboxRowProps {
   onSelect: (id: string) => void;
 }
 
-/**
- * One conversation. Memoized, and the inbox keeps every prop stable, so typing in the search box
- * or opening a conversation renders only the rows that changed
- */
 const InboxRow = memo(function InboxRow({
   conversation,
   active,
@@ -194,7 +189,7 @@ const InboxRow = memo(function InboxRow({
           {conversation.lastMessage && getPreview(conversation.lastMessage)}
         </Text>
         {unread > 0 && (
-          // The number alone reads as "3"; screen readers get labels.unread instead
+          // aria-hidden: the bare number reads as "3"; screen readers get labels.unread instead
           <Badge size="sm" circle={unread < 10} aria-hidden {...getStyles('unread')}>
             {unread > 99 ? '99+' : unread}
           </Badge>
@@ -259,8 +254,7 @@ export const Inbox = factory<InboxFactory>((_props) => {
   });
   const sectionId = useId();
 
-  // Rows are memoized; these keep their props the same while the search text changes. getStyles
-  // is a new function on every render, but for the rows it returns only what these inputs decide
+  // Stable while typing, so memoized rows skip rendering (getStyles is new on every render)
   const rowStyles = useMemo(
     () => getStyles,
     [theme, classNames, styles, unstyled, vars, attributes]
@@ -287,7 +281,6 @@ export const Inbox = factory<InboxFactory>((_props) => {
     [sections, allLabels]
   );
 
-  // Each conversation in the first section that matches, in one pass
   const members = useMemo(() => {
     const bySection = new Map<InboxSection, Conversation[]>();
 
@@ -305,7 +298,6 @@ export const Inbox = factory<InboxFactory>((_props) => {
     return bySection;
   }, [groups, shown]);
 
-  // Said politely once typing pauses, not on every keystroke
   const [announcement] = useDebouncedValue(
     needle ? (shown.length === 0 ? allLabels.noResults : allLabels.results(shown.length)) : '',
     300
