@@ -32,6 +32,26 @@
         "default": "./dist/cjs/index.cjs"
       }
     },
+    "./markdown": {
+      "import": {
+        "types": "./dist/types/markdown.d.mts",
+        "default": "./dist/esm/markdown.mjs"
+      },
+      "require": {
+        "types": "./dist/types/markdown.d.ts",
+        "default": "./dist/cjs/markdown.cjs"
+      }
+    },
+    "./assistant": {
+      "import": {
+        "types": "./dist/types/assistant.d.mts",
+        "default": "./dist/esm/assistant.mjs"
+      },
+      "require": {
+        "types": "./dist/types/assistant.d.ts",
+        "default": "./dist/cjs/assistant.cjs"
+      }
+    },
     "./styles.css": "./dist/styles.css",
     "./styles.layer.css": "./dist/styles.layer.css"
   },

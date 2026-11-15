@@ -9,8 +9,11 @@ import { createGenerateScopedName } from 'hash-css-selector';
 
 const outputDir = path.join(process.cwd(), './package/dist');
 
+// The root entry and the subpath entries; optional peers are imported only below their subpath
+const entries = ['index', 'markdown', 'assistant'];
+
 export default {
-  input: path.join(process.cwd(), './package/src/index.ts'),
+  input: entries.map((entry) => path.join(process.cwd(), `./package/src/${entry}.ts`)),
   output: [
     {
       format: 'es',
@@ -38,7 +41,9 @@ export default {
     }),
     replace({ preventAssignment: true }),
     postcss({
-      extract: true,
+      // One CSS file for every entry (no CSS imports an optional peer). A fixed name, because
+      // `true` names it after whichever entry chunk comes first
+      extract: 'index.css',
       modules: { generateScopedName: createGenerateScopedName('me') },
       minimize: true,
     }),
