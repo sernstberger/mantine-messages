@@ -16,7 +16,10 @@ const getRoot = (container: HTMLElement) =>
   container.querySelector<HTMLElement>('.mantine-Reactions-root')!;
 
 describe('Reactions', () => {
-  tests.axe([<Reactions {...defaultProps} />, <Reactions {...defaultProps} onToggleReaction={() => {}} />]);
+  tests.axe([
+    <Reactions {...defaultProps} />,
+    <Reactions {...defaultProps} onToggleReaction={() => {}} />,
+  ]);
 
   tests.itSupportsSystemProps<ReactionsProps, ReactionsStylesNames>({
     component: Reactions,
