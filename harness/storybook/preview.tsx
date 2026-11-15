@@ -27,6 +27,9 @@ export const globalTypes = {
 const preview: Preview = {
   parameters: {
     layout: 'fullscreen',
+    // Deviation: Storybook reads these parameters over the named export below, so Mantine's
+    // showPanel there never applies; repeated here so the panel stays closed
+    options: { showPanel: false },
     controls: {
       matchers: {
         color: /(background|color)$/i,
