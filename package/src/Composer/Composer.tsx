@@ -3,10 +3,16 @@ import {
   Box,
   BoxProps,
   CloseButton,
+  createVarsResolver,
   ElementProps,
   factory,
   Factory,
+  getRadius,
+  getSize,
+  isNumberLike,
   MantineColor,
+  MantineRadius,
+  MantineSize,
   SegmentedControl,
   StylesApiProps,
   Text,
@@ -24,7 +30,12 @@ export type ComposerStylesNames =
   | 'modes'
   | 'reply'
   | 'replyText'
+  | 'replyLabel'
+  | 'replyAuthor'
+  | 'replyBody'
+  | 'cancelReply'
   | 'field'
+  | 'section'
   | 'input'
   | 'send';
 
@@ -41,7 +52,6 @@ export interface ComposerDraft {
   /** Trimmed text */
   text: string;
   format: 'text' | 'markdown';
-  attachments: File[];
 
   /** Which mode was chosen, for example `'reply'` or `'note'` */
   mode?: string;
@@ -144,19 +154,60 @@ export interface ComposerProps
 
   /** Called when the user clicks the stop button */
   onStop?: () => void;
+
+  /** Controls `font-size` of the text box and the size of the mode switch, the cancel and send buttons @default 'sm' */
+  size?: MantineSize;
+
+  /** Key of `theme.radius` or any valid CSS value to set `border-radius` of the box, numbers are converted to rem @default 'xl' */
+  radius?: MantineRadius;
+
+  /** Content shown before the text box, for example a `FileButton` with an attach button */
+  leftSection?: React.ReactNode;
+
+  /** Content shown between the text box and the send button */
+  rightSection?: React.ReactNode;
 }
+
+export type ComposerCssVariables = {
+  root: '--composer-radius' | '--composer-section-size';
+};
 
 export type ComposerFactory = Factory<{
   props: ComposerProps;
   ref: HTMLDivElement;
   stylesNames: ComposerStylesNames;
+  vars: ComposerCssVariables;
 }>;
 
-const defaultProps: Partial<ComposerProps> = {
+const defaultProps = {
   placeholder: 'Message',
   maxRows: 6,
   format: 'text',
+  size: 'sm',
+} satisfies Partial<ComposerProps>;
+
+const sendSizes: Record<MantineSize, string> = {
+  xs: 'md',
+  sm: 'lg',
+  md: 'xl',
+  lg: 'input-lg',
+  xl: 'input-xl',
 };
+
+const modesSizes: Record<MantineSize, MantineSize> = {
+  xs: 'xs',
+  sm: 'xs',
+  md: 'sm',
+  lg: 'md',
+  xl: 'lg',
+};
+
+const varsResolver = createVarsResolver<ComposerFactory>((_theme, { radius, size }) => ({
+  root: {
+    '--composer-radius': radius === undefined ? undefined : getRadius(radius),
+    '--composer-section-size': getSize(size, 'composer-section-size'),
+  },
+}));
 
 const defaultLabels: ComposerLabels = {
   send: 'Send',
@@ -219,6 +270,10 @@ export const Composer = factory<ComposerFactory>((_props) => {
     maxRows,
     streaming,
     onStop,
+    size,
+    radius,
+    leftSection,
+    rightSection,
     mod,
     ...others
   } = props;
@@ -234,6 +289,7 @@ export const Composer = factory<ComposerFactory>((_props) => {
     unstyled,
     vars,
     attributes,
+    varsResolver,
   });
 
   const [text, setText] = useUncontrolled({ value, defaultValue, finalValue: '', onChange });
@@ -259,8 +315,7 @@ export const Composer = factory<ComposerFactory>((_props) => {
     if (canSend) {
       onSend?.({
         text: text.trim(),
-        format: format!,
-        attachments: [],
+        format,
         ...(activeMode && { mode: activeMode.value }),
         ...(replyTo && { replyToId: replyTo.id }),
       });
@@ -269,6 +324,8 @@ export const Composer = factory<ComposerFactory>((_props) => {
       ownInputRef.current!.focus();
     }
   };
+
+  const childRadius = 'var(--composer-radius, var(--mantine-radius-xl))';
 
   const replyId = useId();
   const describedBy =
@@ -287,14 +344,22 @@ export const Composer = factory<ComposerFactory>((_props) => {
   return (
     <Box
       ref={ref}
-      mod={[{ mode: activeMode?.value, note: activeMode?.note }, mod]}
+      mod={[
+        {
+          mode: activeMode?.value,
+          note: activeMode?.note,
+          size: isNumberLike(size) ? undefined : size,
+        },
+        mod,
+      ]}
       {...getStyles('root')}
       {...others}
     >
       {modes && (
         <SegmentedControl
-          size="xs"
-          radius="xl"
+          size={modesSizes[size]}
+          radius={childRadius}
+          unstyled={unstyled}
           aria-label={allLabels.modes}
           data={modes.map((item) => ({ value: item.value, label: item.label }))}
           value={currentMode}
@@ -308,20 +373,31 @@ export const Composer = factory<ComposerFactory>((_props) => {
       {replyTo && (
         <Box {...getStyles('reply')}>
           <Box id={replyId} {...getStyles('replyText')}>
-            <Text size="xs" c="dimmed">
+            <Text size="xs" unstyled={unstyled} {...getStyles('replyLabel')}>
               {allLabels.replyingTo}{' '}
-              <Text component="span" inherit fw={600} c="var(--mantine-color-text)">
+              <Text component="span" inherit unstyled={unstyled} {...getStyles('replyAuthor')}>
                 {replyTo.authorName}
               </Text>
             </Text>
-            <Text size="xs" truncate>
+            <Text size="xs" truncate unstyled={unstyled} {...getStyles('replyBody')}>
               {replyTo.body}
             </Text>
           </Box>
-          <CloseButton size="sm" aria-label={allLabels.cancelReply} onClick={onCancelReply} />
+          <CloseButton
+            size={size}
+            unstyled={unstyled}
+            aria-label={allLabels.cancelReply}
+            onClick={onCancelReply}
+            {...getStyles('cancelReply')}
+          />
         </Box>
       )}
       <Box {...getStyles('field')}>
+        {leftSection && (
+          <Box data-position="left" {...getStyles('section')}>
+            {leftSection}
+          </Box>
+        )}
         <Textarea
           {...textareaProps}
           ref={mergedInputRef}
@@ -329,6 +405,8 @@ export const Composer = factory<ComposerFactory>((_props) => {
           minRows={1}
           maxRows={maxRows}
           variant="unstyled"
+          size={size}
+          unstyled={unstyled}
           aria-label={placeholder}
           placeholder={activeMode?.placeholder ?? placeholder}
           disabled={disabled}
@@ -353,9 +431,15 @@ export const Composer = factory<ComposerFactory>((_props) => {
           }}
           {...getStyles('input')}
         />
+        {rightSection && (
+          <Box data-position="right" {...getStyles('section')}>
+            {rightSection}
+          </Box>
+        )}
         <ActionIcon
-          radius="xl"
-          size="lg"
+          radius={childRadius}
+          size={sendSizes[size]}
+          unstyled={unstyled}
           aria-label={streaming ? allLabels.stop : allLabels.send}
           disabled={!streaming && !canSend}
           onClick={streaming ? onStop : send}
@@ -371,3 +455,4 @@ export const Composer = factory<ComposerFactory>((_props) => {
 
 Composer.displayName = 'Composer';
 Composer.classes = classes;
+Composer.varsResolver = varsResolver;

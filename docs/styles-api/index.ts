@@ -138,11 +138,22 @@ export const ComposerStylesApi: StylesApiData<ComposerFactory> = {
     modes: 'SegmentedControl that picks the mode, with `modes`',
     reply: 'Bar above the text box while replying, with a cancel button',
     replyText: 'Who and what the reply answers',
+    replyLabel: 'Caption of the reply bar, "Replying to" with the author',
+    replyAuthor: 'Name of the author being answered',
+    replyBody: 'One line of the message being answered',
+    cancelReply: 'Close button of the reply bar',
     field: 'Row with the text box and the send button',
+    section: '`leftSection` and `rightSection` wrappers',
     input: 'Textarea that grows with its text',
     send: 'Send button',
   },
-  vars: {},
+  vars: {
+    root: {
+      '--composer-radius':
+        'Corner radius of the box, the mode switch and the send button, from `radius`',
+      '--composer-section-size': 'Height of the sections, the same as the send button, from `size`',
+    },
+  },
   modifiers: [
     {
       modifier: 'data-streaming',
