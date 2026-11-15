@@ -6,8 +6,8 @@ import { TextAlignLeftIcon, TextAlignRightIcon } from '@phosphor-icons/react';
 import type { Decorator, Preview } from '@storybook/react-vite';
 import { useGlobals } from 'storybook/preview-api';
 import { ActionIcon, DirectionProvider, MantineProvider, useDirection } from '@mantine/core';
-// Deviation: the repo's theme and providers (Mantine: its docs theme, CodeHighlight, Modals, Notifications)
-import { RepoProviders, repoTheme } from './repo';
+// Deviation: the repo's theme and decorators (Mantine: its docs theme, CodeHighlight and Modals decorators)
+import { repoDecorators, repoTheme } from './repo';
 
 export const globalTypes = {
   theme: {
@@ -98,6 +98,7 @@ function DirectionWrapper({ children }: { children: React.ReactNode }) {
 }
 
 export const decorators: Decorator[] = [
+  ...repoDecorators,
   (renderStory, context) => {
     const [{ theme: globalTheme }, updateGlobals] = useGlobals();
 
@@ -125,9 +126,7 @@ export const decorators: Decorator[] = [
       <React.StrictMode>
         <DirectionProvider initialDirection="ltr" detectDirection={false}>
           <MantineProvider theme={repoTheme} forceColorScheme={scheme}>
-            <RepoProviders>
-              <DirectionWrapper>{renderStory()}</DirectionWrapper>
-            </RepoProviders>
+            <DirectionWrapper>{renderStory()}</DirectionWrapper>
           </MantineProvider>
         </DirectionProvider>
       </React.StrictMode>

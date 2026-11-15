@@ -9,7 +9,7 @@ the harness copies them byte-identical; what differs per repo lives in two files
 | `main.ts` | `.storybook/main.ts` | none |
 | `preview.tsx` | `.storybook/preview.tsx` | none |
 | `repo-vite.ts` (write it) | `.storybook/repo-vite.ts` | `repoStaticDirs`, `repoViteConfig` (aliases, plugins) |
-| `repo.tsx` (write it) | `.storybook/repo.tsx` | `repoTheme`, `RepoProviders`, side-effect imports (fonts) |
+| `repo.tsx` (write it) | `.storybook/repo.tsx` | `repoTheme`, `repoDecorators`, side-effect imports (fonts) |
 
 ## Apply
 
@@ -27,17 +27,26 @@ the harness copies them byte-identical; what differs per repo lives in two files
    export const repoStaticDirs: string[] = [];
    export const repoViteConfig: UserConfig = {};
    ```
-3. Write `.storybook/repo.tsx`:
+3. Write `.storybook/repo.tsx`. It exports `repoTheme` (a `MantineThemeOverride`) and
+   `repoDecorators: Decorator[]`, and holds side-effect imports such as self-hosted fonts.
+   `preview.tsx` exports `decorators = [...repoDecorators, <the shared decorator>]`, the order
+   of Mantine's own (its CodeHighlight and Modals decorators come first, then the one with the
+   theme, direction and `MantineProvider`). Storybook makes the last decorator the outermost, so
+   the repo's decorators render inside `MantineProvider`, as Mantine's do.
    ```tsx
+   import type { Decorator } from '@storybook/react-vite';
    import { createTheme } from '@mantine/core';
-   import React from 'react';
+   import './fonts';
 
    export const repoTheme = createTheme({});
 
-   export function RepoProviders({ children }: { children: React.ReactNode }) {
-     return <>{children}</>;
-   }
+   export const repoDecorators: Decorator[] = [
+     (renderStory) => <SomeAdapterProvider adapter={adapter}>{renderStory()}</SomeAdapterProvider>,
+   ];
    ```
+   mantine-messages has `repoDecorators = []` (stories that show markdown add the adapter
+   themselves); mantine-doc-viewer's holds its `DocViewerAdapterProvider` and the
+   `CodeHighlightAdapterProvider`.
 4. Dev dependencies, the same ranges as Mantine 9.8.0, and no addons (Storybook 10 has the
    essentials built in):
    ```bash

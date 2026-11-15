@@ -17,11 +17,14 @@ check(
     ? `differs: copy templates/storybook/${differentTemplates.map((f) => path.basename(f)).join(', ')} (identical files)`
     : 'identical to templates/storybook/'
 );
-const missingRepoParts = ['.storybook/repo.tsx', '.storybook/repo-vite.ts'].filter((f) => !fs.existsSync(path.join(root, f)));
+const repoTsx = read('.storybook/repo.tsx') ?? '';
+const repoParts = [
+  !fs.existsSync(path.join(root, '.storybook/repo-vite.ts')) && '.storybook/repo-vite.ts (repoStaticDirs, repoViteConfig)',
+  !/export const repoTheme\b/.test(repoTsx) && '.storybook/repo.tsx exporting repoTheme',
+  !/export const repoDecorators\b/.test(repoTsx) && '.storybook/repo.tsx exporting repoDecorators: Decorator[]',
+].filter(Boolean);
 check(
   'storybook: repo parts in repo.tsx and repo-vite.ts',
-  missingRepoParts.length === 0,
-  missingRepoParts.length
-    ? `missing: ${missingRepoParts.join(', ')} (repoTheme, RepoProviders; repoStaticDirs, repoViteConfig)`
-    : 'present'
+  repoParts.length === 0,
+  repoParts.length ? `missing: ${repoParts.join('; ')}` : 'repoTheme, repoDecorators, repoStaticDirs, repoViteConfig'
 );
