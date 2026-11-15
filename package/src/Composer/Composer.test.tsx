@@ -66,6 +66,40 @@ describe('Composer', () => {
     expect(screen.getByRole('button', { name: 'Send' })).toBeDisabled();
   });
 
+  it('is read only: the text can be selected but not changed or sent', async () => {
+    const onSend = jest.fn();
+    render(<Composer onSend={onSend} defaultValue="locked" readOnly />);
+    const box = screen.getByRole('textbox');
+    expect(box).toHaveAttribute('readonly');
+    await userEvent.type(box, '!{Enter}');
+    expect(box).toHaveValue('locked');
+    expect(onSend).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'Send' })).toBeDisabled();
+  });
+
+  it('gives the text box a ref and props, running its handlers after its own', async () => {
+    const inputRef = React.createRef<HTMLTextAreaElement>();
+    const onChange = jest.fn();
+    const onKeyDown = jest.fn();
+    const onSend = jest.fn();
+    render(
+      <Composer
+        onSend={onSend}
+        inputRef={inputRef}
+        textareaProps={{ name: 'reply', maxLength: 20, onChange, onKeyDown }}
+      />
+    );
+    const box = screen.getByRole('textbox');
+    expect(inputRef.current).toBe(box);
+    expect(box).toHaveAttribute('name', 'reply');
+    expect(box).toHaveAttribute('maxlength', '20');
+
+    await userEvent.type(box, 'hi{Enter}');
+    expect(onChange).toHaveBeenCalledTimes(2);
+    expect(onKeyDown).toHaveBeenCalledTimes(3);
+    expect(onSend).toHaveBeenCalledWith({ text: 'hi', format: 'text', attachments: [] });
+  });
+
   it('works controlled', async () => {
     const onChange = jest.fn();
     render(<Composer value="draft" onChange={onChange} />);

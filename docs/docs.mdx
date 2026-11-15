@@ -315,3 +315,14 @@ usual one.
   onSend={(draft) => send({ body: draft.text, visibility: draft.mode === 'note' ? 'internal' : 'public' })}
 />
 ```
+
+The text box is reachable like a Mantine input's: `inputRef` gets the `textarea` (to focus it after
+a click elsewhere), `textareaProps` goes to the `Textarea` (`name`, `maxLength`, `autoFocus`,
+`onPaste` and so on; its `onChange` and `onKeyDown` run after the composer's own), and `readOnly`
+keeps the text selectable but stops editing and sending.
+
+```tsx
+const inputRef = useRef<HTMLTextAreaElement>(null);
+
+<Composer inputRef={inputRef} textareaProps={{ maxLength: 2000, onPaste: attachPastedFiles }} />
+```

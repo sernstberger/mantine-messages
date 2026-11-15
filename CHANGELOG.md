@@ -37,6 +37,7 @@ will be 0.1.0.
 - `MessageList`: `controlRef` gets `{ jumpTo }`, so code outside the list can scroll to an item
   and flash it; `ChatThread`, `TeamThread` and `AssistantThread` pass it on. Type:
   `MessageListControl`
+- `Composer`: `inputRef`, `textareaProps` and `readOnly`, as on Mantine's inputs
 - Types: `MessageAvatarFactory`, `MessageBodyFactory`, `MessageMetaFactory`, for theme overrides
   and `extend` on `Message.Avatar`, `Message.Body` and `Message.Meta`
 - `MessagesShell`: list, main and aside panes side by side as labelled regions; below
