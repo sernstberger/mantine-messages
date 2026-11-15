@@ -157,3 +157,12 @@ export function MarkdownAdapterProvider(props: { adapter: MarkdownAdapter; child
 - Publish 0.1.0 to npm (Steve's call). Then open the community-listing PR to `extensions.mdx` (Steve's call; never automated).
 - An upstream GitHub Discussion, if wanted, proposes the parts only: MessageList (chat log primitive), MarkdownBody with adapters, Composer. Show the compound API, theming vars, the tests (`itSupportsSystemProps` + `axe`) and the demos.
 - Not planned: global stores (D1), exact peer pinning, `.js` specifiers, `@mantine/...` displayNames, inline-comment removal. These matter only inside the monorepo.
+
+## Windowing (decided 2026-11-15, by Mantine precedent)
+
+Mantine ships no virtualizer: Combobox (`useVirtualizedCombobox`), Tree (`flattenTreeData` + `FlatTreeNode` with
+`style`) and Table (`scrollAreaProps={{ viewportRef }}`) expose headless pieces and show `@tanstack/react-virtual` in
+docs demos. mantine-messages follows that: MessageList exposes a flat row model, a positionable row and the viewport
+ref; the chat behaviours (bottom pinning, prepend anchoring, jumpTo off-window) stay in use-message-list keyed by id;
+tanstack is a devDependency for the docs demo, story and e2e only. No subpath, no optional peer. Measured ceiling
+without windowing: about 2,500 messages comfortable; past 5,000 a new message takes over 60 ms.
