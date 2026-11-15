@@ -1,5 +1,5 @@
 import type { MessageDate } from '../types';
-import { toDate } from './group-messages';
+import { toDate } from './dates';
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -56,3 +56,19 @@ export function formatShort(value: MessageDate, locale?: string, now = new Date(
 }
 
 const capitalize = (text: string) => text.charAt(0).toLocaleUpperCase() + text.slice(1);
+
+/** File size, for example "512 B", "1.5 KB", "5 MB" */
+export function formatBytes(bytes: number, locale?: string) {
+  const format = (value: number) =>
+    new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(value);
+
+  if (bytes < 1024) {
+    return `${format(bytes)} B`;
+  }
+
+  if (bytes < 1024 * 1024) {
+    return `${format(bytes / 1024)} KB`;
+  }
+
+  return `${format(bytes / 1024 / 1024)} MB`;
+}

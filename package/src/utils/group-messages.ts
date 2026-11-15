@@ -1,4 +1,5 @@
-import type { ChatMessage, MessageDate } from '../types';
+import type { ChatMessage } from '../types';
+import { toDate } from './dates';
 
 export interface MessageGroup {
   type: 'group';
@@ -18,8 +19,6 @@ export interface DateDivider {
 }
 
 export type ThreadItem = MessageGroup | DateDivider;
-
-export const toDate = (value: MessageDate) => (value instanceof Date ? value : new Date(value));
 
 const startOfDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
 

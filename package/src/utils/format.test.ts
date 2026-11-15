@@ -1,4 +1,4 @@
-import { formatDay, formatShort, formatTime } from './format';
+import { formatDay, formatShort, formatTime, formatBytes } from './format';
 
 const now = new Date(2026, 10, 15, 12, 0);
 
@@ -38,5 +38,13 @@ describe('formatShort', () => {
 
   it('uses the current time by default', () => {
     expect(formatShort(new Date())).toBeTruthy();
+  });
+});
+
+describe('formatBytes', () => {
+  it('uses B, KB and MB', () => {
+    expect(formatBytes(512, 'en-US')).toBe('512 B');
+    expect(formatBytes(1536, 'en-US')).toBe('1.5 KB');
+    expect(formatBytes(5 * 1024 * 1024, 'en-US')).toBe('5 MB');
   });
 });
