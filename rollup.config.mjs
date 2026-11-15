@@ -20,14 +20,15 @@ export default {
       entryFileNames: '[name].mjs',
       dir: path.join(outputDir, 'esm'),
       preserveModules: true,
-      sourcemap: true,
+      // esbuild runs with sourceMap false, so rollup could only emit empty maps (`sources: []`)
+      sourcemap: false,
     },
     {
       format: 'cjs',
       entryFileNames: '[name].cjs',
       dir: path.join(outputDir, 'cjs'),
       preserveModules: true,
-      sourcemap: true,
+      sourcemap: false,
     },
   ],
   plugins: [
