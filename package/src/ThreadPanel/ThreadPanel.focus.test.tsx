@@ -37,15 +37,11 @@ function Channel(props: Partial<ThreadPanelProps> & { removeOpeners?: boolean })
         Hide threads
       </button>
       {open && (
-        <ThreadPanel
-          parent={open}
-          replies={[]}
-          users={users}
-          currentUserId="me"
-          onClose={() => setOpen(null)}
-          {...panelProps}
-        >
-          <Composer />
+        <ThreadPanel onClose={() => setOpen(null)} {...panelProps}>
+          <ThreadPanel.Replies parent={open} replies={[]} users={users} currentUserId="me" />
+          <ThreadPanel.Footer>
+            <Composer />
+          </ThreadPanel.Footer>
         </ThreadPanel>
       )}
     </>
@@ -78,14 +74,16 @@ describe('ThreadPanel focus', () => {
 
   it('keeps focus where it is when the thread changes while focus is inside the panel', async () => {
     const { rerender } = render(
-      <ThreadPanel parent={first} replies={[]} users={users} currentUserId="me">
+      <ThreadPanel>
+        <ThreadPanel.Replies parent={first} replies={[]} users={users} currentUserId="me" />
         <Composer />
       </ThreadPanel>
     );
     await userEvent.click(screen.getByRole('textbox'));
     rerender(
       <>
-        <ThreadPanel parent={second} replies={[]} users={users} currentUserId="me">
+        <ThreadPanel>
+          <ThreadPanel.Replies parent={second} replies={[]} users={users} currentUserId="me" />
           <Composer />
         </ThreadPanel>
       </>
@@ -94,7 +92,11 @@ describe('ThreadPanel focus', () => {
   });
 
   it('takes no focus when it is open as the page loads', () => {
-    render(<ThreadPanel parent={first} replies={[]} users={users} currentUserId="me" />);
+    render(
+      <ThreadPanel>
+        <ThreadPanel.Replies parent={first} replies={[]} users={users} currentUserId="me" />
+      </ThreadPanel>
+    );
     expect(document.body).toHaveFocus();
   });
 

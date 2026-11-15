@@ -370,20 +370,24 @@ export function Team() {
           <MessagesShell.Aside w={360} aria-label="Thread">
             <ThreadPanel
               style={{ flex: 1 }}
-              parent={parent}
-              replies={replies}
-              users={sampleUsers}
-              currentUserId="me"
               subtitle={nameOf(channel)}
               onClose={() => setOpenId(null)}
-              onReact={(message) => toggle(message.id, '👀')}
-              onToggleReaction={(message, emoji) => toggle(message.id, emoji)}
             >
-              <Composer
-                key={parent.id}
-                placeholder="Reply…"
-                onSend={(draft) => post(draft, parent.id)}
+              <ThreadPanel.Replies
+                parent={parent}
+                replies={replies}
+                users={sampleUsers}
+                currentUserId="me"
+                onReact={(message) => toggle(message.id, '👀')}
+                onToggleReaction={(message, emoji) => toggle(message.id, emoji)}
               />
+              <ThreadPanel.Footer>
+                <Composer
+                  key={parent.id}
+                  placeholder="Reply…"
+                  onSend={(draft) => post(draft, parent.id)}
+                />
+              </ThreadPanel.Footer>
             </ThreadPanel>
           </MessagesShell.Aside>
         )}

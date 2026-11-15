@@ -5,7 +5,12 @@ import React from 'react';
 import { Composer } from '../Composer/Composer';
 import type { MessageListHandlers } from '../MessageList/MessageList';
 import type { ChatMessage, MessagesUser } from '../types';
-import { ThreadPanel, ThreadPanelProps, ThreadPanelStylesNames } from './ThreadPanel';
+import {
+  ThreadPanel,
+  ThreadPanelProps,
+  ThreadPanelRepliesProps,
+  ThreadPanelStylesNames,
+} from './ThreadPanel';
 import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
 
 const users: MessagesUser[] = [
@@ -29,17 +34,35 @@ const replies: ChatMessage[] = [
   { id: 'r2', authorId: 'me', body: 'Pricing copy too', createdAt: at(5), threadId: 'p' },
 ];
 
-const defaultProps: ThreadPanelProps = {
+const repliesProps: ThreadPanelRepliesProps = {
   parent,
   replies,
   users,
   currentUserId: 'me',
-  subtitle: '#launch',
-  onClose: () => {},
-  children: <Composer />,
 };
 
+const defaultProps: ThreadPanelProps = {
+  subtitle: '#launch',
+  onClose: () => {},
+  children: (
+    <>
+      <ThreadPanel.Replies {...repliesProps} />
+      <ThreadPanel.Footer>
+        <Composer />
+      </ThreadPanel.Footer>
+    </>
+  ),
+};
+
+const panel = (replyProps: Partial<ThreadPanelRepliesProps>, props?: Partial<ThreadPanelProps>) => (
+  <ThreadPanel {...props}>
+    <ThreadPanel.Replies {...repliesProps} {...replyProps} />
+  </ThreadPanel>
+);
+
 describe('ThreadPanel', () => {
+  tests.axe([<ThreadPanel {...defaultProps} />]);
+
   tests.itSupportsSystemProps<ThreadPanelProps, ThreadPanelStylesNames>({
     component: ThreadPanel,
     props: defaultProps,
@@ -66,12 +89,33 @@ describe('ThreadPanel', () => {
     component: ThreadPanel,
     props: defaultProps,
     name: 'ThreadPanel',
-    selector: 'header',
+    selector: 'thread',
   });
 
-  it('is a labelled panel with the parent, a replies divider, the replies and the composer', () => {
+  tests.itThrowsContextError({
+    component: ThreadPanel.Replies,
+    props: repliesProps,
+    error: 'ThreadPanel component was not found in tree',
+  });
+
+  tests.itThrowsContextError({
+    component: ThreadPanel.Footer,
+    props: {},
+    error: 'ThreadPanel component was not found in tree',
+  });
+
+  it('exposes its parts as statics', () => {
+    expect(ThreadPanel.Replies.displayName).toBe('ThreadPanelReplies');
+    expect(ThreadPanel.Footer.displayName).toBe('ThreadPanelFooter');
+  });
+
+  it('is a panel named by its title, with the parent, a replies divider, the replies and the footer', () => {
     render(<ThreadPanel {...defaultProps} />);
-    expect(screen.getByRole('complementary', { name: 'Thread' })).toBeInTheDocument();
+    const region = screen.getByRole('complementary', { name: 'Thread' });
+    expect(region).toHaveAttribute(
+      'aria-labelledby',
+      screen.getByRole('heading', { name: 'Thread' }).id
+    );
     expect(screen.getByText('#launch')).toBeInTheDocument();
     expect(screen.getByText('Launch checklist')).toBeInTheDocument();
     expect(screen.getByText('2 replies')).toBeInTheDocument();
@@ -82,32 +126,38 @@ describe('ThreadPanel', () => {
   it('titles the panel with a heading, h2 by default or the level given', () => {
     const { rerender } = render(<ThreadPanel {...defaultProps} />);
     expect(screen.getByRole('heading', { level: 2, name: 'Thread' })).toBeInTheDocument();
-    rerender(<ThreadPanel {...defaultProps} titleOrder={4} />);
-    expect(screen.getByRole('heading', { level: 4, name: 'Thread' })).toBeInTheDocument();
+    rerender(<ThreadPanel {...defaultProps} titleOrder={4} title={<span>Replies</span>} />);
+    expect(screen.getByRole('heading', { level: 4, name: 'Replies' })).toBeInTheDocument();
+    expect(screen.getByRole('complementary', { name: 'Replies' })).toBeInTheDocument();
   });
 
-  it('closes with its button and takes custom labels', async () => {
+  it('closes with its button and takes a custom close label; thread labels go to Replies', async () => {
     const onClose = jest.fn();
     render(
-      <ThreadPanel
-        {...defaultProps}
-        onClose={onClose}
-        labels={{ title: 'Replies', close: 'Hide replies', replies: (count) => `${count} answers` }}
-      />
+      panel(
+        { labels: { replies: (count) => `${count} answers` } },
+        { onClose, labels: { close: 'Hide replies' } }
+      )
     );
-    expect(screen.getByRole('complementary', { name: 'Replies' })).toBeInTheDocument();
     expect(screen.getByText('2 answers')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Hide replies' }));
     expect(onClose).toHaveBeenCalled();
   });
 
-  it('leaves out the subtitle, close button and composer when not given', () => {
-    const { container } = render(
-      <ThreadPanel parent={parent} replies={replies} users={users} currentUserId="me" />
-    );
+  it('leaves out the subtitle, close button and footer when not given', () => {
+    const { container } = render(panel({}));
     expect(screen.queryByRole('button', { name: 'Close thread' })).not.toBeInTheDocument();
     expect(container.querySelector('.mantine-ThreadPanel-subtitle')).not.toBeInTheDocument();
     expect(container.querySelector('.mantine-ThreadPanel-composer')).not.toBeInTheDocument();
+  });
+
+  it('renders a bare child as it is', () => {
+    render(
+      <ThreadPanel>
+        <p>Pick a thread</p>
+      </ThreadPanel>
+    );
+    expect(screen.getByText('Pick a thread').parentElement).toHaveClass('mantine-ThreadPanel-root');
   });
 
   it('shows the close button by withCloseButton, and passes closeButtonProps', async () => {
@@ -138,6 +188,60 @@ describe('ThreadPanel', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  it('passes unstyled to the components it renders', () => {
+    const { container } = render(<ThreadPanel {...defaultProps} unstyled />);
+    const nested = '.mantine-TeamThread-root, .mantine-Composer-root';
+    const children = ['Title', 'Text', 'CloseButton'].map((name) =>
+      [...container.querySelectorAll(`.mantine-${name}-root`)].filter(
+        (element) => !element.parentElement!.closest(nested)
+      )
+    );
+    for (const elements of children) {
+      expect(elements.length).toBeGreaterThan(0);
+      for (const element of elements) {
+        expect([...element.classList].filter((name) => !name.startsWith('mantine-'))).toEqual([]);
+      }
+    }
+    expect(container.querySelector('.mantine-TeamThread-root')).not.toHaveClass('root');
+  });
+});
+
+describe('ThreadPanel.Replies', () => {
+  const thread = (container: HTMLElement) =>
+    container.querySelector<HTMLElement>('.mantine-TeamThread-root')!;
+
+  it('is a TeamThread styled by the panel thread selector and its own props', () => {
+    const ref = React.createRef<HTMLDivElement>();
+    const { container } = render(
+      panel(
+        {
+          ref,
+          className: 'own-thread',
+          style: { color: 'red' },
+          classNames: { row: 'own-row' },
+        },
+        { classNames: { thread: 'panel-thread' }, styles: { thread: { margin: 3 } } }
+      )
+    );
+    const root = thread(container);
+    expect(ref.current).toBe(root);
+    expect(root).toHaveClass(
+      'mantine-ThreadPanel-thread',
+      'panel-thread',
+      'own-thread',
+      'mantine-TeamThread-root'
+    );
+    expect(root).toHaveStyle({ color: 'red', margin: '3px' });
+    expect(container.querySelector('.mantine-TeamThread-row')).toHaveClass('own-row');
+  });
+
+  it('passes its own unstyled to the TeamThread and keeps the panel class', () => {
+    const { container } = render(panel({ unstyled: true }));
+    const root = thread(container);
+    expect(root).toHaveClass('mantine-ThreadPanel-thread', 'thread');
+    expect(root).not.toHaveClass('root');
+  });
+
   it('passes history loading, grouping and handlersRef to the thread', () => {
     const scrollIntoView = jest.spyOn(Element.prototype, 'scrollIntoView');
     const control = React.createRef<MessageListHandlers>();
@@ -146,15 +250,14 @@ describe('ThreadPanel', () => {
       { id: 's2', authorId: 'theo', body: 'Two', createdAt: at(3), threadId: 'p' },
     ];
     const { container, rerender } = render(
-      <ThreadPanel
-        {...defaultProps}
-        replies={sameAuthor}
-        handlersRef={control}
-        hasOlder
-        loadingOlder
-        onLoadOlder={() => {}}
-        autoScroll={false}
-      />
+      panel({
+        replies: sameAuthor,
+        handlersRef: control,
+        hasOlder: true,
+        loadingOlder: true,
+        onLoadOlder: () => {},
+        autoScroll: false,
+      })
     );
     const row = (id: string) =>
       container.querySelector(`[data-item-id="${id}"] .mantine-TeamThread-row`);
@@ -165,14 +268,40 @@ describe('ThreadPanel', () => {
     expect(scrollIntoView.mock.contexts[0]).toBe(container.querySelector('[data-item-id="s1"]'));
     scrollIntoView.mockRestore();
 
-    rerender(<ThreadPanel {...defaultProps} replies={sameAuthor} groupWindow={0} />);
+    rerender(panel({ replies: sameAuthor, groupWindow: 0 }));
     expect(row('s2')).not.toHaveAttribute('data-compact');
   });
 
   it('passes handlers to the rows', async () => {
     const onReact = jest.fn();
-    render(<ThreadPanel {...defaultProps} onReact={onReact} />);
+    render(panel({ onReact }));
     await userEvent.click(screen.getByRole('button', { name: 'React: Release notes are mine' }));
     expect(onReact).toHaveBeenCalledWith(replies[0]);
+  });
+});
+
+describe('ThreadPanel.Footer', () => {
+  it('wraps its children with the composer selector and takes Styles API props of its own', () => {
+    const ref = React.createRef<HTMLDivElement>();
+    render(
+      <ThreadPanel classNames={{ composer: 'panel-composer' }}>
+        <ThreadPanel.Footer
+          ref={ref}
+          className="own"
+          classNames={{ composer: 'own-composer' }}
+          styles={{ composer: { margin: 3 } }}
+          data-x="1"
+        >
+          <Composer />
+        </ThreadPanel.Footer>
+      </ThreadPanel>
+    );
+    const footer = screen
+      .getByRole('textbox')
+      .closest<HTMLElement>('.mantine-ThreadPanel-composer')!;
+    expect(ref.current).toBe(footer);
+    expect(footer).toHaveClass('composer', 'panel-composer', 'own-composer', 'own');
+    expect(footer).toHaveStyle({ margin: '3px' });
+    expect(footer).toHaveAttribute('data-x', '1');
   });
 });
