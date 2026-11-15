@@ -3,12 +3,7 @@ import { tests } from '@mantine-tests/core';
 import { render, screen } from '@testing-library/react';
 import React from 'react';
 import type { MessageBase } from '../types';
-import {
-  MessageList,
-  MessageListBase,
-  MessageListProps,
-  MessageListStylesNames,
-} from './MessageList';
+import { MessageList, MessageListProps, MessageListStylesNames } from './MessageList';
 import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
 
 interface Note extends MessageBase {
@@ -44,8 +39,22 @@ const renderList = (props: Partial<MessageListProps<Note>> = {}) =>
   );
 
 describe('MessageList', () => {
+  it('types renderItem with the item type, and takes a ref', () => {
+    const ref = React.createRef<HTMLDivElement>();
+    render(
+      <MessageList<Note>
+        ref={ref}
+        items={items}
+        // @ts-expect-error: Note has no `title`, so the generic reached renderItem
+        renderItem={(item) => item.title}
+      />,
+      { wrapper: MantineProvider }
+    );
+    expect(ref.current).toHaveClass('mantine-MessageList-root');
+  });
+
   tests.itSupportsSystemProps<MessageListProps, MessageListStylesNames>({
-    component: MessageListBase,
+    component: MessageList,
     props: { items, renderItem: (item: MessageBase) => item.id },
     styleProps: true,
     extend: true,
@@ -58,7 +67,7 @@ describe('MessageList', () => {
   });
 
   itSupportsAttributes({
-    component: MessageListBase,
+    component: MessageList,
     props: { items, renderItem: (item: MessageBase) => item.id },
     name: 'MessageList',
     selector: 'item',

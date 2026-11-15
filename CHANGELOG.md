@@ -52,6 +52,9 @@ will be 0.1.0.
 
 ### Changed
 
+- `MessageList` is built with Mantine's `genericFactory`, so `<MessageList<T>>` is typed without a
+  cast and `MessageListFactory` carries the generic `signature`; `MessageListBase` is no longer
+  exported (use `MessageList`)
 - `ThreadPanel`: the title is a heading (`Title`), `h2` by default; `titleOrder` sets the level
 - `Inbox`, `TeamThread`: row hover uses the theme's `--mantine-color-default-hover` (in dark mode
   this is `dark-5`, a step lighter than before); `AssistantThread` step headers use

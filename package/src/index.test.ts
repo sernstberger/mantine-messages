@@ -11,7 +11,6 @@ describe('mantine-messages', () => {
       'Message',
       'MessageActions',
       'MessageList',
-      'MessageListBase',
       'MessagesShell',
       'Reactions',
       'TeamThread',
