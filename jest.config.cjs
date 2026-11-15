@@ -29,7 +29,7 @@ module.exports = {
     'docs/demos/WorkQueue/**/*.{ts,tsx}',
     '!docs/demos/WorkQueue/types.ts',
   ],
-  setupFilesAfterEnv: ['./jsdom.mocks.cjs'],
+  setupFilesAfterEnv: ['./jsdom.mocks.cjs', './jest-console.cjs'],
   moduleNameMapper: {
     // react-markdown and remark-gfm are ESM only and Jest runs CommonJS: tests get stand-ins
     '^react-markdown$': '<rootDir>/test-utils/react-markdown.mock.tsx',

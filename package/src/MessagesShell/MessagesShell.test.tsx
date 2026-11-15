@@ -3,6 +3,7 @@ import { fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React, { useState } from 'react';
 import { MessagesShell, MessagesShellProps, MessagesShellStylesNames } from './MessagesShell';
+import { getRenderError } from '../../../test-utils/get-render-error';
 import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
 
 const panes = (
@@ -188,8 +189,9 @@ describe('MessagesShell', () => {
   });
 
   it('needs the shell around its parts', () => {
-    jest.spyOn(console, 'error').mockImplementation(() => {});
-    expect(() => render(<MessagesShell.List />)).toThrow(/must be used inside MessagesShell/);
-    jest.restoreAllMocks();
+    expect(getRenderError(<MessagesShell.List />)).toHaveProperty(
+      'message',
+      expect.stringMatching(/must be used inside MessagesShell/)
+    );
   });
 });
