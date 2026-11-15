@@ -1,9 +1,12 @@
 import { render, screen, tests } from '@mantine-tests/core';
+import { act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Composer } from '../Composer/Composer';
+import type { MessageListControl } from '../MessageList/MessageList';
 import type { ChatMessage, MessagesUser } from '../types';
 import { ThreadPanel, ThreadPanelProps, ThreadPanelStylesNames } from './ThreadPanel';
+import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
 
 const users: MessagesUser[] = [
   { id: 'me', name: 'You' },
@@ -59,6 +62,13 @@ describe('ThreadPanel', () => {
     ],
   });
 
+  itSupportsAttributes({
+    component: ThreadPanel,
+    props: defaultProps,
+    name: 'ThreadPanel',
+    selector: 'header',
+  });
+
   it('is a labelled panel with the parent, a replies divider, the replies and the composer', () => {
     render(<ThreadPanel {...defaultProps} />);
     expect(screen.getByRole('complementary', { name: 'Thread' })).toBeInTheDocument();
@@ -67,6 +77,13 @@ describe('ThreadPanel', () => {
     expect(screen.getByText('2 replies')).toBeInTheDocument();
     expect(screen.getByText('Pricing copy too')).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Message' })).toBeInTheDocument();
+  });
+
+  it('titles the panel with a heading, h2 by default or the level given', () => {
+    const { rerender } = render(<ThreadPanel {...defaultProps} />);
+    expect(screen.getByRole('heading', { level: 2, name: 'Thread' })).toBeInTheDocument();
+    rerender(<ThreadPanel {...defaultProps} titleOrder={4} />);
+    expect(screen.getByRole('heading', { level: 4, name: 'Thread' })).toBeInTheDocument();
   });
 
   it('closes with its button and takes custom labels', async () => {
@@ -91,6 +108,65 @@ describe('ThreadPanel', () => {
     expect(screen.queryByRole('button', { name: 'Close thread' })).not.toBeInTheDocument();
     expect(container.querySelector('.mantine-ThreadPanel-subtitle')).not.toBeInTheDocument();
     expect(container.querySelector('.mantine-ThreadPanel-composer')).not.toBeInTheDocument();
+  });
+
+  it('shows the close button by withCloseButton, and passes closeButtonProps', async () => {
+    const onClose = jest.fn();
+    const onClick = jest.fn();
+    const { rerender } = render(
+      <ThreadPanel {...defaultProps} onClose={onClose} withCloseButton={false} />
+    );
+    expect(screen.queryByRole('button', { name: 'Close thread' })).not.toBeInTheDocument();
+
+    rerender(
+      <ThreadPanel
+        {...defaultProps}
+        onClose={onClose}
+        closeButtonProps={{ className: 'own', title: 'Close', onClick }}
+      />
+    );
+    const close = screen.getByRole('button', { name: 'Close thread' });
+    expect(close).toHaveClass('own');
+    expect(close).toHaveClass('mantine-ThreadPanel-close');
+    expect(close).toHaveAttribute('title', 'Close');
+    await userEvent.click(close);
+    expect(onClick).toHaveBeenCalledTimes(1);
+    expect(onClose).toHaveBeenCalledTimes(1);
+
+    rerender(<ThreadPanel {...defaultProps} onClose={undefined} withCloseButton />);
+    await userEvent.click(screen.getByRole('button', { name: 'Close thread' }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('passes history loading, grouping and controlRef to the thread', () => {
+    const scrollIntoView = jest.spyOn(Element.prototype, 'scrollIntoView');
+    const control = React.createRef<MessageListControl>();
+    const sameAuthor: ChatMessage[] = [
+      { id: 's1', authorId: 'theo', body: 'One', createdAt: at(2), threadId: 'p' },
+      { id: 's2', authorId: 'theo', body: 'Two', createdAt: at(3), threadId: 'p' },
+    ];
+    const { container, rerender } = render(
+      <ThreadPanel
+        {...defaultProps}
+        replies={sameAuthor}
+        controlRef={control}
+        hasOlder
+        loadingOlder
+        onLoadOlder={() => {}}
+        autoScroll={false}
+      />
+    );
+    const row = (id: string) =>
+      container.querySelector(`[data-item-id="${id}"] .mantine-TeamThread-row`);
+    expect(container.querySelector('.mantine-TeamThread-loader')).toBeInTheDocument();
+    expect(row('s2')).toHaveAttribute('data-compact');
+
+    act(() => control.current!.jumpTo('s1'));
+    expect(scrollIntoView.mock.contexts[0]).toBe(container.querySelector('[data-item-id="s1"]'));
+    scrollIntoView.mockRestore();
+
+    rerender(<ThreadPanel {...defaultProps} replies={sameAuthor} groupWindow={0} />);
+    expect(row('s2')).not.toHaveAttribute('data-compact');
   });
 
   it('passes handlers to the rows', async () => {

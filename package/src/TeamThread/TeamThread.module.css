@@ -6,21 +6,15 @@
 /* One message, a Message */
 .row {
   position: relative;
-  padding: 2px var(--mantine-spacing-md);
+  padding: rem(2px) var(--mantine-spacing-md);
 
   &:where(:not([data-compact])) {
     margin-top: var(--mantine-spacing-xs);
-    padding-top: 6px;
+    padding-top: rem(6px);
   }
 
   @mixin hover {
-    @mixin light {
-      background-color: var(--mantine-color-gray-0);
-    }
-
-    @mixin dark {
-      background-color: var(--mantine-color-dark-6);
-    }
+    background-color: var(--mantine-color-default-hover);
   }
 
   /* not :where(), and :hover too, so these beat the hover backgrounds above */
@@ -28,6 +22,11 @@
   &[data-internal]:hover {
     background-color: var(--mantine-color-yellow-light);
     box-shadow: inset 3px 0 0 var(--mantine-color-yellow-filled);
+
+    /* The accent bar sits on the start edge */
+    @mixin rtl {
+      box-shadow: inset -3px 0 0 var(--mantine-color-yellow-filled);
+    }
   }
 
   &[data-selected],
@@ -39,7 +38,7 @@
 }
 
 .avatar {
-  margin-top: 2px;
+  margin-top: rem(2px);
 }
 
 /* Lines up with the first line of the text */
@@ -48,7 +47,7 @@
 }
 
 .meta {
-  margin-bottom: 2px;
+  margin-bottom: rem(2px);
 }
 
 .author {
@@ -58,7 +57,7 @@
 .noteLabel {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: rem(4px);
   color: var(--mantine-color-yellow-light-color);
 }
 
@@ -70,16 +69,16 @@
 }
 
 .edited {
-  margin-inline-start: 4px;
+  margin-inline-start: rem(4px);
 }
 
-/* Toolbar over the top right corner; shown on hover, keyboard focus and while its menu is open */
+/* Toolbar over the top end corner; shown on hover, keyboard focus and while its menu is open */
 .actions {
   position: absolute;
-  top: -14px;
-  right: var(--mantine-spacing-md);
+  top: rem(-14px);
+  inset-inline-end: var(--mantine-spacing-md);
   z-index: 1;
-  padding: 2px;
+  padding: rem(2px);
   border: 1px solid var(--mantine-color-default-border);
   border-radius: var(--mantine-radius-md);
   background-color: var(--mantine-color-body);
@@ -99,8 +98,9 @@
   display: inline-flex;
   align-items: center;
   gap: var(--mantine-spacing-xs);
-  margin-top: 4px;
-  padding: 2px 8px 2px 2px;
+  margin-top: rem(4px);
+  padding-block: rem(2px);
+  padding-inline: rem(2px) rem(8px);
   border: 1px solid transparent;
   border-radius: var(--mantine-radius-md);
 
@@ -116,5 +116,5 @@
 
 .event {
   margin-top: var(--mantine-spacing-xs);
-  padding: 4px var(--mantine-spacing-md);
+  padding: rem(4px) var(--mantine-spacing-md);
 }

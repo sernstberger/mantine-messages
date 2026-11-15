@@ -16,10 +16,10 @@
   display: flex;
   flex: none;
   flex-direction: column;
-  width: 300px;
+  width: rem(300px);
   min-height: 0;
   overflow: hidden;
-  border-right: 1px solid var(--mantine-color-default-border);
+  border-inline-end: 1px solid var(--mantine-color-default-border);
 }
 
 .main {
@@ -35,21 +35,21 @@
   display: flex;
   flex: none;
   flex-direction: column;
-  width: 280px;
+  width: rem(280px);
   min-height: 0;
   overflow: hidden;
-  border-left: 1px solid var(--mantine-color-default-border);
+  border-inline-start: 1px solid var(--mantine-color-default-border);
   background-color: var(--mantine-color-body);
 
   &[hidden] {
     display: none;
   }
 
-  /* Collapsed and opened: over the right edge of Main */
+  /* Collapsed and opened: over the end edge of Main */
   &[data-overlay] {
     position: absolute;
     top: 0;
-    right: 0;
+    inset-inline-end: 0;
     bottom: 0;
     z-index: 3;
     max-width: 100%;

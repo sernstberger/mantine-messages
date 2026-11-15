@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   padding: var(--mantine-spacing-xs);
-  gap: 2px;
+  gap: rem(2px);
 }
 
 .search {
@@ -13,7 +13,7 @@
 .section {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: rem(2px);
 }
 
 .section + .section {
@@ -21,7 +21,7 @@
 }
 
 .sectionLabel {
-  padding: 4px var(--mantine-spacing-sm);
+  padding: rem(4px) var(--mantine-spacing-sm);
 }
 
 .item {
@@ -32,13 +32,7 @@
   border-radius: var(--mantine-radius-md);
 
   @mixin hover {
-    @mixin light {
-      background-color: var(--mantine-color-gray-0);
-    }
-
-    @mixin dark {
-      background-color: var(--mantine-color-dark-6);
-    }
+    background-color: var(--mantine-color-default-hover);
   }
 
   /* not :where(), and :hover too, so it beats the hover backgrounds above */

@@ -49,6 +49,9 @@ export interface InboxLabels {
   /** Placeholder and accessible label of the search box */
   search: string;
 
+  /** Shown when there are no conversations */
+  empty: string;
+
   /** Shown when the search matches nothing */
   noResults: string;
 
@@ -79,9 +82,6 @@ export interface InboxProps
   /** Locale for times, the browser's by default */
   locale?: string;
 
-  /** Shown when there are no conversations, `'No conversations'` by default */
-  emptyLabel?: React.ReactNode;
-
   /** Show a search box above the list */
   withSearch?: boolean;
 
@@ -110,12 +110,9 @@ export type InboxFactory = Factory<{
   stylesNames: InboxStylesNames;
 }>;
 
-const defaultProps: Partial<InboxProps> = {
-  emptyLabel: 'No conversations',
-};
-
 const defaultLabels: InboxLabels = {
   search: 'Search',
+  empty: 'No conversations',
   noResults: 'No matches',
   pinned: 'Pinned',
   channels: 'Channels',
@@ -134,7 +131,7 @@ const builtInSections = (labels: InboxLabels): InboxSection[] => [
 ];
 
 export const Inbox = factory<InboxFactory>((_props) => {
-  const props = useProps('Inbox', defaultProps, _props);
+  const props = useProps('Inbox', {}, _props);
   const {
     classNames,
     className,
@@ -142,13 +139,13 @@ export const Inbox = factory<InboxFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
     ref,
     conversations,
     value,
     defaultValue,
     onChange,
     locale,
-    emptyLabel,
     withSearch,
     search,
     defaultSearch,
@@ -168,6 +165,7 @@ export const Inbox = factory<InboxFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
   });
 
   const [selected, setSelected] = useUncontrolled<string | null>({
@@ -267,7 +265,7 @@ export const Inbox = factory<InboxFactory>((_props) => {
       {shown.length === 0 && (
         <EmptyState
           size="sm"
-          title={conversations.length === 0 ? emptyLabel : allLabels.noResults}
+          title={conversations.length === 0 ? allLabels.empty : allLabels.noResults}
           {...getStyles('empty')}
         />
       )}

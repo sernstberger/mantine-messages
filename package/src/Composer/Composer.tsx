@@ -11,10 +11,11 @@ import {
   StylesApiProps,
   Text,
   Textarea,
+  TextareaProps,
   useProps,
   useStyles,
 } from '@mantine/core';
-import { useUncontrolled } from '@mantine/hooks';
+import { useMergedRef, useUncontrolled } from '@mantine/hooks';
 import React, { useEffect, useRef } from 'react';
 import classes from './Composer.module.css';
 
@@ -125,6 +126,16 @@ export interface ComposerProps
 
   disabled?: boolean;
 
+  /** The text can be read and selected but not changed or sent */
+  readOnly?: boolean;
+
+  /** Ref of the text box, for example to focus it */
+  inputRef?: React.Ref<HTMLTextAreaElement>;
+
+  /** Props of the text box (`Textarea`), for example `name`, `maxLength`, `autoFocus` or `onPaste`;
+   * `onChange` and `onKeyDown` run after the composer's own handlers */
+  textareaProps?: TextareaProps;
+
   /** Most rows the box grows to before it scrolls, 6 by default */
   maxRows?: number;
 
@@ -186,6 +197,7 @@ export const Composer = factory<ComposerFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
     ref,
     value,
     defaultValue,
@@ -201,6 +213,9 @@ export const Composer = factory<ComposerFactory>((_props) => {
     onModeChange,
     labels,
     disabled,
+    readOnly,
+    inputRef,
+    textareaProps,
     maxRows,
     streaming,
     onStop,
@@ -218,6 +233,7 @@ export const Composer = factory<ComposerFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
   });
 
   const [text, setText] = useUncontrolled({ value, defaultValue, finalValue: '', onChange });
@@ -228,14 +244,15 @@ export const Composer = factory<ComposerFactory>((_props) => {
     onChange: onModeChange,
   });
   const activeMode = modes?.find((item) => item.value === currentMode);
-  const canSend = !disabled && !streaming && text.trim().length > 0;
+  const canSend = !disabled && !readOnly && !streaming && text.trim().length > 0;
   const allLabels = { ...defaultLabels, ...labels };
 
   // Choosing a message to answer puts the cursor in the box
-  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const ownInputRef = useRef<HTMLTextAreaElement>(null);
+  const mergedInputRef = useMergedRef(ownInputRef, inputRef);
   useEffect(() => {
     if (replyTo) {
-      inputRef.current!.focus();
+      ownInputRef.current!.focus();
     }
   }, [replyTo]);
 
@@ -269,6 +286,7 @@ export const Composer = factory<ComposerFactory>((_props) => {
           onChange={setMode}
           color={activeMode?.color}
           disabled={disabled}
+          readOnly={readOnly}
           {...getStyles('modes')}
         />
       )}
@@ -290,7 +308,8 @@ export const Composer = factory<ComposerFactory>((_props) => {
       )}
       <Box {...getStyles('field')}>
         <Textarea
-          ref={inputRef}
+          {...textareaProps}
+          ref={mergedInputRef}
           autosize
           minRows={1}
           maxRows={maxRows}
@@ -298,8 +317,12 @@ export const Composer = factory<ComposerFactory>((_props) => {
           aria-label={placeholder}
           placeholder={activeMode?.placeholder ?? placeholder}
           disabled={disabled}
+          readOnly={readOnly}
           value={text}
-          onChange={(event) => setText(event.currentTarget.value)}
+          onChange={(event) => {
+            setText(event.currentTarget.value);
+            textareaProps?.onChange?.(event);
+          }}
           onKeyDown={(event) => {
             if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
               event.preventDefault();
@@ -310,6 +333,8 @@ export const Composer = factory<ComposerFactory>((_props) => {
               event.preventDefault();
               onCancelReply?.();
             }
+
+            textareaProps?.onKeyDown?.(event);
           }}
           {...getStyles('input')}
         />

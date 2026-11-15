@@ -5,6 +5,7 @@ import {
   BoxProps,
   Code,
   CopyButton,
+  createSafeContext,
   ElementProps,
   factory,
   Factory,
@@ -16,7 +17,7 @@ import {
   useStyles,
   VisuallyHidden,
 } from '@mantine/core';
-import React, { createContext, useContext } from 'react';
+import React from 'react';
 import Markdown, { type Components, type Options } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { CheckIcon, CopyIcon } from '../icons';
@@ -77,12 +78,10 @@ const defaultLabels: MarkdownBodyLabels = {
 // The renderers below are module-level components, so their identity never changes between
 // renders (a new component type would remount every code block); styles and labels reach them
 // through this context
-const MarkdownBodyContext = createContext<{
+const [MarkdownBodyProvider, useMarkdownBodyContext] = createSafeContext<{
   getStyles: GetStylesApi<MarkdownBodyFactory>;
   labels: MarkdownBodyLabels;
-} | null>(null);
-
-const useMarkdownBodyContext = () => useContext(MarkdownBodyContext)!;
+}>('MarkdownBody component was not found in the tree');
 
 function MarkdownLink({ href, children }: React.ComponentPropsWithoutRef<'a'>) {
   const { getStyles, labels } = useMarkdownBodyContext();
@@ -146,6 +145,7 @@ export const MarkdownBody = factory<MarkdownBodyFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
     ref,
     children,
     components,
@@ -164,10 +164,11 @@ export const MarkdownBody = factory<MarkdownBodyFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
   });
 
   return (
-    <MarkdownBodyContext.Provider value={{ getStyles, labels: { ...defaultLabels, ...labels } }}>
+    <MarkdownBodyProvider value={{ getStyles, labels: { ...defaultLabels, ...labels } }}>
       <Typography ref={ref} {...getStyles('root')} {...others}>
         <Markdown
           remarkPlugins={[remarkGfm, ...(remarkPlugins ?? [])]}
@@ -176,7 +177,7 @@ export const MarkdownBody = factory<MarkdownBodyFactory>((_props) => {
           {children}
         </Markdown>
       </Typography>
-    </MarkdownBodyContext.Provider>
+    </MarkdownBodyProvider>
   );
 });
 

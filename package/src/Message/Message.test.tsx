@@ -1,6 +1,7 @@
 import { render, screen, tests } from '@mantine-tests/core';
 import React from 'react';
 import { Message, MessageProps, MessageStylesNames } from './Message';
+import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
 
 const defaultProps: MessageProps = {
   children: [
@@ -24,6 +25,13 @@ describe('Message', () => {
     refType: HTMLDivElement,
     displayName: 'Message',
     stylesApiSelectors: ['root', 'avatar', 'body', 'meta'],
+  });
+
+  itSupportsAttributes({
+    component: Message,
+    props: defaultProps,
+    name: 'Message',
+    selector: 'avatar',
   });
 
   it('renders an avatar with initials, a meta line and the text', () => {

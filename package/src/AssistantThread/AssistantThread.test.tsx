@@ -10,6 +10,7 @@ import {
   AssistantThreadProps,
   AssistantThreadStylesNames,
 } from './AssistantThread';
+import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
 
 const at = (minute: number) => new Date(2026, 10, 15, 9, minute);
 
@@ -85,6 +86,13 @@ describe('AssistantThread', () => {
     ],
   });
 
+  itSupportsAttributes({
+    component: AssistantThread,
+    props: defaultProps,
+    name: 'AssistantThread',
+    selector: 'turn',
+  });
+
   it('shows prompts as bubbles and answers full width, in a log that does not read tokens', () => {
     render(<AssistantThread {...defaultProps} />);
     expect(screen.getByRole('log')).toHaveAttribute('aria-live', 'off');
@@ -125,6 +133,10 @@ describe('AssistantThread', () => {
 
     const tool = screen.getByRole('button', { name: /search_docs/ });
     expect(tool).toHaveTextContent('Done');
+    // A logical margin, so the badge sits at the far end in RTL too
+    expect(screen.getByText('Done').closest('.mantine-Badge-root')).toHaveStyle({
+      marginInlineStart: 'auto',
+    });
     await userEvent.click(tool);
     expect(await screen.findByText(/"query": "debounce"/)).toBeInTheDocument();
     expect(screen.getByText(/"hits": 2/)).toBeInTheDocument();

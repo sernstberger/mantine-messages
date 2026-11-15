@@ -100,6 +100,7 @@ export const MessageActions = factory<MessageActionsFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
     ref,
     actions,
     text,
@@ -124,6 +125,7 @@ export const MessageActions = factory<MessageActionsFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
   });
 
   const allLabels = { ...defaultLabels, ...labels };

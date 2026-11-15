@@ -4,6 +4,7 @@ import React from 'react';
 import { markdownRenders } from '../../../test-utils/react-markdown.mock';
 import remarkGfm from '../../../test-utils/remark-gfm.mock';
 import { MarkdownBody, MarkdownBodyProps, MarkdownBodyStylesNames } from './MarkdownBody';
+import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
 
 const source = 'See [the docs](https://mantine.dev) and `useState`.\n\n```tsx\nconst a = 1;\n```\n';
 
@@ -25,6 +26,13 @@ describe('MarkdownBody', () => {
     refType: HTMLDivElement,
     displayName: 'MarkdownBody',
     stylesApiSelectors: ['root', 'link', 'code', 'codeBlock', 'codeHeader', 'copy', 'pre'],
+  });
+
+  itSupportsAttributes({
+    component: MarkdownBody,
+    props: defaultProps,
+    name: 'MarkdownBody',
+    selector: 'codeBlock',
   });
 
   it('renders GitHub flavoured markdown and offers no way to turn raw HTML into elements', () => {

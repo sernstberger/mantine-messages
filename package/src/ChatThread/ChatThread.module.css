@@ -9,7 +9,7 @@
 .bubble {
   /* above the tucked-in quote */
   position: relative;
-  padding: 6px 12px;
+  padding: rem(6px) rem(12px);
   border-radius: var(--mantine-radius-lg);
   font-size: var(--mantine-font-size-sm);
   line-height: 1.45;
@@ -80,16 +80,16 @@
 .quoteLabel {
   display: flex;
   align-items: center;
-  gap: 4px;
-  margin-top: 6px;
+  gap: rem(4px);
+  margin-top: rem(6px);
   padding-inline: var(--mantine-spacing-sm);
 }
 
 /* Faded copy of the answered message, tucked under the reply's bubble */
 .quote {
   max-width: 100%;
-  margin-bottom: -10px;
-  padding: 6px 12px 14px;
+  margin-bottom: rem(-10px);
+  padding: rem(6px) rem(12px) rem(14px);
   border-radius: var(--mantine-radius-lg);
   color: var(--mantine-color-dimmed);
   text-align: start;
@@ -126,7 +126,7 @@
   align-items: flex-end;
   gap: var(--mantine-spacing-xs);
   max-width: 80%;
-  margin-top: 2px;
+  margin-top: rem(2px);
 
   &:where([data-group-start]) {
     margin-top: var(--mantine-spacing-sm);
@@ -147,7 +147,7 @@
 .line {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: rem(4px);
   max-width: 100%;
 
   &:where([data-own]) {

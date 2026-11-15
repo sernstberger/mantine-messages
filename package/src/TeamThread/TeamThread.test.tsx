@@ -5,6 +5,7 @@ import React from 'react';
 import type { MessageListControl } from '../MessageList/MessageList';
 import type { ChatMessage, MessagesUser, SystemEvent } from '../types';
 import { TeamThread, TeamThreadItem, TeamThreadProps, TeamThreadStylesNames } from './TeamThread';
+import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
 
 const users: MessagesUser[] = [
   { id: 'me', name: 'You' },
@@ -61,6 +62,13 @@ describe('TeamThread', () => {
       'actions',
       'event',
     ],
+  });
+
+  itSupportsAttributes({
+    component: TeamThread,
+    props: defaultProps,
+    name: 'TeamThread',
+    selector: 'row',
   });
 
   it('passes controlRef to the inner MessageList', () => {

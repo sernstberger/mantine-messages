@@ -4,8 +4,8 @@ import {
   Center,
   Divider,
   ElementProps,
-  factory,
   Factory,
+  genericFactory,
   Loader,
   ScrollArea,
   StylesApiProps,
@@ -23,7 +23,7 @@ export type MessageListStylesNames = 'root' | 'list' | 'divider' | 'unread' | 'l
 
 export interface MessageListLabels {
   /** Line above the first unread item */
-  unread: string;
+  newMessages: string;
 }
 
 export interface MessageListItemContext<T extends MessageBase> {
@@ -55,14 +55,16 @@ export interface MessageListProps<T extends MessageBase = MessageBase>
   /** Items, oldest first */
   items: T[];
 
+  // Method syntax keeps these bivariant, so MessageListProps<T> fits the factory's MessageListProps
+
   /** Renders one item */
-  renderItem: (item: T, context: MessageListItemContext<T>) => React.ReactNode;
+  renderItem(item: T, context: MessageListItemContext<T>): React.ReactNode;
 
   /** Whether `item` continues the group of `previous`; without it every item is its own group */
-  groupWith?: (previous: T, item: T) => boolean;
+  groupWith?(previous: T, item: T): boolean;
 
   /** Whether the current user wrote the item; the list always scrolls to their new items */
-  isOwn?: (item: T) => boolean;
+  isOwn?(item: T): boolean;
 
   /** Locale for date dividers, the browser's by default */
   locale?: string;
@@ -93,19 +95,23 @@ export interface MessageListProps<T extends MessageBase = MessageBase>
 }
 
 export type MessageListFactory = Factory<{
-  props: MessageListProps<any>;
+  props: MessageListProps;
   ref: HTMLDivElement;
   stylesNames: MessageListStylesNames;
+  signature: <T extends MessageBase = MessageBase>(
+    props: MessageListProps<T> & { ref?: React.Ref<HTMLDivElement> }
+  ) => React.JSX.Element;
 }>;
 
-const defaultProps: Partial<MessageListProps> = {
+const defaultProps = {
   withDateDividers: true,
   autoScroll: true,
-};
+} satisfies Partial<MessageListProps>;
 
-const defaultLabels: MessageListLabels = { unread: 'New messages' };
+const defaultLabels: MessageListLabels = { newMessages: 'New messages' };
 
-export const MessageListBase = factory<MessageListFactory>((_props) => {
+/** A scrolling list of items; `<MessageList<T>>` types `renderItem` with your item type */
+export const MessageList = genericFactory<MessageListFactory>((_props) => {
   const props = useProps('MessageList', defaultProps, _props);
   const {
     classNames,
@@ -114,6 +120,7 @@ export const MessageListBase = factory<MessageListFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
     ref,
     items,
     renderItem,
@@ -143,6 +150,7 @@ export const MessageListBase = factory<MessageListFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
   });
 
   const last = items[items.length - 1];
@@ -204,7 +212,7 @@ export const MessageListBase = factory<MessageListFactory>((_props) => {
               </Box>
               {item.id === unreadAfterId && next && (
                 <Divider
-                  label={allLabels.unread}
+                  label={allLabels.newMessages}
                   labelPosition="center"
                   color="red"
                   {...getStyles('unread')}
@@ -218,11 +226,5 @@ export const MessageListBase = factory<MessageListFactory>((_props) => {
   );
 });
 
-MessageListBase.displayName = 'MessageList';
-MessageListBase.classes = classes;
-
-/** `MessageListBase` with a generic signature, so `renderItem` gets the item type */
-export const MessageList = MessageListBase as unknown as (<T extends MessageBase>(
-  props: MessageListProps<T> & { ref?: React.Ref<HTMLDivElement> }
-) => React.JSX.Element) &
-  Omit<typeof MessageListBase, never>;
+MessageList.displayName = 'MessageList';
+MessageList.classes = classes;

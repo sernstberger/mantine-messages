@@ -72,7 +72,8 @@ under its bubble; pass `onToggleReaction` and `onOpenAttachment` to make them in
 
 Pass `onLoadOlder`, `hasOlder` and `loadingOlder` to load history as the user scrolls up; the view
 stays where it was while older messages are added above. `unreadAfterId` draws a "New messages"
-line after the last read message.
+line after the last read message; its text is `labels.newMessages`, the same key on `MessageList`,
+`ChatThread`, `TeamThread` and `ThreadPanel`, so one translation object fits them all.
 
 ## Building your own layout
 
@@ -145,7 +146,11 @@ shows "12 replies" with the people who answered and calls `onOpenThread`; `edite
 Reply in thread, and a menu with Edit (your own messages) and Copy.
 
 Pass channel messages only; thread replies (messages with `threadId`) go to `ThreadPanel`, which
-shows the parent, a reply count and the replies, with your `Composer` as its children.
+shows the parent, a reply count and the replies, with your `Composer` as its children. Its title
+is an `h2` heading; set `titleOrder` to fit your page's outline. The close button shows when
+`onClose` is set (or with `withCloseButton`) and takes `closeButtonProps`. Long threads page like
+`TeamThread`: `hasOlder`, `loadingOlder`, `onLoadOlder`, and `controlRef` to jump to a reply;
+`groupWindow` and `autoScroll` pass through too.
 
 ```tsx
 const channelItems = items.filter((item) => 'kind' in item || !item.threadId);
@@ -313,4 +318,15 @@ usual one.
   ]}
   onSend={(draft) => send({ body: draft.text, visibility: draft.mode === 'note' ? 'internal' : 'public' })}
 />
+```
+
+The text box is reachable like a Mantine input's: `inputRef` gets the `textarea` (to focus it after
+a click elsewhere), `textareaProps` goes to the `Textarea` (`name`, `maxLength`, `autoFocus`,
+`onPaste` and so on; its `onChange` and `onKeyDown` run after the composer's own), and `readOnly`
+keeps the text selectable but stops editing and sending.
+
+```tsx
+const inputRef = useRef<HTMLTextAreaElement>(null);
+
+<Composer inputRef={inputRef} textareaProps={{ maxLength: 2000, onPaste: attachPastedFiles }} />
 ```

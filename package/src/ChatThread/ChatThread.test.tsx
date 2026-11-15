@@ -4,6 +4,7 @@ import React from 'react';
 import type { MessageListControl } from '../MessageList/MessageList';
 import type { ChatMessage, MessagesUser } from '../types';
 import { ChatThread, ChatThreadProps, ChatThreadStylesNames } from './ChatThread';
+import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
 
 const users: MessagesUser[] = [
   { id: 'me', name: 'You' },
@@ -48,6 +49,13 @@ describe('ChatThread', () => {
       'meta',
       'status',
     ],
+  });
+
+  itSupportsAttributes({
+    component: ChatThread,
+    props: defaultProps,
+    name: 'ChatThread',
+    selector: 'bubble',
   });
 
   it('passes controlRef to the inner MessageList', () => {

@@ -25,7 +25,7 @@ export type {
 } from './Composer/Composer';
 export { getPreview, stripMarkdown, truncate } from './utils/preview';
 export type * from './types';
-export { MessageList, MessageListBase } from './MessageList/MessageList';
+export { MessageList } from './MessageList/MessageList';
 export type {
   MessageListProps,
   MessageListFactory,
@@ -66,8 +66,11 @@ export type {
   MessageFactory,
   MessageStylesNames,
   MessageAvatarProps,
+  MessageAvatarFactory,
   MessageBodyProps,
+  MessageBodyFactory,
   MessageMetaProps,
+  MessageMetaFactory,
 } from './Message/Message';
 
 export { TeamThread } from './TeamThread/TeamThread';

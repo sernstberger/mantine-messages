@@ -1,3 +1,4 @@
+import { DirectionProvider } from '@mantine/core';
 import { render, screen } from '@mantine-tests/core';
 import { act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -30,6 +31,24 @@ describe('TicketTimeline', () => {
     const chat = screen.getByText(/following up on my email/).closest('.mantine-Message-root');
     expect(chat).not.toHaveAttribute('data-note');
     expect(chat).toHaveTextContent(/Nora Feld\s*\d/);
+  });
+
+  it('puts the note bar on the start edge, mirrored right to left', () => {
+    const bar = () =>
+      (screen.getByText(/Stripe shows two captures/).closest('[data-note]') as HTMLElement).style
+        .boxShadow;
+    const { unmount } = render(
+      <TicketTimeline items={ticket.items} users={users} onOpenEmail={jest.fn()} />
+    );
+    expect(bar()).toBe('inset 3px 0 0 var(--mantine-color-yellow-filled)');
+    unmount();
+
+    render(
+      <DirectionProvider initialDirection="rtl" detectDirection={false}>
+        <TicketTimeline items={ticket.items} users={users} onOpenEmail={jest.fn()} />
+      </DirectionProvider>
+    );
+    expect(bar()).toBe('inset -3px 0 0 var(--mantine-color-yellow-filled)');
   });
 
   it('opens an email from its card', async () => {

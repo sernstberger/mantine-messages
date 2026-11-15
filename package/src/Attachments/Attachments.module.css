@@ -2,12 +2,12 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--mantine-spacing-xs);
-  margin-top: 4px;
+  margin-top: rem(4px);
 }
 
 .image {
   display: block;
-  max-width: 240px;
+  max-width: rem(240px);
   border-radius: var(--mantine-radius-md);
   overflow: hidden;
 }
@@ -16,8 +16,8 @@
   display: inline-flex;
   align-items: center;
   gap: var(--mantine-spacing-xs);
-  max-width: 280px;
-  padding: 6px 10px;
+  max-width: rem(280px);
+  padding: rem(6px) rem(10px);
   border: 1px solid var(--mantine-color-default-border);
   border-radius: var(--mantine-radius-md);
   color: var(--mantine-color-text);

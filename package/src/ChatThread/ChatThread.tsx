@@ -166,6 +166,7 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
     ref,
     messages,
     users,
@@ -200,6 +201,7 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
     styles,
     unstyled,
     vars,
+    attributes,
   });
 
   const usersById = useMemo(() => new Map(users.map((user) => [user.id, user])), [users]);
@@ -264,7 +266,7 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
       onLoadOlder={onLoadOlder}
       hasOlder={hasOlder}
       loadingOlder={loadingOlder}
-      labels={{ unread: allLabels.newMessages }}
+      labels={{ newMessages: allLabels.newMessages }}
       unstyled={unstyled}
       classNames={Object.fromEntries(listParts.map((part) => [part, listStyles[part].className]))}
       styles={Object.fromEntries(listParts.map((part) => [part, listStyles[part].style]))}

@@ -2,7 +2,7 @@
 .turn {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: rem(6px);
   width: 100%;
   max-width: 48rem;
   align-self: center;
@@ -16,7 +16,7 @@
 /* A prompt: a compact bubble on the right */
 .bubble {
   max-width: 85%;
-  padding: 8px 14px;
+  padding: rem(8px) rem(14px);
   border-radius: var(--mantine-radius-xl);
   font-size: var(--mantine-font-size-sm);
   line-height: 1.5;
@@ -56,7 +56,7 @@
     display: inline-block;
     width: 0.5em;
     height: 1em;
-    margin-inline-start: 2px;
+    margin-inline-start: rem(2px);
     vertical-align: text-bottom;
     background-color: currentColor;
     animation: blink 1s steps(1) infinite;
@@ -69,7 +69,7 @@
 
 .thinking {
   align-self: flex-start;
-  margin-block: 4px;
+  margin-block: rem(4px);
 }
 
 /* A reasoning or tool step */
@@ -83,12 +83,12 @@
   align-items: center;
   gap: var(--mantine-spacing-xs);
   width: 100%;
-  padding: 6px 10px;
+  padding: rem(6px) rem(10px);
   border-radius: var(--mantine-radius-md);
   font-size: var(--mantine-font-size-sm);
   color: var(--mantine-color-dimmed);
 
-  &:hover {
+  @mixin hover {
     background-color: var(--mantine-color-default-hover);
   }
 
@@ -105,8 +105,8 @@
 .stepBody {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 0 10px 10px;
+  gap: rem(4px);
+  padding: 0 rem(10px) rem(10px);
   font-size: var(--mantine-font-size-sm);
   color: var(--mantine-color-dimmed);
   white-space: pre-wrap;
@@ -114,7 +114,7 @@
 }
 
 .stepCode {
-  max-height: 240px;
+  max-height: rem(240px);
   overflow: auto;
   white-space: pre;
 }

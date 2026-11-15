@@ -37,6 +37,11 @@ will be 0.1.0.
 - `MessageList`: `controlRef` gets `{ jumpTo }`, so code outside the list can scroll to an item
   and flash it; `ChatThread`, `TeamThread` and `AssistantThread` pass it on. Type:
   `MessageListControl`
+- `ThreadPanel`: `withCloseButton` and `closeButtonProps`, like Mantine's `Modal`; `hasOlder`,
+  `loadingOlder`, `onLoadOlder`, `controlRef`, `groupWindow` and `autoScroll` pass to the thread
+- `Composer`: `inputRef`, `textareaProps` and `readOnly`, as on Mantine's inputs
+- Types: `MessageAvatarFactory`, `MessageBodyFactory`, `MessageMetaFactory`, for theme overrides
+  and `extend` on `Message.Avatar`, `Message.Body` and `Message.Meta`
 - `MessagesShell`: list, main and aside panes side by side as labelled regions; below
   `asideBreakpoint` the aside collapses behind `MessagesShell.AsideToggle` and opens over the main
   pane (`asideOpened`, `onAsideOpenedChange`)
@@ -47,3 +52,29 @@ will be 0.1.0.
   with previews and unread state, the conversation, and the ticket details beside it (collapsed
   behind a Details button below 960px); shares its state with the table layout
 - Release readiness: a `files` allowlist, types bundled per entry for ESM and CJS (checked with `npm run check:exports`), no empty source maps, peers narrowed to Mantine ^9.8.0 and React ^19.2.0, and `docgen.json` documents `Message`, its parts and `MessagesShell`
+
+### Changed
+
+- `Inbox`: `emptyLabel` is now `labels.empty`, next to `labels.noResults`, so all of its text is
+  in `labels`
+- `MessageList`: `labels.unread` is now `labels.newMessages`, the key `ChatThread`, `TeamThread`
+  and `ThreadPanel` already use
+- `MessageList` is built with Mantine's `genericFactory`, so `<MessageList<T>>` is typed without a
+  cast and `MessageListFactory` carries the generic `signature`; `MessageListBase` is no longer
+  exported (use `MessageList`)
+- `ThreadPanel`: the title is a heading (`Title`), `h2` by default; `titleOrder` sets the level
+- `Inbox`, `TeamThread`: row hover uses the theme's `--mantine-color-default-hover` (in dark mode
+  this is `dark-5`, a step lighter than before); `AssistantThread` step headers use
+  `@mixin hover`, so the hover background no longer sticks after a tap on touch screens
+- Right-to-left layouts: `TeamThread`'s hover toolbar and internal-note bar, the `Composer` reply
+  bar and field, `MarkdownBody` code headers, thread summaries, `MessagesShell` pane borders and
+  overlay aside, and the `AssistantThread` tool badge use logical sides, so they mirror under
+  `dir="rtl"`
+- Sizes in the CSS modules use `rem()`, so spacing follows the root font size and
+  `theme.scale` (same pixels at the default 16px root); 1px borders and focus outlines stay in px
+
+### Fixed
+
+- Every component passes Mantine's `attributes` prop to its Styles API, so
+  `attributes={{ root: {...}, item: {...} }}` reaches the root and inner parts instead of leaking
+  onto the root element
