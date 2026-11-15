@@ -3980,11 +3980,11 @@ __metadata:
   linkType: hard
 
 "@types/react@npm:^19":
-  version: 19.0.8
-  resolution: "@types/react@npm:19.0.8"
+  version: 19.3.0
+  resolution: "@types/react@npm:19.3.0"
   dependencies:
-    csstype: "npm:^3.0.2"
-  checksum: 10c0/5fa7236356b1476de03519c66ef65d4fd904826956105619e2ad60cb0b55ae7b251dd5fff02234076225b5e15333d0d936bf9dbe1d461406f8a2ba01c197ddcd
+    csstype: "npm:^3.2.2"
+  checksum: 10c0/fbcabf303f935ca9f36ed2dcf81751cf84744098c5a683c8a62a0fa7edd31714b48d5c46b12fd0014f7f2dfe4d9ec6de428a850748eec719a70294e51029551b
   languageName: node
   linkType: hard
 
@@ -5549,10 +5549,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"csstype@npm:^3.0.2":
-  version: 3.1.2
-  resolution: "csstype@npm:3.1.2"
-  checksum: 10c0/32c038af259897c807ac738d9eab16b3d86747c72b09d5c740978e06f067f9b7b1737e1b75e407c7ab1fe1543dc95f20e202b4786aeb1b8d3bdf5d5ce655e6c6
+"csstype@npm:^3.2.2":
+  version: 3.2.3
+  resolution: "csstype@npm:3.2.3"
+  checksum: 10c0/cd29c51e70fa822f1cecd8641a1445bed7063697469d35633b516e60fe8c1bde04b08f6c5b6022136bb669b64c63d4173af54864510fbb4ee23281801841a3ce
   languageName: node
   linkType: hard
 
@@ -8910,7 +8910,7 @@ __metadata:
     "@types/react-dom": "npm:^19"
     mantine-messages: "workspace:*"
     next: "npm:16.2.2"
-    react: "npm:19.2.4"
+    react: "npm:19.3.1"
     react-dom: "npm:19.2.4"
     react-markdown: "npm:^10.1.0"
     remark-gfm: "npm:^4.0.1"
@@ -8965,7 +8965,7 @@ __metadata:
     oxlint: "npm:^1.70.0"
     postcss: "npm:^8.5.4"
     postcss-preset-mantine: "npm:1.17.0"
-    react: "npm:19.2.4"
+    react: "npm:19.3.1"
     react-dom: "npm:19.2.4"
     react-markdown: "npm:^10.1.0"
     remark-gfm: "npm:^4.0.1"
@@ -11931,10 +11931,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:19.2.4":
-  version: 19.2.4
-  resolution: "react@npm:19.2.4"
-  checksum: 10c0/cd2c9ff67a720799cc3b38a516009986f7fc4cb8d3e15716c6211cf098d1357ee3e348ab05ad0600042bbb0fd888530ba92e329198c92eafa0994f5213396596
+"react@npm:19.3.1":
+  version: 19.3.1
+  resolution: "react@npm:19.3.1"
+  checksum: 10c0/f0ed036d1223562c09c8347858ca712733ea6e27a30db709ee9c3f3f176d3e9e767afce735d59956addf3d030102e256bba82dea635fc1bdb0e01107e98fef10
   languageName: node
   linkType: hard
 
