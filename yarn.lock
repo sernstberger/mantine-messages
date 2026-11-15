@@ -8680,13 +8680,6 @@ __metadata:
     "@mantine/hooks": ^9.8.0
     react: ^19.2.0
     react-dom: ^19.2.0
-    react-markdown: ^10.0.0
-    remark-gfm: ^4.0.0
-  peerDependenciesMeta:
-    react-markdown:
-      optional: true
-    remark-gfm:
-      optional: true
   languageName: unknown
   linkType: soft
 
