@@ -1,4 +1,6 @@
 .list {
+  /* the loader floats over the top, so showing it never moves the messages */
+  position: relative;
   display: flex;
   flex-direction: column;
   padding: var(--mantine-spacing-md);
@@ -15,7 +17,10 @@
 }
 
 .loader {
-  padding-block: var(--mantine-spacing-sm);
+  position: absolute;
+  inset: 4px 0 auto;
+  z-index: 1;
+  pointer-events: none;
 }
 
 .item {

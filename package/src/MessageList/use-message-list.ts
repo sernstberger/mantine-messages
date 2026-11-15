@@ -46,6 +46,16 @@ export function useMessageList({
   const reduceMotion = useReducedMotion();
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const flash = useTimeout(() => setHighlightedId(null), 1600);
+  // `firstId` that onLoadOlder was last called for: scroll events can arrive before the app
+  // re-renders with loadingOlder, so without this one scroll could ask twice
+  const requestedFor = useRef<string | undefined>(undefined);
+
+  // When loading ends without new items (for example it failed), the user may ask again
+  useIsomorphicEffect(() => {
+    if (!loadingOlder) {
+      requestedFor.current = undefined;
+    }
+  }, [loadingOlder]);
 
   // Runs after every render, so `previous.height` is always the height before this render
   useIsomorphicEffect(() => {
@@ -90,7 +100,14 @@ export function useMessageList({
         viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight <= BOTTOM;
     }
 
-    if (onLoadOlder && hasOlder && !loadingOlder && viewport.scrollTop <= TOP) {
+    if (
+      onLoadOlder &&
+      hasOlder &&
+      !loadingOlder &&
+      requestedFor.current !== firstId &&
+      viewport.scrollTop <= TOP
+    ) {
+      requestedFor.current = firstId;
       onLoadOlder();
     }
   };

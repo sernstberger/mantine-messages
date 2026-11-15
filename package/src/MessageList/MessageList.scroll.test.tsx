@@ -159,4 +159,23 @@ describe('MessageList scrolling', () => {
     fireEvent.click(screen.getByText('c'));
     expect(scrollIntoView).toHaveBeenCalledWith({ block: 'center', behavior: 'auto' });
   });
+
+  it('asks for older items once, even when scroll events arrive before the next render', () => {
+    const onLoadOlder = jest.fn();
+    const { userScrollsTo, rerender } = setup({ onLoadOlder, hasOlder: true });
+    userScrollsTo(10);
+    userScrollsTo(0);
+    expect(onLoadOlder).toHaveBeenCalledTimes(1);
+
+    // Loading starts and ends without new items: the user may ask again
+    rerender(start, { onLoadOlder, hasOlder: true, loadingOlder: true });
+    rerender(start, { onLoadOlder, hasOlder: true, loadingOlder: false });
+    userScrollsTo(0);
+    expect(onLoadOlder).toHaveBeenCalledTimes(2);
+
+    // Older items arrive: the next scroll to the top asks for the page before them
+    rerender([item('a'), ...start], { onLoadOlder, hasOlder: true });
+    userScrollsTo(0);
+    expect(onLoadOlder).toHaveBeenCalledTimes(3);
+  });
 });
