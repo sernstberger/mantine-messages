@@ -5,18 +5,24 @@ import {
   ElementProps,
   factory,
   Factory,
+  GetStylesApi,
   StylesApiProps,
   Text,
   UnstyledButton,
+  useMantineTheme,
   useProps,
-  VisuallyHidden,
   useStyles,
+  VisuallyHidden,
 } from '@mantine/core';
-import React, { useMemo } from 'react';
+import React, { memo, useCallback, useMemo, useRef } from 'react';
 import { Attachments } from '../Attachments/Attachments';
 import { ReplyIcon } from '../icons';
 import { MessageActions, type MessageAction } from '../MessageActions/MessageActions';
-import { MessageList, type MessageListControl } from '../MessageList/MessageList';
+import {
+  MessageList,
+  type MessageListControl,
+  type MessageListItemContext,
+} from '../MessageList/MessageList';
 import { Reactions } from '../Reactions/Reactions';
 import type { ChatMessage, MessageAttachment, MessageStatus, MessagesUser } from '../types';
 import { toDate } from '../utils/dates';
@@ -170,6 +176,168 @@ const defaultProps: Partial<ChatThreadProps> = {
 // Parts of the inner MessageList that ChatThread's Styles API also styles
 const listParts = ['list', 'divider', 'unread', 'loader', 'item'] as const;
 
+// What every row shares; rebuilt only when one of these props changes
+interface ChatRowShared {
+  getStyles: GetStylesApi<ChatThreadFactory>;
+  labels: ChatThreadLabels;
+  usersById: Map<string, MessagesUser>;
+  currentUserId: string;
+  withAuthors?: boolean;
+  renderBody?: (message: ChatMessage) => React.ReactNode;
+  actions: MessageAction[];
+  locale?: string;
+  onReply?: (message: ChatMessage) => void;
+  onReact?: (message: ChatMessage) => void;
+  onEdit?: (message: ChatMessage) => void;
+  onToggleReaction?: (message: ChatMessage, emoji: string) => void;
+  onOpenAttachment?: (message: ChatMessage, attachment: MessageAttachment) => void;
+}
+
+interface ChatRowProps {
+  message: ChatMessage;
+
+  /** The answered message; `null` when it is not in `messages`, `undefined` for no reply */
+  original: ChatMessage | null | undefined;
+  groupStart: boolean;
+  groupEnd: boolean;
+  highlighted: boolean;
+
+  /** This is the current user's newest message, which shows every status */
+  lastOwn: boolean;
+  jumpTo: (id: string) => void;
+  shared: ChatRowShared;
+}
+
+// One message; memoised, so a thread that renders again renders only the rows that changed
+const ChatRow = memo(function ChatRow({
+  message,
+  original,
+  groupStart,
+  groupEnd,
+  highlighted,
+  lastOwn,
+  jumpTo,
+  shared,
+}: ChatRowProps) {
+  const { getStyles, labels, usersById, currentUserId, withAuthors, renderBody, locale } = shared;
+  const { onReply, onReact, onEdit, onToggleReaction, onOpenAttachment } = shared;
+  const nameOf = (userId: string) => usersById.get(userId)?.name ?? userId;
+  const own = message.authorId === currentUserId;
+  const author = usersById.get(message.authorId);
+  const name = nameOf(message.authorId);
+  const showAuthor = !own && withAuthors;
+  const date = toDate(message.createdAt);
+  const time = formatTime(date, locale);
+  const status = message.status;
+  // Sending and failed are said for every own message, the rest only for the last one
+  const showStatus = own && !!status && (lastOwn || status === 'sending' || status === 'failed');
+
+  // The answered message: a caption, then a faded copy tucked under the reply's bubble
+  const quote =
+    original === null ? (
+      <Box mod={{ unavailable: true }} {...getStyles('quote')}>
+        <Text size="xs" lineClamp={2}>
+          {labels.unavailable}
+        </Text>
+      </Box>
+    ) : (
+      original && (
+        <>
+          <Text size="xs" c="dimmed" {...getStyles('quoteLabel')}>
+            <ReplyIcon size={12} />
+            {labels.repliedTo({
+              author: name,
+              original: nameOf(original.authorId),
+              own,
+              toOwn: original.authorId === currentUserId,
+            })}
+          </Text>
+          <UnstyledButton onClick={() => jumpTo(original.id)} {...getStyles('quote')}>
+            <Text size="xs" lineClamp={2}>
+              {getCachedPreview(original)}
+            </Text>
+          </UnstyledButton>
+        </>
+      )
+    );
+
+  return (
+    <Box mod={{ own, 'group-start': groupStart }} {...getStyles('row')}>
+      {showAuthor &&
+        (groupEnd ? (
+          <Avatar src={author?.avatar} name={name} size="sm" {...getStyles('avatar')} />
+        ) : (
+          <Box {...getStyles('avatarSpace')} />
+        ))}
+      <Box mod={{ own }} {...getStyles('content')}>
+        {showAuthor && groupStart && (
+          <Text size="xs" c="dimmed" {...getStyles('author')}>
+            {name}
+          </Text>
+        )}
+        {quote}
+        {!(showAuthor && groupStart) && (
+          <VisuallyHidden>{own ? labels.you : name}: </VisuallyHidden>
+        )}
+        <Box mod={{ own }} {...getStyles('line')}>
+          <Box
+            mod={{ own, status, 'message-id': message.id, highlighted }}
+            title={time}
+            {...getStyles('bubble')}
+          >
+            {renderBody ? renderBody(message) : message.body}
+            {!groupEnd && (
+              <VisuallyHidden>
+                {' '}
+                <time dateTime={date.toISOString()}>{time}</time>
+              </VisuallyHidden>
+            )}
+          </Box>
+          <MessageActions
+            actions={shared.actions}
+            text={message.body}
+            preview={() => getCachedPreview(message)}
+            author={name}
+            own={own}
+            labels={{ reply: labels.reply }}
+            onReply={onReply && (() => onReply(message))}
+            onReact={onReact && (() => onReact(message))}
+            onEdit={onEdit && (() => onEdit(message))}
+            {...getStyles('actions')}
+          />
+        </Box>
+        {message.attachments && (
+          <Attachments
+            attachments={message.attachments}
+            locale={locale}
+            onOpen={onOpenAttachment && ((attachment) => onOpenAttachment(message, attachment))}
+            {...getStyles('attachments')}
+          />
+        )}
+        {message.reactions && (
+          <Reactions
+            reactions={message.reactions}
+            currentUserId={currentUserId}
+            onToggle={onToggleReaction && ((emoji) => onToggleReaction(message, emoji))}
+            {...getStyles('reactions')}
+          />
+        )}
+        {(groupEnd || showStatus) && (
+          <Text component="div" size="xs" c="dimmed" {...getStyles('meta')}>
+            {groupEnd && <time dateTime={date.toISOString()}>{time}</time>}
+            {showStatus && (
+              <Box component="span" mod={{ status }} {...getStyles('status')}>
+                {groupEnd && ' · '}
+                {labels[status]}
+              </Box>
+            )}
+          </Text>
+        )}
+      </Box>
+    </Box>
+  );
+});
+
 export const ChatThread = factory<ChatThreadFactory>((_props) => {
   const props = useProps('ChatThread', defaultProps, _props);
   const {
@@ -217,52 +385,89 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
     attributes,
   });
 
+  const theme = useMantineTheme();
   const usersById = useMemo(() => new Map(users.map((user) => [user.id, user])), [users]);
   const messagesById = useMemo(
     () => new Map(messages.map((message) => [message.id, message])),
     [messages]
   );
-  const allLabels = { ...defaultLabels, ...labels };
-  const lastOwn = [...messages].reverse().find((message) => message.authorId === currentUserId);
-  const nameOf = (userId: string) => usersById.get(userId)?.name ?? userId;
+  const allLabels = useMemo(() => ({ ...defaultLabels, ...labels }), [labels]);
+  const lastOwnId = useMemo(
+    () => messages.findLast((message) => message.authorId === currentUserId)?.id,
+    [messages, currentUserId]
+  );
 
-  const sameGroup = (previous: ChatMessage, message: ChatMessage) =>
-    previous.authorId === message.authorId &&
-    toDate(message.createdAt).getTime() - toDate(previous.createdAt).getTime() <= groupWindow!;
+  // Handlers are called through this, so a new handler function each render (an inline arrow)
+  // does not render every row again; rows only need to know whether a handler is set
+  const handlers = useRef(props);
+  handlers.current = props;
+  const has = [!!onReply, !!onReact, !!onEdit, !!onToggleReaction, !!onOpenAttachment] as const;
 
-  // The answered message: a caption, then a faded copy tucked under the reply's bubble
-  const renderQuote = (message: ChatMessage, jumpTo: (id: string) => void) => {
-    const original = messagesById.get(message.replyToId!);
+  // getStyles is new each render, but what it returns only changes with these props and the theme
+  const shared = useMemo<ChatRowShared>(
+    () => ({
+      getStyles,
+      labels: allLabels,
+      usersById,
+      currentUserId,
+      withAuthors,
+      renderBody,
+      actions: actions!,
+      locale,
+      onReply: has[0] ? (message) => handlers.current.onReply!(message) : undefined,
+      onReact: has[1] ? (message) => handlers.current.onReact!(message) : undefined,
+      onEdit: has[2] ? (message) => handlers.current.onEdit!(message) : undefined,
+      onToggleReaction: has[3]
+        ? (message, emoji) => handlers.current.onToggleReaction!(message, emoji)
+        : undefined,
+      onOpenAttachment: has[4]
+        ? (message, attachment) => handlers.current.onOpenAttachment!(message, attachment)
+        : undefined,
+    }),
+    [
+      classNames,
+      styles,
+      unstyled,
+      vars,
+      attributes,
+      theme,
+      allLabels,
+      usersById,
+      currentUserId,
+      withAuthors,
+      renderBody,
+      actions,
+      locale,
+      ...has,
+    ]
+  );
 
-    if (!original) {
-      return (
-        <Box mod={{ unavailable: true }} {...getStyles('quote')}>
-          <Text size="xs" lineClamp={2}>
-            {allLabels.unavailable}
-          </Text>
-        </Box>
-      );
-    }
+  const renderItem = useCallback(
+    (message: ChatMessage, context: MessageListItemContext<ChatMessage>) => (
+      <ChatRow
+        message={message}
+        original={
+          message.replyToId === undefined
+            ? undefined
+            : (messagesById.get(message.replyToId) ?? null)
+        }
+        groupStart={context.groupStart}
+        groupEnd={context.groupEnd}
+        highlighted={context.highlighted}
+        lastOwn={message.id === lastOwnId}
+        jumpTo={context.jumpTo}
+        shared={shared}
+      />
+    ),
+    [messagesById, lastOwnId, shared]
+  );
 
-    return (
-      <>
-        <Text size="xs" c="dimmed" {...getStyles('quoteLabel')}>
-          <ReplyIcon size={12} />
-          {allLabels.repliedTo({
-            author: nameOf(message.authorId),
-            original: nameOf(original.authorId),
-            own: message.authorId === currentUserId,
-            toOwn: original.authorId === currentUserId,
-          })}
-        </Text>
-        <UnstyledButton onClick={() => jumpTo(original.id)} {...getStyles('quote')}>
-          <Text size="xs" lineClamp={2}>
-            {getCachedPreview(original)}
-          </Text>
-        </UnstyledButton>
-      </>
-    );
-  };
+  const sameGroup = useCallback(
+    (previous: ChatMessage, message: ChatMessage) =>
+      previous.authorId === message.authorId &&
+      toDate(message.createdAt).getTime() - toDate(previous.createdAt).getTime() <= groupWindow!,
+    [groupWindow]
+  );
 
   const listStyles = Object.fromEntries(listParts.map((part) => [part, getStyles(part)]));
 
@@ -289,98 +494,7 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
       styles={Object.fromEntries(listParts.map((part) => [part, listStyles[part].style]))}
       {...getStyles('root')}
       {...others}
-      renderItem={(message, { groupStart, groupEnd, highlighted, jumpTo }) => {
-        const own = message.authorId === currentUserId;
-        const author = usersById.get(message.authorId);
-        const name = nameOf(message.authorId);
-        const showAuthor = !own && withAuthors;
-        const date = toDate(message.createdAt);
-        const time = formatTime(date, locale);
-        const status = message.status;
-        // Sending and failed are said for every own message, the rest only for the last one
-        const showStatus =
-          own &&
-          !!status &&
-          (message.id === lastOwn?.id || status === 'sending' || status === 'failed');
-
-        return (
-          <Box mod={{ own, 'group-start': groupStart }} {...getStyles('row')}>
-            {showAuthor &&
-              (groupEnd ? (
-                <Avatar src={author?.avatar} name={name} size="sm" {...getStyles('avatar')} />
-              ) : (
-                <Box {...getStyles('avatarSpace')} />
-              ))}
-            <Box mod={{ own }} {...getStyles('content')}>
-              {showAuthor && groupStart && (
-                <Text size="xs" c="dimmed" {...getStyles('author')}>
-                  {name}
-                </Text>
-              )}
-              {message.replyToId && renderQuote(message, jumpTo)}
-              {!(showAuthor && groupStart) && (
-                <VisuallyHidden>{own ? allLabels.you : name}: </VisuallyHidden>
-              )}
-              <Box mod={{ own }} {...getStyles('line')}>
-                <Box
-                  mod={{ own, status: message.status, 'message-id': message.id, highlighted }}
-                  title={time}
-                  {...getStyles('bubble')}
-                >
-                  {renderBody ? renderBody(message) : message.body}
-                  {!groupEnd && (
-                    <VisuallyHidden>
-                      {' '}
-                      <time dateTime={date.toISOString()}>{time}</time>
-                    </VisuallyHidden>
-                  )}
-                </Box>
-                <MessageActions
-                  actions={actions!}
-                  text={message.body}
-                  preview={() => getCachedPreview(message)}
-                  author={name}
-                  own={own}
-                  labels={{ reply: allLabels.reply }}
-                  onReply={onReply && (() => onReply(message))}
-                  onReact={onReact && (() => onReact(message))}
-                  onEdit={onEdit && (() => onEdit(message))}
-                  {...getStyles('actions')}
-                />
-              </Box>
-              {message.attachments && (
-                <Attachments
-                  attachments={message.attachments}
-                  locale={locale}
-                  onOpen={
-                    onOpenAttachment && ((attachment) => onOpenAttachment(message, attachment))
-                  }
-                  {...getStyles('attachments')}
-                />
-              )}
-              {message.reactions && (
-                <Reactions
-                  reactions={message.reactions}
-                  currentUserId={currentUserId}
-                  onToggle={onToggleReaction && ((emoji) => onToggleReaction(message, emoji))}
-                  {...getStyles('reactions')}
-                />
-              )}
-              {(groupEnd || showStatus) && (
-                <Text component="div" size="xs" c="dimmed" {...getStyles('meta')}>
-                  {groupEnd && <time dateTime={date.toISOString()}>{time}</time>}
-                  {showStatus && (
-                    <Box component="span" mod={{ status }} {...getStyles('status')}>
-                      {groupEnd && ' · '}
-                      {allLabels[status]}
-                    </Box>
-                  )}
-                </Text>
-              )}
-            </Box>
-          </Box>
-        );
-      }}
+      renderItem={renderItem}
     />
   );
 });

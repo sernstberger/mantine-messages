@@ -100,6 +100,9 @@ will be 0.1.0.
 - `ChatThread`, `TeamThread`: the copy action copies the message's whole `body` (markdown
   included) instead of its plain-text preview; button labels still use the preview, now computed
   once per message
+- `ChatThread`, `TeamThread`: rows are memoised and handlers are read through a ref, so a render
+  of the thread (a keystroke in a parent, an inline `onReply`) renders only new and changed rows;
+  a change to `renderBody`, `actions`, `labels`, `users` or the Styles API props renders them all
 - Times, dates, relative times and file sizes reuse one `Intl` formatter per locale and options
   instead of building one per call (about 50 times cheaper per message)
 

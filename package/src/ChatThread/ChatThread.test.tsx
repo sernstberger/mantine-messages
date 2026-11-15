@@ -1,5 +1,7 @@
 import { render, screen, tests } from '@mantine-tests/core';
-import { act } from '@testing-library/react';
+import { MantineProvider } from '@mantine/core';
+import { act, render as rtlRender } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 import type { MessageListControl } from '../MessageList/MessageList';
 import type { ChatMessage, MessagesUser } from '../types';
@@ -94,6 +96,42 @@ describe('ChatThread', () => {
     render(<ChatThread {...defaultProps} />);
     expect(screen.getByText('Maya Lindqvist')).toBeInTheDocument();
     expect(screen.queryByText('You')).not.toBeInTheDocument();
+  });
+
+  it('renders again only the rows that changed', async () => {
+    const renderBody = jest.fn((message: ChatMessage) => message.body);
+    const first = jest.fn();
+    const view = (list: ChatMessage[], onReply?: (message: ChatMessage) => void) => (
+      <ChatThread {...defaultProps} messages={list} renderBody={renderBody} onReply={onReply} />
+    );
+    // Testing Library's own render: Mantine's wraps the first render in a fragment, so its
+    // rerender would mount a new tree
+    const { rerender } = rtlRender(view(messages, first), { wrapper: MantineProvider });
+    expect(renderBody).toHaveBeenCalledTimes(2);
+
+    // A new inline handler each render, as apps often pass: no row renders, the newest handler runs
+    const second = jest.fn();
+    rerender(view(messages, second));
+    expect(renderBody).toHaveBeenCalledTimes(2);
+    await userEvent.click(screen.getByRole('button', { name: 'Reply: Hi there' }));
+    expect(second).toHaveBeenCalledWith(messages[0]);
+    expect(first).not.toHaveBeenCalled();
+
+    // A reply from Maya arrives: only it renders; b keeps its group, its status and its time
+    renderBody.mockClear();
+    const reply: ChatMessage = {
+      id: 'c',
+      authorId: 'maya',
+      body: 'Great',
+      createdAt: new Date(2026, 10, 15, 9, 2),
+      replyToId: 'b',
+    };
+    rerender(view([...messages, reply], second));
+    expect(renderBody.mock.calls.map(([message]) => message.id)).toEqual(['c']);
+
+    // Taking the handler away renders the rows, without their reply buttons
+    rerender(view([...messages, reply]));
+    expect(screen.queryByRole('button', { name: /^Reply:/ })).not.toBeInTheDocument();
   });
 
   it('says who wrote each message and when, for screen readers', () => {

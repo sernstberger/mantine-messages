@@ -117,6 +117,12 @@ only new and changed items render. That needs a stable `renderItem`: wrap it in 
 define it outside the component. A new function on every render still works, but renders every
 item each time.
 
+`ChatThread` and `TeamThread` do this for you: their rows render again only when their message,
+group or status changes. Handlers such as `onReply` may be new arrows on every render; they are
+always called in their newest form. Keep `renderBody`, `actions`, `labels`, `users` and the Styles
+API objects stable (or defined outside the component), since a change to one of them renders
+every row.
+
 Inside `renderItem`, `jumpTo(id)` scrolls to an item, flashes it (`highlighted` is true for 1.6
 seconds) and moves keyboard focus to it, so screen readers read it and Tab continues from there.
 Pass `jumpTo(id, { focus: false })` when focus must stay put, for example while the user types in

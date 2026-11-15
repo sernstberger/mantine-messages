@@ -1,10 +1,12 @@
 import { render, screen, tests } from '@mantine-tests/core';
-import { act, fireEvent } from '@testing-library/react';
+import { MantineProvider } from '@mantine/core';
+import { act, fireEvent, render as rtlRender } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import type { MessageListControl } from '../MessageList/MessageList';
 import type { ChatMessage, MessagesUser, SystemEvent } from '../types';
 import { TeamThread, TeamThreadItem, TeamThreadProps, TeamThreadStylesNames } from './TeamThread';
+import { toDate } from '../utils/dates';
 import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
 
 const users: MessagesUser[] = [
@@ -186,6 +188,31 @@ describe('TeamThread', () => {
     await userEvent.click(screen.getByRole('button', { name: 'More actions for your message' }));
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Edit' }));
     expect(onEdit).toHaveBeenCalledWith(own);
+  });
+
+  it('renders again only the rows that changed', async () => {
+    // Each message row formats its time once per render, so this counts row renders
+    const formatted = jest.spyOn(Date.prototype, 'toISOString');
+    const view = (list: TeamThreadItem[], onReact: (message: ChatMessage) => void) => (
+      <TeamThread {...defaultProps} items={list} onReact={onReact} selectedId="b" />
+    );
+    // Testing Library's own render: Mantine's wraps the first render in a fragment, so its
+    // rerender would mount a new tree
+    const { rerender } = rtlRender(view(items, jest.fn()), { wrapper: MantineProvider });
+
+    formatted.mockClear();
+    const onReact = jest.fn();
+    rerender(view(items, onReact));
+    expect(formatted).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole('button', { name: 'React: Body a' }));
+    expect(onReact).toHaveBeenCalledWith(items[1]);
+
+    // A new message from Theo: its row renders, Maya's rows do not
+    formatted.mockClear();
+    const next = message('c', 'theo', 3);
+    rerender(view([...items, next], onReact));
+    expect(formatted.mock.contexts).toEqual([toDate(next.createdAt)]);
+    formatted.mockRestore();
   });
 
   it('labels actions with the plain preview, but copies the whole body', async () => {
