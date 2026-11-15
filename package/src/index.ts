@@ -32,6 +32,7 @@ export type {
   MessageListStylesNames,
   MessageListItemContext,
   MessageListLabels,
+  MessageListControl,
 } from './MessageList/MessageList';
 export { useMessageList } from './MessageList/use-message-list';
 export type { UseMessageListOptions } from './MessageList/use-message-list';

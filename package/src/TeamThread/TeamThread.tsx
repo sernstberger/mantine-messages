@@ -17,7 +17,7 @@ import { Attachments } from '../Attachments/Attachments';
 import { LockIcon } from '../icons';
 import { Message } from '../Message/Message';
 import { MessageActions, type MessageAction } from '../MessageActions/MessageActions';
-import { MessageList } from '../MessageList/MessageList';
+import { MessageList, type MessageListControl } from '../MessageList/MessageList';
 import { Reactions } from '../Reactions/Reactions';
 import type {
   ChatMessage,
@@ -136,6 +136,9 @@ export interface TeamThreadProps
 
   /** Text, for translation */
   labels?: Partial<TeamThreadLabels>;
+
+  /** Gets `{ jumpTo }` of the inner `MessageList`, to scroll to a message and flash it */
+  controlRef?: React.Ref<MessageListControl>;
 }
 
 export type TeamThreadFactory = Factory<{
@@ -193,6 +196,7 @@ export const TeamThread = factory<TeamThreadFactory>((_props) => {
     hasOlder,
     loadingOlder,
     labels,
+    controlRef,
     ...others
   } = props;
 
@@ -340,6 +344,7 @@ export const TeamThread = factory<TeamThreadFactory>((_props) => {
   return (
     <MessageList<TeamThreadItem>
       ref={ref}
+      controlRef={controlRef}
       items={items}
       groupWith={sameGroup}
       isOwn={(item) => item.authorId === currentUserId}

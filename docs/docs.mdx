@@ -88,6 +88,21 @@ scrolling and jumps.
 />
 ```
 
+Inside `renderItem`, `jumpTo(id)` scrolls to an item and flashes it (`highlighted` is true for 1.6
+seconds). To jump from outside the list, for example from a sidebar, pass `controlRef`; it gets
+`{ jumpTo }`. `ChatThread`, `TeamThread` and `AssistantThread` take `controlRef` too and pass it to
+their list.
+
+```tsx
+import { useRef } from 'react';
+import { MessageList, type MessageListControl } from 'mantine-messages';
+
+const list = useRef<MessageListControl>(null);
+
+<MessageList controlRef={list} items={notes} renderItem={renderNote} />
+<Button onClick={() => list.current?.jumpTo('n42')}>Show the first reply</Button>
+```
+
 ## Team chat
 
 `TeamThread` shows Slack-style rows: avatar, name and time on the first message of a group, and

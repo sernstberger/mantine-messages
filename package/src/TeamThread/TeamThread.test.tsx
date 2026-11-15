@@ -1,6 +1,8 @@
 import { render, screen, tests } from '@mantine-tests/core';
+import { act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
+import type { MessageListControl } from '../MessageList/MessageList';
 import type { ChatMessage, MessagesUser, SystemEvent } from '../types';
 import { TeamThread, TeamThreadItem, TeamThreadProps, TeamThreadStylesNames } from './TeamThread';
 
@@ -59,6 +61,15 @@ describe('TeamThread', () => {
       'actions',
       'event',
     ],
+  });
+
+  it('passes controlRef to the inner MessageList', () => {
+    const scrollIntoView = jest.spyOn(Element.prototype, 'scrollIntoView');
+    const control = React.createRef<MessageListControl>();
+    render(<TeamThread {...defaultProps} controlRef={control} />);
+    act(() => control.current!.jumpTo('b'));
+    expect(scrollIntoView.mock.contexts[0]).toBe(document.querySelector('[data-item-id="b"]'));
+    scrollIntoView.mockRestore();
   });
 
   it('is a live log with an event line and a name on the first message of a group', () => {

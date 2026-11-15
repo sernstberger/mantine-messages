@@ -34,3 +34,6 @@ will be 0.1.0.
 - `MessageList`: follows the newest item while it grows, for streamed answers
 - Types: `AssistantMessage`, `AssistantPart`
 - A build check that the root entry reaches no optional peer (`npm run check:peers`, part of `npm test`)
+- `MessageList`: `controlRef` gets `{ jumpTo }`, so code outside the list can scroll to an item
+  and flash it; `ChatThread`, `TeamThread` and `AssistantThread` pass it on. Type:
+  `MessageListControl`

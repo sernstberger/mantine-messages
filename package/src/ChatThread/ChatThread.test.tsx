@@ -1,5 +1,7 @@
 import { render, screen, tests } from '@mantine-tests/core';
+import { act } from '@testing-library/react';
 import React from 'react';
+import type { MessageListControl } from '../MessageList/MessageList';
 import type { ChatMessage, MessagesUser } from '../types';
 import { ChatThread, ChatThreadProps, ChatThreadStylesNames } from './ChatThread';
 
@@ -46,6 +48,15 @@ describe('ChatThread', () => {
       'meta',
       'status',
     ],
+  });
+
+  it('passes controlRef to the inner MessageList', () => {
+    const scrollIntoView = jest.spyOn(Element.prototype, 'scrollIntoView');
+    const control = React.createRef<MessageListControl>();
+    render(<ChatThread {...defaultProps} controlRef={control} />);
+    act(() => control.current!.jumpTo('a'));
+    expect(scrollIntoView.mock.contexts[0]).toBe(document.querySelector('[data-item-id="a"]'));
+    scrollIntoView.mockRestore();
   });
 
   it('is a live log with a divider and every message', () => {

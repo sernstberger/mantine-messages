@@ -2,7 +2,7 @@ import { MantineProvider } from '@mantine/core';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import type { MessageBase } from '../types';
-import { MessageList, MessageListProps } from './MessageList';
+import { MessageList, MessageListControl, MessageListProps } from './MessageList';
 
 const item = (id: string, authorId = 'maya'): MessageBase => ({
   id,
@@ -121,6 +121,29 @@ describe('MessageList scrolling', () => {
     );
 
     fireEvent.click(screen.getByText('c'));
+    expect(scrollIntoView.mock.contexts[0]).toBe(document.querySelector('[data-item-id="b"]'));
+    expect(screen.getByText('b')).toHaveAttribute('data-highlighted', 'true');
+    act(() => jest.advanceTimersByTime(1600));
+    expect(screen.getByText('b')).toHaveAttribute('data-highlighted', 'false');
+    jest.useRealTimers();
+  });
+
+  it('jumps and flashes from outside the list through controlRef', () => {
+    jest.useFakeTimers({ doNotFake: ['Date'] });
+    const scrollIntoView = jest.spyOn(Element.prototype, 'scrollIntoView');
+    const control = React.createRef<MessageListControl>();
+    render(
+      <MessageList
+        items={start}
+        controlRef={control}
+        renderItem={(entry, context) => (
+          <span data-highlighted={context.highlighted}>{entry.id}</span>
+        )}
+      />,
+      { wrapper: MantineProvider }
+    );
+
+    act(() => control.current!.jumpTo('b'));
     expect(scrollIntoView.mock.contexts[0]).toBe(document.querySelector('[data-item-id="b"]'));
     expect(screen.getByText('b')).toHaveAttribute('data-highlighted', 'true');
     act(() => jest.advanceTimersByTime(1600));

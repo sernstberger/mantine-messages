@@ -15,7 +15,7 @@ import React, { useMemo } from 'react';
 import { Attachments } from '../Attachments/Attachments';
 import { ReplyIcon } from '../icons';
 import { MessageActions, type MessageAction } from '../MessageActions/MessageActions';
-import { MessageList } from '../MessageList/MessageList';
+import { MessageList, type MessageListControl } from '../MessageList/MessageList';
 import { Reactions } from '../Reactions/Reactions';
 import type { ChatMessage, MessageAttachment, MessageStatus, MessagesUser } from '../types';
 import { toDate } from '../utils/dates';
@@ -123,6 +123,9 @@ export interface ChatThreadProps
 
   /** Text for statuses and buttons, for translation */
   labels?: Partial<ChatThreadLabels>;
+
+  /** Gets `{ jumpTo }` of the inner `MessageList`, to scroll to a message and flash it */
+  controlRef?: React.Ref<MessageListControl>;
 }
 
 export type ChatThreadFactory = Factory<{
@@ -183,6 +186,7 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
     hasOlder,
     loadingOlder,
     labels,
+    controlRef,
     ...others
   } = props;
 
@@ -250,6 +254,7 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
   return (
     <MessageList<ChatMessage>
       ref={ref}
+      controlRef={controlRef}
       items={messages}
       groupWith={sameGroup}
       isOwn={(message) => message.authorId === currentUserId}

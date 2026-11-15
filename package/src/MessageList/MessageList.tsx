@@ -12,7 +12,7 @@ import {
   useProps,
   useStyles,
 } from '@mantine/core';
-import React from 'react';
+import React, { useImperativeHandle } from 'react';
 import type { MessageBase } from '../types';
 import { dayKey } from '../utils/dates';
 import { formatDay } from '../utils/format';
@@ -40,6 +40,12 @@ export interface MessageListItemContext<T extends MessageBase> {
   /** True for 1.6 seconds after `jumpTo` this item */
   highlighted: boolean;
 
+  /** Scrolls to the item with this `id` and flashes it */
+  jumpTo: (id: string) => void;
+}
+
+/** What `controlRef` gives code outside the list */
+export interface MessageListControl {
   /** Scrolls to the item with this `id` and flashes it */
   jumpTo: (id: string) => void;
 }
@@ -81,6 +87,9 @@ export interface MessageListProps<T extends MessageBase = MessageBase>
 
   /** Text, for translation */
   labels?: Partial<MessageListLabels>;
+
+  /** Gets `{ jumpTo }`, so code outside the list can scroll to an item and flash it */
+  controlRef?: React.Ref<MessageListControl>;
 }
 
 export type MessageListFactory = Factory<{
@@ -118,6 +127,7 @@ export const MessageListBase = factory<MessageListFactory>((_props) => {
     hasOlder,
     loadingOlder,
     labels,
+    controlRef,
     role = 'log',
     'aria-live': ariaLive = 'polite',
     ...others
@@ -146,6 +156,7 @@ export const MessageListBase = factory<MessageListFactory>((_props) => {
     loadingOlder,
   });
   const allLabels = { ...defaultLabels, ...labels };
+  useImperativeHandle(controlRef, () => ({ jumpTo }));
 
   const newDay = (a: MessageBase | undefined, b: MessageBase) =>
     !!withDateDividers && (!a || dayKey(a.createdAt) !== dayKey(b.createdAt));

@@ -25,7 +25,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronIcon, RegenerateIcon } from '../icons';
 import { MarkdownBody } from '../MarkdownBody/MarkdownBody';
 import { MessageActions, type MessageAction } from '../MessageActions/MessageActions';
-import { MessageList } from '../MessageList/MessageList';
+import { MessageList, type MessageListControl } from '../MessageList/MessageList';
 import type { AssistantMessage, AssistantPart } from '../types';
 import { stripMarkdown } from '../utils/preview';
 import { formatJson, getAssistantText } from './assistant-text';
@@ -101,6 +101,9 @@ export interface AssistantThreadProps
 
   /** Text, for translation */
   labels?: Partial<AssistantThreadLabels>;
+
+  /** Gets `{ jumpTo }` of the inner `MessageList`, to scroll to a message and flash it */
+  controlRef?: React.Ref<MessageListControl>;
 }
 
 export type AssistantThreadFactory = Factory<{
@@ -299,6 +302,7 @@ export const AssistantThread = factory<AssistantThreadFactory>((_props) => {
     onRegenerate,
     onEdit,
     labels,
+    controlRef,
     // Off by default: the status region below announces each finished answer once instead
     'aria-live': ariaLive = 'off',
     ...others
@@ -489,6 +493,7 @@ export const AssistantThread = factory<AssistantThreadFactory>((_props) => {
     <>
       <MessageList<AssistantMessage>
         ref={ref}
+        controlRef={controlRef}
         items={messages}
         isOwn={(message) => message.role === 'user'}
         withDateDividers={false}
