@@ -70,6 +70,12 @@ async function release() {
     error: 'Failed to build the package',
   });
 
+  await run($`yarn run check:exports`, {
+    info: 'Checking the package exports',
+    success: 'The package exports are valid',
+    error: 'The package exports are broken, not publishing',
+  });
+
   await fs.copyFile(
     path.join(process.cwd(), 'README.md'),
     path.join(process.cwd(), 'package/README.md')

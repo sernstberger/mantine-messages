@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ask a question, give feedback, share your project
+    url: https://github.com/sernstberger/mantine-messages/discussions
+    about: Connect with other community members with GitHub discussions

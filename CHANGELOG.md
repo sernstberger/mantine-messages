@@ -1,7 +1,7 @@
 # Changelog
 
 All notable changes to mantine-messages. The package is not published yet; the first release
-will be 0.1.0.
+will be 0.1.0 (`npm run release:minor` from 0.0.0), when "Unreleased" becomes "0.1.0" with the date.
 
 ## Unreleased
 

@@ -39,7 +39,11 @@
     "./styles.css": "./dist/styles.css",
     "./styles.layer.css": "./dist/styles.layer.css"
   },
-  "repository": "https://github.com/sernstberger/mantine-messages.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sernstberger/mantine-messages.git",
+    "directory": "package"
+  },
   "peerDependencies": {
     "@mantine/core": "^9.8.0",
     "@mantine/hooks": "^9.8.0",

@@ -1,0 +1,62 @@
+name: Report a bug in mantine-messages
+description: Use this template to report a bug. To ask questions or suggest features, use GitHub discussions or the feature request template
+labels: [bug]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: What version of mantine-messages do you use?
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: input
+    id: mantine
+    attributes:
+      label: What version of @mantine/core and react do you use?
+      placeholder: '@mantine/core 9.8.0, react 19.2.0'
+    validations:
+      required: true
+  - type: dropdown
+    id: component
+    attributes:
+      label: Which component has the issue?
+      options:
+        - ChatThread
+        - TeamThread
+        - ThreadPanel
+        - Inbox
+        - Composer
+        - MessageList
+        - Message
+        - MessagesShell
+        - AssistantThread
+        - MarkdownBody
+        - Reactions
+        - Attachments
+        - MessageActions
+        - MessagesProvider
+        - Other, I will specify in the description
+    validations:
+      required: true
+  - type: dropdown
+    id: browser
+    attributes:
+      label: In which browsers can you reproduce the issue?
+      options:
+        - All
+        - Chrome
+        - Safari
+        - Firefox
+        - Not applicable, the issue is not related to the browser
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      placeholder: What happened, what you expected, and how to reproduce it
+    validations:
+      required: true
+  - type: input
+    id: link
+    attributes:
+      label: If possible, include a link to a minimal reproduction
+      description: Issues that cannot be reproduced by maintainers will be closed.
