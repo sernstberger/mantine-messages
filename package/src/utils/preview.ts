@@ -2,21 +2,26 @@ import type { ChatMessage } from '../types';
 
 /** Markdown reduced to plain text, on one line */
 export function stripMarkdown(text: string): string {
-  return text
-    .replace(/```[^\n]*\n?([\s\S]*?)```/g, '$1')
-    .replace(/`([^`]+)`/g, '$1')
-    .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
-    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
-    .replace(/^\s{0,3}#{1,6}\s+/gm, '')
-    .replace(/^\s{0,3}>\s?/gm, '')
-    .replace(/^\s*[-*+]\s+/gm, '')
-    .replace(/\*\*(.+?)\*\*/g, '$1')
-    .replace(/\*(.+?)\*/g, '$1')
-    .replace(/(^|\W)__(.+?)__(?=\W|$)/g, '$1$2')
-    .replace(/(^|\W)_(.+?)_(?=\W|$)/g, '$1$2')
-    .replace(/~~(.+?)~~/g, '$1')
-    .replace(/\s+/g, ' ')
-    .trim();
+  return (
+    text
+      .replace(/```[^\n]*\n?([\s\S]*?)```/g, '$1')
+      .replace(/`([^`]+)`/g, '$1')
+      .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
+      .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+      .replace(/^\s{0,3}#{1,6}\s+/gm, '')
+      .replace(/^\s{0,3}>\s?/gm, '')
+      .replace(/^\s*[-*+]\s+/gm, '')
+      .replace(/\*\*(.+?)\*\*/g, '$1')
+      .replace(/\*(.+?)\*/g, '$1')
+      .replace(/(^|\W)__(.+?)__(?=\W|$)/g, '$1$2')
+      .replace(/(^|\W)_(.+?)_(?=\W|$)/g, '$1$2')
+      .replace(/~~(.+?)~~/g, '$1')
+      // Table separator rows and horizontal rules: only dashes, colons, pipes and spaces
+      .replace(/^[\s|:-]*-{3,}[\s|:-]*$/gm, '')
+      .replace(/\|/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+  );
 }
 
 /** Plain text of a message for previews, quotes and labels */

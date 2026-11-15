@@ -16,6 +16,12 @@ describe('stripMarkdown', () => {
   it('keeps underscores inside words', () => {
     expect(stripMarkdown('rename snake_case_name')).toBe('rename snake_case_name');
   });
+
+  it('drops table pipes, table separators and horizontal rules', () => {
+    expect(
+      stripMarkdown('| Wait | Feels like |\n| --- | :---: |\n| 150 ms | instant |\n\n---\nDone')
+    ).toBe('Wait Feels like 150 ms instant Done');
+  });
 });
 
 describe('getPreview', () => {

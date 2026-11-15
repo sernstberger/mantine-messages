@@ -58,6 +58,9 @@ export interface MessageActionsProps
 
   /** Plain text of the message, for button labels and the copy action */
   text: string;
+
+  /** Plain text for button labels when `text` is markdown; `text` by default */
+  preview?: string;
   onReply?: () => void;
   onReact?: () => void;
   onThread?: () => void;
@@ -100,6 +103,7 @@ export const MessageActions = factory<MessageActionsFactory>((_props) => {
     ref,
     actions,
     text,
+    preview,
     onReply,
     onReact,
     onThread,
@@ -158,7 +162,7 @@ export const MessageActions = factory<MessageActionsFactory>((_props) => {
   const overflow = resolved.length > maxVisible!;
   const visible = overflow ? resolved.slice(0, maxVisible! - 1) : resolved;
   const rest = overflow ? resolved.slice(maxVisible! - 1) : [];
-  const short = truncate(text, 80);
+  const short = truncate(preview ?? text, 80);
 
   return (
     <Box ref={ref} mod={[{ 'menu-open': menuOpen }, mod]} {...getStyles('root')} {...others}>

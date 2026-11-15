@@ -221,4 +221,21 @@ describe('AssistantThread', () => {
     expect(renders('Finished part')).toBe(1);
     expect(renders('A b c')).toBe(1);
   });
+
+  it('announces and labels a finished markdown answer as plain text', () => {
+    const streaming: AssistantMessage = { ...answer, status: 'streaming', parts: [] };
+    const { update } = setup([prompt, streaming]);
+    update([
+      prompt,
+      {
+        ...streaming,
+        status: 'done',
+        parts: [{ type: 'text', text: 'Use **useDebouncedValue** and `wait`.', state: 'done' }],
+      },
+    ]);
+    expect(screen.getByRole('status')).toHaveTextContent(/^Use useDebouncedValue and wait\.$/);
+    expect(
+      screen.getByRole('button', { name: 'Copy: Use useDebouncedValue and wait.' })
+    ).toBeInTheDocument();
+  });
 });

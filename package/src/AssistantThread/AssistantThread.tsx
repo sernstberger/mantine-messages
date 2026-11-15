@@ -27,6 +27,7 @@ import { MarkdownBody } from '../MarkdownBody/MarkdownBody';
 import { MessageActions, type MessageAction } from '../MessageActions/MessageActions';
 import { MessageList } from '../MessageList/MessageList';
 import type { AssistantMessage, AssistantPart } from '../types';
+import { stripMarkdown } from '../utils/preview';
 import { formatJson, getAssistantText } from './assistant-text';
 import classes from './AssistantThread.module.css';
 
@@ -336,7 +337,8 @@ export const AssistantThread = factory<AssistantThreadFactory>((_props) => {
       streamingId.current = null;
 
       if (last.status !== 'error') {
-        setAnnouncement(getAssistantText(last));
+        // Plain text: a screen reader would read markdown's asterisks and backticks aloud
+        setAnnouncement(stripMarkdown(getAssistantText(last)));
       }
     }
   });
@@ -472,6 +474,7 @@ export const AssistantThread = factory<AssistantThreadFactory>((_props) => {
           <MessageActions
             actions={actions}
             text={getAssistantText(message)}
+            preview={stripMarkdown(getAssistantText(message))}
             labels={{ copy: allLabels.copy, copied: allLabels.copied }}
             {...getStyles('actions')}
           />

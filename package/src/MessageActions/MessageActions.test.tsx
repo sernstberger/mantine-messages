@@ -79,4 +79,13 @@ describe('MessageActions', () => {
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Edit' }));
     expect(onEdit).toHaveBeenCalled();
   });
+
+  it('labels buttons with preview but copies text', async () => {
+    const writeText = jest.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { clipboard: { writeText } });
+    render(<MessageActions actions={['copy']} text="**Bold** move" preview="Bold move" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Copy: Bold move' }));
+    expect(writeText).toHaveBeenCalledWith('**Bold** move');
+    expect(await screen.findByRole('button', { name: 'Copied: Bold move' })).toBeInTheDocument();
+  });
 });
