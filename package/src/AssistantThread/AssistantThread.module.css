@@ -11,6 +11,16 @@
   &:where([data-role='user']) {
     align-items: flex-end;
   }
+
+  /* A prompt takes focus after its edit is sent; the ring goes around its bubble, not the column */
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible > :where(.bubble) {
+    outline: 2px solid var(--mantine-primary-color-filled);
+    outline-offset: 2px;
+  }
 }
 
 /* A prompt: a compact bubble on the right */

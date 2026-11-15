@@ -262,6 +262,11 @@ function PromptEditor({
         minRows={1}
         maxRows={10}
         aria-label={labels.editPrompt}
+        // The caret starts at the end of the text, ready to add to it
+        onFocus={(event) => {
+          const end = event.currentTarget.value.length;
+          event.currentTarget.setSelectionRange(end, end);
+        }}
         value={value}
         onChange={(event) => setValue(event.currentTarget.value)}
         onKeyDown={(event) => {

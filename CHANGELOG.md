@@ -86,7 +86,8 @@ will be 0.1.0.
   `labels` no longer break the memo, so a token renders only the streaming answer instead of
   re-running `getAssistantText` and `stripMarkdown` for every answer in the thread
 - `AssistantThread`: after editing a prompt, Escape or Cancel returns focus to its Edit button and
-  sending focuses the prompt (it was lost to the page)
+  sending focuses the prompt, ringed around its bubble (focus was lost to the page). The editor's
+  caret starts at the end of the text
 - `AssistantThread`: screen readers hear `labels.thinking` once when an answer starts (the status
   region was silent until the answer finished), the streaming answer is `aria-busy`, and the
   Thinking indicator is an image with a name (its label sat on an element without a role)
@@ -98,7 +99,8 @@ will be 0.1.0.
   labels: `unread`, `muted`, `results`
 - `ThreadPanel`: focus moves to the title when the panel opens from a focused control and back to
   that control when it closes (keyboard users were left on the opener and lost focus on close).
-  New prop `withFocusManagement`, `true` by default. Escape still does not close it, by design
+  New prop `withFocusManagement`, `true` by default. The focused title shows the theme's focus
+  ring around its text. Escape still does not close it, by design
 - `Attachments`: images load lazily (`loading="lazy"`, `decoding="async"`), so a long history no
   longer fetches every image at once. `MessageAttachment` takes optional `width` and `height`,
   which reserve an image's box before it loads

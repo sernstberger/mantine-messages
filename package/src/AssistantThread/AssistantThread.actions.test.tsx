@@ -94,6 +94,7 @@ describe('AssistantThread actions', () => {
     const box = screen.getByRole('textbox', { name: 'Edit message' });
     expect(box).toHaveFocus();
     expect(box).toHaveValue('Write a debounce hook');
+    expect((box as HTMLTextAreaElement).selectionStart).toBe('Write a debounce hook'.length);
 
     await userEvent.clear(box);
     await userEvent.type(box, '{Enter}');
