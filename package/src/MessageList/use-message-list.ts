@@ -25,7 +25,7 @@ const BOTTOM = 80;
 const TOP = 120;
 
 /**
- * Viewport behaviour of a message list. Opens at the newest item; follows new items while the
+ * Viewport behaviour of a message list. Opens at the newest item; follows new items, and the newest one as it grows, while the
  * user is at the bottom or when they wrote them; keeps the view steady when older items are
  * prepended; asks for older items near the top; scrolls to an item and flashes it on request.
  */
@@ -64,6 +64,11 @@ export function useMessageList({
     previous.current = { first: firstId, last: lastId, height: viewport.scrollHeight };
 
     if (firstId === before.first && lastId === before.last) {
+      // Same items, but the newest may have grown, for example an answer streaming in
+      if (autoScroll && atBottom.current && viewport.scrollHeight > before.height) {
+        viewport.scrollTop = viewport.scrollHeight;
+      }
+
       return;
     }
 

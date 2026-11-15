@@ -178,4 +178,28 @@ describe('MessageList scrolling', () => {
     userScrollsTo(0);
     expect(onLoadOlder).toHaveBeenCalledTimes(3);
   });
+  it('follows the newest item while it grows at the bottom, and stops when the user scrolls up', () => {
+    const { rerender, userScrollsTo, viewport } = setup();
+    userScrollsTo(800);
+    height = 1300;
+    rerender([...start]);
+    expect(viewport.scrollTop).toBe(1300);
+
+    // Same height: nothing to follow
+    rerender([...start]);
+    expect(viewport.scrollTop).toBe(1300);
+
+    userScrollsTo(300);
+    height = 1600;
+    rerender([...start]);
+    expect(viewport.scrollTop).toBe(300);
+  });
+
+  it('does not follow growth with autoScroll off', () => {
+    const { rerender, userScrollsTo, viewport } = setup({ autoScroll: false });
+    userScrollsTo(800);
+    height = 1300;
+    rerender([...start]);
+    expect(viewport.scrollTop).toBe(800);
+  });
 });
