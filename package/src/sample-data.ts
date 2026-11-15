@@ -1,4 +1,4 @@
-import type { Conversation, ChatMessage, MessagesUser } from './types';
+import type { Conversation, ChatMessage, MessagesUser, SystemEvent } from './types';
 
 const now = new Date();
 const at = (daysAgo: number, hours: number, minutes: number) =>
@@ -104,5 +104,145 @@ export const sampleConversations: Conversation[] = [
     id: 'sam',
     title: 'Sam Whitaker',
     lastMessage: { authorId: 'me', body: 'Thanks, have a good weekend!', createdAt: at(12, 18, 0) },
+  },
+];
+
+export const sampleChannels: Conversation[] = [
+  {
+    id: 'launch',
+    title: 'launch',
+    kind: 'channel',
+    pinned: true,
+    unreadCount: 2,
+    lastMessage: { authorId: 'priya', body: 'Screenshots are up 🎉', createdAt: minutesAgo(12) },
+  },
+  {
+    id: 'general',
+    title: 'general',
+    kind: 'channel',
+    lastMessage: { authorId: 'sam', body: 'Lunch is on the roof today', createdAt: minutesAgo(80) },
+  },
+  {
+    id: 'design',
+    title: 'design',
+    kind: 'channel',
+    muted: true,
+    unreadCount: 5,
+    lastMessage: { authorId: 'sam', body: 'New icons are in the file', createdAt: at(1, 16, 40) },
+  },
+  {
+    id: 'random',
+    title: 'random',
+    kind: 'channel',
+    lastMessage: {
+      authorId: 'theo',
+      body: 'Who borrowed the HDMI adapter?',
+      createdAt: at(2, 11, 5),
+    },
+  },
+  {
+    id: 'dm-maya',
+    title: 'Maya Lindqvist',
+    kind: 'direct',
+    unreadCount: 1,
+    lastMessage: {
+      authorId: 'maya',
+      body: 'Got a minute after standup?',
+      createdAt: minutesAgo(25),
+    },
+  },
+  {
+    id: 'dm-theo',
+    title: 'Theo Okafor',
+    kind: 'direct',
+    lastMessage: { authorId: 'me', body: 'Thanks!', createdAt: at(1, 18, 2) },
+  },
+  {
+    id: 'dm-crew',
+    title: 'Priya Raman, Sam Whitaker',
+    kind: 'group',
+    lastMessage: { authorId: 'priya', body: 'Booked the room', createdAt: at(3, 9, 30) },
+  },
+];
+
+/** #launch: an event, a thread, a follow-up, a file, an edit, an internal note and reactions */
+export const sampleTeamItems: (ChatMessage | SystemEvent)[] = [
+  {
+    id: 'team-e1',
+    kind: 'event',
+    authorId: 'priya',
+    text: 'Priya Raman joined #launch',
+    createdAt: at(1, 9, 0),
+  },
+  {
+    id: 'team-m1',
+    authorId: 'maya',
+    body: 'Launch checklist is in the pinned doc. Can everyone claim their items by end of day?',
+    createdAt: at(1, 9, 30),
+    reactions: [{ emoji: '👀', userIds: ['theo', 'priya'] }],
+    thread: { count: 3, lastReplyAt: minutesAgo(120), participantIds: ['theo', 'priya', 'me'] },
+  },
+  {
+    id: 'team-r1',
+    authorId: 'theo',
+    threadId: 'team-m1',
+    body: "I'll take the release notes and the changelog.",
+    createdAt: at(1, 9, 41),
+  },
+  {
+    id: 'team-r2',
+    authorId: 'priya',
+    threadId: 'team-m1',
+    body: 'Docs screenshots are mine.',
+    createdAt: at(1, 10, 2),
+  },
+  {
+    id: 'team-r3',
+    authorId: 'me',
+    threadId: 'team-m1',
+    body: 'Taking the pricing page copy.',
+    createdAt: minutesAgo(120),
+  },
+  {
+    id: 'team-m2',
+    authorId: 'maya',
+    body: 'Also: code freeze is Thursday at noon.',
+    createdAt: at(1, 9, 31),
+  },
+  {
+    id: 'team-m3',
+    authorId: 'theo',
+    body: 'Staging build 412 is green. Smoke tests pass on all three browsers.',
+    createdAt: minutesAgo(95),
+    attachments: [
+      {
+        id: 'team-f1',
+        name: 'smoke-report.pdf',
+        url: '#',
+        mimeType: 'application/pdf',
+        size: 92160,
+      },
+    ],
+  },
+  {
+    id: 'team-m4',
+    authorId: 'theo',
+    body: 'Only flaky one was the upload test; a rerun passed.',
+    createdAt: minutesAgo(94),
+    editedAt: minutesAgo(90),
+  },
+  {
+    id: 'team-m5',
+    authorId: 'sam',
+    visibility: 'internal',
+    body: 'Heads up: the payment provider rotates keys tonight. No deploys between 22:00 and 23:00.',
+    createdAt: minutesAgo(40),
+  },
+  {
+    id: 'team-m6',
+    authorId: 'priya',
+    body: 'Screenshots are up 🎉',
+    createdAt: minutesAgo(12),
+    reactions: [{ emoji: '🎉', userIds: ['maya', 'me'] }],
   },
 ];
