@@ -3,6 +3,7 @@ import { DirectionProvider, MantineProvider, useDirection } from '@mantine/core'
 import type { Preview } from '@storybook/react';
 import React, { useEffect } from 'react';
 import { useGlobals } from '@storybook/preview-api';
+import { RepoProviders, repoTheme } from './repo';
 
 /** Alt+Shift+R flips the text direction, as in Mantine's own Storybook */
 function DirectionWrapper({ children }: { children: React.ReactNode }) {
@@ -33,7 +34,8 @@ const preview: Preview = {
       },
     },
     options: {
-      // Components alphabetically (each by its export name), showcase apps last
+      // Components alphabetically (each by its export name), showcase apps last. No TypeScript
+      // annotations here: Storybook evaluates this function statically
       storySort: (a, b) => {
         const isApp = (item) => item.title.startsWith('Apps/');
 
@@ -69,10 +71,7 @@ const preview: Preview = {
 
       useEffect(() => {
         const onKeyDown = (event: KeyboardEvent) => {
-          const isMod = event.metaKey || event.ctrlKey;
-          const isJ = event.code === 'KeyJ';
-
-          if (!isMod || !isJ) {
+          if (!(event.metaKey || event.ctrlKey) || event.code !== 'KeyJ') {
             return;
           }
 
@@ -86,11 +85,15 @@ const preview: Preview = {
 
       const scheme = (context.globals.theme || 'light') as 'light' | 'dark';
 
+      // StrictMode mounts, unmounts and mounts again in development (storybook dev, e2e:dev), so
+      // effects that do not clean up after themselves show up there
       return (
         <React.StrictMode>
           <DirectionProvider>
-            <MantineProvider forceColorScheme={scheme}>
-              <DirectionWrapper>{renderStory()}</DirectionWrapper>
+            <MantineProvider theme={repoTheme} forceColorScheme={scheme}>
+              <RepoProviders>
+                <DirectionWrapper>{renderStory()}</DirectionWrapper>
+              </RepoProviders>
             </MantineProvider>
           </DirectionProvider>
         </React.StrictMode>
