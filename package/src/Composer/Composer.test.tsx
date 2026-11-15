@@ -110,6 +110,21 @@ describe('Composer', () => {
       replyToId: 'm1',
     });
   });
+  it('turns send into stop while an answer streams, and keeps the text', async () => {
+    const onSend = jest.fn();
+    const onStop = jest.fn();
+    render(<Composer onSend={onSend} onStop={onStop} streaming labels={{ stop: 'Stop answer' }} />);
+    const stop = screen.getByRole('button', { name: 'Stop answer' });
+    expect(stop).toBeEnabled();
+    expect(stop).toHaveAttribute('data-streaming');
+
+    await userEvent.type(screen.getByRole('textbox'), 'next question{Enter}');
+    expect(onSend).not.toHaveBeenCalled();
+    expect(screen.getByRole('textbox')).toHaveValue('next question');
+
+    await userEvent.click(stop);
+    expect(onStop).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('Composer modes', () => {

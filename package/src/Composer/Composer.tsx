@@ -75,6 +75,9 @@ export interface ComposerLabels {
   /** Accessible label of the button that cancels the reply */
   cancelReply: string;
 
+  /** Accessible label of the stop button shown while `streaming` */
+  stop: string;
+
   /** Accessible label of the mode switch */
   modes: string;
 }
@@ -124,6 +127,12 @@ export interface ComposerProps
 
   /** Most rows the box grows to before it scrolls, 6 by default */
   maxRows?: number;
+
+  /** An answer is being generated: the send button becomes a stop button and Enter does not send */
+  streaming?: boolean;
+
+  /** Called when the user clicks the stop button */
+  onStop?: () => void;
 }
 
 export type ComposerFactory = Factory<{
@@ -142,6 +151,7 @@ const defaultLabels: ComposerLabels = {
   send: 'Send',
   replyingTo: 'Replying to',
   cancelReply: 'Cancel reply',
+  stop: 'Stop',
   modes: 'Message type',
 };
 
@@ -155,6 +165,14 @@ function SendIcon() {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+    </svg>
+  );
+}
+
+function StopIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+      <rect x="7" y="7" width="10" height="10" rx="2" fill="currentColor" />
     </svg>
   );
 }
@@ -184,6 +202,8 @@ export const Composer = factory<ComposerFactory>((_props) => {
     labels,
     disabled,
     maxRows,
+    streaming,
+    onStop,
     mod,
     ...others
   } = props;
@@ -208,7 +228,7 @@ export const Composer = factory<ComposerFactory>((_props) => {
     onChange: onModeChange,
   });
   const activeMode = modes?.find((item) => item.value === currentMode);
-  const canSend = !disabled && text.trim().length > 0;
+  const canSend = !disabled && !streaming && text.trim().length > 0;
   const allLabels = { ...defaultLabels, ...labels };
 
   // Choosing a message to answer puts the cursor in the box
@@ -296,12 +316,13 @@ export const Composer = factory<ComposerFactory>((_props) => {
         <ActionIcon
           radius="xl"
           size="lg"
-          aria-label={allLabels.send}
-          disabled={!canSend}
-          onClick={send}
+          aria-label={streaming ? allLabels.stop : allLabels.send}
+          disabled={!streaming && !canSend}
+          onClick={streaming ? onStop : send}
+          mod={{ streaming }}
           {...getStyles('send')}
         >
-          <SendIcon />
+          {streaming ? <StopIcon /> : <SendIcon />}
         </ActionIcon>
       </Box>
     </Box>
