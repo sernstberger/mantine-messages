@@ -96,6 +96,9 @@ will be 0.1.0.
   number, muted conversations say `labels.muted`, and while the search filters the list a polite
   status region says `labels.results(count)` (or `labels.noResults`) once typing pauses. New
   labels: `unread`, `muted`, `results`
+- `ThreadPanel`: focus moves to the title when the panel opens from a focused control and back to
+  that control when it closes (keyboard users were left on the opener and lost focus on close).
+  New prop `withFocusManagement`, `true` by default. Escape still does not close it, by design
 - Every component passes Mantine's `attributes` prop to its Styles API, so
   `attributes={{ root: {...}, item: {...} }}` reaches the root and inner parts instead of leaking
   onto the root element

@@ -152,6 +152,13 @@ is an `h2` heading; set `titleOrder` to fit your page's outline. The close butto
 `TeamThread`: `hasOlder`, `loadingOlder`, `onLoadOlder`, and `controlRef` to jump to a reply;
 `groupWindow` and `autoScroll` pass through too.
 
+Keyboard and screen readers: when the panel opens (or shows another thread) from a focused
+control, such as a thread summary, focus moves to its title, and when it closes with focus inside
+it, focus goes back to that control. Nothing moves when the panel is already open as the page
+loads. Turn this off with `withFocusManagement={false}` if your app moves focus itself. Escape does
+not close the panel: it is a side region next to the channel, not a dialog, and Escape inside its
+composer belongs to the composer. Add it with `onKeyDown` if your layout wants it.
+
 ```tsx
 const channelItems = items.filter((item) => 'kind' in item || !item.threadId);
 const replies = messages.filter((message) => message.threadId === open?.id);
