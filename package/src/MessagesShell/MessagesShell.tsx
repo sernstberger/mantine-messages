@@ -54,7 +54,7 @@ export type MessagesShellListFactory = Factory<{
 }>;
 
 /**
- * The left pane, 300px wide by default (change it with `w`): a column whose children decide how
+ * The start pane (left in LTR), 300px wide by default (change it with `w`): a column whose children decide how
  * to scroll. A region labelled "List" unless `aria-label` says otherwise
  */
 export const MessagesShellList = factory<MessagesShellListFactory>((_props) => {
@@ -123,7 +123,7 @@ export type MessagesShellAsideFactory = Factory<{
 }>;
 
 /**
- * The right pane, 280px wide by default (change it with `w`). Below `asideBreakpoint` it is
+ * The end pane (right in LTR), 280px wide by default (change it with `w`). Below `asideBreakpoint` it is
  * hidden until opened, then overlays `Main` over a backdrop; Escape or a click on the backdrop
  * closes it. Labelled "Details" by default
  */

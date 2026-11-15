@@ -1,4 +1,4 @@
-import { Box, Text } from '@mantine/core';
+import { Box, Text, useDirection } from '@mantine/core';
 import {
   Message,
   MessageList,
@@ -26,6 +26,9 @@ const time = (item: TimelineItem) =>
 /** Emails, chat, internal notes and events of one ticket, in one list */
 export function TicketTimeline({ items, users, controlRef, onOpenEmail }: TicketTimelineProps) {
   const nameOf = nameGetter(users);
+  // The note's accent bar sits on the start edge
+  const { dir } = useDirection();
+  const bar = dir === 'rtl' ? '-3px' : '3px';
 
   const renderMessage = (message: ChatMessage) => {
     const note = message.visibility === 'internal';
@@ -37,7 +40,7 @@ export function TicketTimeline({ items, users, controlRef, onOpenEmail }: Ticket
           borderRadius: 'var(--mantine-radius-md)',
           ...(note && {
             backgroundColor: 'var(--mantine-color-yellow-light)',
-            boxShadow: 'inset 3px 0 0 var(--mantine-color-yellow-filled)',
+            boxShadow: `inset ${bar} 0 0 var(--mantine-color-yellow-filled)`,
           }),
         }}
         mod={{ note }}
