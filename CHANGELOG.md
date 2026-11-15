@@ -86,6 +86,9 @@ will be 0.1.0.
 
 ### Fixed
 
+- `MessageList` stays at the bottom when its size changes without a render, for example while
+  the `Composer` below grows a line or an image loads (a `ResizeObserver` on the viewport and its
+  content); a long thread no longer opens a few pixels short of the newest message
 - Every component passes Mantine's `attributes` prop to its Styles API, so
   `attributes={{ root: {...}, item: {...} }}` reaches the root and inner parts instead of leaking
   onto the root element

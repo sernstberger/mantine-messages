@@ -5,10 +5,9 @@ test('opens at the newest message', async ({ page }) => {
   await openStory(page, 'messages--long-thread');
   const log = page.getByRole('log');
 
-  // Fully in view. It ends 4px short of the very bottom: the Composer settles its height after
-  // the list has scrolled, the bug the "composer grows" test below shows in full
+  // Fully in view and at the very bottom, also after the Composer settles its height
   await expect(log.getByText('Message 80 of 80')).toBeInViewport({ ratio: 1 });
-  await expect.poll(async () => (await scrollMetrics(log)).fromBottom).toBeLessThanOrEqual(8);
+  await expect.poll(async () => (await scrollMetrics(log)).fromBottom).toBeLessThanOrEqual(1);
 });
 
 test('stays at the bottom when a reply arrives', async ({ page }) => {
@@ -46,13 +45,9 @@ test('keeps the view steady when older messages load above', async ({ page }) =>
   expect((await scrollMetrics(log)).scrollTop).toBeGreaterThan(500);
 });
 
-// KNOWN BUG, expected to fail until it is fixed (then this test fails as "expected to fail" and
-// test.fail() comes off). MessageList re-pins to the bottom only when it re-renders; when its
-// viewport shrinks without a render (the Composer below grows with each line) the newest message
-// slides under the composer, 68px here. Fix: a ResizeObserver on the viewport in
-// use-message-list.ts that scrolls to the bottom while the user is at the bottom
+// The viewport shrinks without a render as the Composer below grows with each line; a
+// ResizeObserver in use-message-list.ts keeps the newest message in view
 test('stays at the bottom while the composer grows', async ({ page }) => {
-  test.fail();
   await openStory(page, 'messages--long-thread');
   const log = page.getByRole('log');
   await expect(log.getByText('Message 80 of 80')).toBeInViewport();

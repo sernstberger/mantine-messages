@@ -191,6 +191,73 @@ describe('MessageList scrolling', () => {
     expect(search).toHaveFocus();
   });
 
+  describe('when sizes change without a render', () => {
+    // ScrollArea observes sizes too, so keep every observer and fire them all
+    let callbacks: (() => void)[];
+    const resized = () => act(() => callbacks.forEach((callback) => callback()));
+    let observed: Element[];
+    const disconnect = jest.fn();
+    const original = window.ResizeObserver;
+
+    beforeEach(() => {
+      observed = [];
+      callbacks = [];
+      window.ResizeObserver = class {
+        constructor(callback: () => void) {
+          callbacks.push(callback);
+        }
+
+        observe(element: Element) {
+          observed.push(element);
+        }
+
+        unobserve() {}
+
+        disconnect = disconnect;
+      } as any;
+    });
+
+    afterEach(() => {
+      window.ResizeObserver = original;
+    });
+
+    it('stays at the bottom while the user is there, for example as the composer grows', () => {
+      const { viewport, userScrollsTo } = setup();
+      expect(observed).toEqual(expect.arrayContaining([viewport, viewport.firstElementChild]));
+      userScrollsTo(800);
+      height = 1100;
+      resized();
+      expect(viewport.scrollTop).toBe(1100);
+
+      // Scrolled up to read: a resize leaves the view alone
+      userScrollsTo(300);
+      resized();
+      expect(viewport.scrollTop).toBe(300);
+    });
+
+    it('does not pin with autoScroll off, and reads autoScroll when it fires', () => {
+      const { viewport, userScrollsTo, rerender } = setup({ autoScroll: false });
+      userScrollsTo(800);
+      height = 1100;
+      resized();
+      expect(viewport.scrollTop).toBe(800);
+
+      // Turned on later: the observer reads the current value
+      rerender(start, { autoScroll: true });
+      resized();
+      expect(viewport.scrollTop).toBe(1100);
+    });
+
+    it('disconnects on unmount', () => {
+      disconnect.mockClear();
+      const view = render(<MessageList items={start} renderItem={(entry) => entry.id} />, {
+        wrapper: MantineProvider,
+      });
+      view.unmount();
+      expect(disconnect).toHaveBeenCalled();
+    });
+  });
+
   it('never scrolls with autoScroll={false}', () => {
     const { rerender } = setup({ autoScroll: false, isOwn: () => true });
     rerender([...start, item('d')]);

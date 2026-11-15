@@ -123,6 +123,26 @@ export function useMessageList({
     }
   });
 
+  // Sizes also change without a render: the composer below grows a line and the viewport
+  // shrinks, an image loads, fonts settle. While the user is at the bottom, stay there.
+  // A plain ResizeObserver: Mantine's useResizeObserver keeps the size in state, which would
+  // render the whole list on every change only to scroll
+  const autoScrollRef = useRef(autoScroll);
+  autoScrollRef.current = autoScroll;
+  useEffect(() => {
+    const viewport = viewportRef.current!;
+    const observer = new ResizeObserver(() => {
+      if (autoScrollRef.current && atBottom.current) {
+        viewport.scrollTop = viewport.scrollHeight;
+      }
+    });
+    // The viewport, and ScrollArea's content box inside it
+    observer.observe(viewport);
+    observer.observe(viewport.firstElementChild!);
+
+    return () => observer.disconnect();
+  }, []);
+
   const onScrollPositionChange = () => {
     const viewport = viewportRef.current!;
 
