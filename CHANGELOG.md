@@ -72,9 +72,49 @@ will be 0.1.0.
   `dir="rtl"`
 - Sizes in the CSS modules use `rem()`, so spacing follows the root font size and
   `theme.scale` (same pixels at the default 16px root); 1px borders and focus outlines stay in px
+- `MessageList`: the log is named (`labels.log`, "Messages", or `aria-label`), is `aria-busy`
+  while older items load and in the update that prepends them, so screen readers do not read old
+  history out as new, and the history loader is a labelled progressbar (`labels.loadingOlder`);
+  `ChatThread` and `TeamThread` take both labels
+- `MessageList`: `jumpTo` moves keyboard focus to the item it scrolls to (the item gets
+  `tabindex="-1"`, focused without a second scroll); `jumpTo(id, { focus: false })` keeps focus
+  where it is. Type: `MessageListJumpOptions`
+- `MessageList`: items are memoised, so a render of the list renders only new and changed items
+  when `renderItem` is stable (`useCallback`); `jumpTo` is now stable across renders
+- `MessageActions` is a `role="toolbar"` with one tab stop (roving tabindex: arrow keys, Home and
+  End, mirrored under `dir="rtl"`) instead of a tab stop per button, so Tab moves from message to
+  message
+- `MessageActions`: `labels.more` is now a function of `{ author, own }` ("More actions for
+  Maya's message", "More actions for your message"), and the toolbar is named by
+  `labels.toolbar`; new props `author` and `own`, which `ChatThread` and `TeamThread` pass. Type:
+  `MessageActionsOwner`
+- `MessageActions` mounts its overflow `Menu` on first use and `useClipboard` only with a copy
+  action, and builds built-in items only for the names in `actions`; `preview` may be a function,
+  called only when a button shows
+- `ChatThread`: every message tells screen readers who wrote it (`labels.you`, "You", for your
+  own; the name where none is shown) and when (a visually hidden `<time>` where no time is
+  shown, a `<time datetime>` where one is); "Sending" and "Not sent" show under every own message
+  that has them, not only the last
+- `TeamThread`: follow-up rows give screen readers the author's name, event rows their time, and
+  times are `<time datetime>` elements
+- `ChatThread`, `TeamThread`: the copy action copies the message's whole `body` (markdown
+  included) instead of its plain-text preview; button labels still use the preview, now computed
+  once per message
+- `ChatThread`, `TeamThread`: rows are memoised and handlers are read through a ref, so a render
+  of the thread (a keystroke in a parent, an inline `onReply`) renders only new and changed rows;
+  a change to `renderBody`, `actions`, `labels`, `users` or the Styles API props renders them all
+- `Composer`: focus stays in the text box after sending with the send button (the button is
+  disabled once the box is empty, which used to drop focus to the page); the reply bar describes
+  the text box (`aria-describedby`), and an `aria-describedby` in `textareaProps` now reaches the
+  text box instead of being replaced by Mantine's input wrapper
+- Times, dates, relative times and file sizes reuse one `Intl` formatter per locale and options
+  instead of building one per call (about 50 times cheaper per message)
 
 ### Fixed
 
+- `MessageList` stays at the bottom when its size changes without a render, for example while
+  the `Composer` below grows a line or an image loads (a `ResizeObserver` on the viewport and its
+  content); a long thread no longer opens a few pixels short of the newest message
 - Every component passes Mantine's `attributes` prop to its Styles API, so
   `attributes={{ root: {...}, item: {...} }}` reaches the root and inner parts instead of leaking
   onto the root element

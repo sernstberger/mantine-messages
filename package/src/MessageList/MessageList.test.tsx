@@ -126,8 +126,107 @@ describe('MessageList', () => {
     expect(screen.queryByText('New messages')).not.toBeInTheDocument();
   });
 
-  it('shows a loader at the top while older items load', () => {
-    const { container } = renderList({ loadingOlder: true, hasOlder: true });
+  it('shows a labelled loader at the top while older items load', () => {
+    const { container } = renderList({
+      loadingOlder: true,
+      hasOlder: true,
+      labels: { loadingOlder: 'Fetching history' },
+    });
     expect(container.querySelector('.mantine-MessageList-loader')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar', { name: 'Fetching history' })).toBeInTheDocument();
+  });
+
+  it('names the log, from labels or aria-label', () => {
+    const { rerender } = renderList();
+    expect(screen.getByRole('log', { name: 'Messages' })).toBeInTheDocument();
+    rerender(
+      <MantineProvider>
+        <MessageList<Note> items={items} renderItem={(item) => item.text} aria-label="Chat" />
+      </MantineProvider>
+    );
+    expect(screen.getByRole('log', { name: 'Chat' })).toBeInTheDocument();
+    rerender(
+      <MantineProvider>
+        <MessageList<Note>
+          items={items}
+          renderItem={(item) => item.text}
+          labels={{ log: 'Verlauf' }}
+        />
+      </MantineProvider>
+    );
+    expect(screen.getByRole('log', { name: 'Verlauf' })).toBeInTheDocument();
+  });
+
+  it('is aria-busy while older items load and in the commit that prepends them', () => {
+    const busyWhenMounted: Record<string, string | null> = {};
+    function Probe({ id }: { id: string }) {
+      const ref = React.useRef<HTMLSpanElement>(null);
+      React.useLayoutEffect(() => {
+        busyWhenMounted[id] = ref.current!.closest('[role="log"]')!.getAttribute('aria-busy');
+      }, [id]);
+      return <span ref={ref}>{id}</span>;
+    }
+    const renderItem = (item: Note) => <Probe id={item.id} />;
+    const later = items.slice(1);
+    const view = (list: Note[], loadingOlder: boolean) => (
+      <MantineProvider>
+        <MessageList<Note> items={list} renderItem={renderItem} loadingOlder={loadingOlder} />
+      </MantineProvider>
+    );
+    const { rerender } = render(view(later, false));
+    const log = screen.getByRole('log');
+    expect(log).not.toHaveAttribute('aria-busy');
+
+    rerender(view(later, true));
+    expect(log).toHaveAttribute('aria-busy', 'true');
+
+    // The app stops loading and prepends in one update: the new item lands while still busy
+    rerender(view(items, false));
+    expect(busyWhenMounted.a).toBe('true');
+    expect(log).not.toHaveAttribute('aria-busy');
+
+    // A new message at the end is not a prepend
+    rerender(view([...items, note('e', 'me', 15, 3)], false));
+    expect(busyWhenMounted.e).toBeNull();
+  });
+
+  it('renders an item again only when it or its context changed, with a stable renderItem', () => {
+    const renderItem = jest.fn((item: Note) => item.text);
+    const groupWith = () => true;
+    const view = (list: Note[], extra?: string) => (
+      <MantineProvider>
+        <MessageList<Note>
+          items={list}
+          renderItem={renderItem}
+          groupWith={groupWith}
+          withDateDividers={false}
+          className={extra}
+        />
+      </MantineProvider>
+    );
+    const { rerender } = render(view(items));
+    expect(renderItem).toHaveBeenCalledTimes(4);
+
+    // The parent renders again with the same items: no item renders
+    rerender(view(items, 'other'));
+    expect(renderItem).toHaveBeenCalledTimes(4);
+
+    // One new item: it renders, and the previous last item (its `next` and groupEnd changed)
+    renderItem.mockClear();
+    rerender(view([...items, note('e', 'me', 15, 3)]));
+    expect(renderItem.mock.calls.map(([item]) => item.id)).toEqual(['d', 'e']);
+  });
+
+  it('renders every item again when renderItem changes', () => {
+    const view = (renderItem: (item: Note) => string) => (
+      <MantineProvider>
+        <MessageList<Note> items={items} renderItem={renderItem} />
+      </MantineProvider>
+    );
+    const first = jest.fn((item: Note) => item.text);
+    const { rerender } = render(view(first));
+    const second = jest.fn((item: Note) => item.text);
+    rerender(view(second));
+    expect(second).toHaveBeenCalledTimes(4);
   });
 });

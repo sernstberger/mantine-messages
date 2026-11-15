@@ -1,10 +1,12 @@
 import { render, screen, tests } from '@mantine-tests/core';
-import { act } from '@testing-library/react';
+import { MantineProvider } from '@mantine/core';
+import { act, fireEvent, render as rtlRender } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import type { MessageListControl } from '../MessageList/MessageList';
 import type { ChatMessage, MessagesUser, SystemEvent } from '../types';
 import { TeamThread, TeamThreadItem, TeamThreadProps, TeamThreadStylesNames } from './TeamThread';
+import { toDate } from '../utils/dates';
 import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
 
 const users: MessagesUser[] = [
@@ -84,9 +86,31 @@ describe('TeamThread', () => {
     render(<TeamThread {...defaultProps} />);
     expect(screen.getByRole('log')).toBeInTheDocument();
     expect(screen.getByText('Theo joined #launch')).toHaveClass('mantine-TeamThread-event');
-    expect(screen.getAllByText('Maya Lindqvist')).toHaveLength(1);
+    expect(document.querySelectorAll('.mantine-TeamThread-author')).toHaveLength(1);
     expect(row('a')).not.toHaveAttribute('data-compact');
     expect(row('b')).toHaveAttribute('data-compact');
+  });
+
+  it('gives screen readers the author of follow-ups and the time of every row', () => {
+    render(<TeamThread {...defaultProps} locale="en-US" />);
+    // Follow-up b shows no name; a visually hidden one precedes its time
+    expect(row('b').querySelector('.mantine-VisuallyHidden-root')).toHaveTextContent(
+      'Maya Lindqvist'
+    );
+    const times = Array.from(document.querySelectorAll('time')).map((time) => [
+      time.getAttribute('datetime'),
+      time.textContent,
+    ]);
+    expect(times).toEqual([
+      [at(0).toISOString(), '9:00 AM'],
+      [at(1).toISOString(), '9:01 AM'],
+      [at(2).toISOString(), '9:02 AM'],
+    ]);
+
+    // The event's time is in the row, not only in a hover title
+    expect(screen.getByText('Theo joined #launch')).toHaveTextContent(
+      'Theo joined #launch 9:00 AM'
+    );
   });
 
   it('groups by author, time and visibility; events break groups', () => {
@@ -155,12 +179,56 @@ describe('TeamThread', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Reply in thread: Body o' }));
     expect(onOpenThread).toHaveBeenCalledWith(other);
     expect(screen.getByRole('button', { name: 'Copy: Body o' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('toolbar', { name: "Actions for Maya Lindqvist's message" })
+    ).toBeInTheDocument();
 
     // Own message: react, thread, edit, copy is four, so edit and copy go in the menu
-    expect(screen.getAllByRole('button', { name: 'More actions' })).toHaveLength(1);
-    await userEvent.click(screen.getByRole('button', { name: 'More actions' }));
+    expect(screen.getAllByRole('button', { name: /^More actions/ })).toHaveLength(1);
+    await userEvent.click(screen.getByRole('button', { name: 'More actions for your message' }));
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Edit' }));
     expect(onEdit).toHaveBeenCalledWith(own);
+  });
+
+  it('renders again only the rows that changed', async () => {
+    // Each message row formats its time once per render, so this counts row renders
+    const formatted = jest.spyOn(Date.prototype, 'toISOString');
+    const view = (list: TeamThreadItem[], onReact: (message: ChatMessage) => void) => (
+      <TeamThread {...defaultProps} items={list} onReact={onReact} selectedId="b" />
+    );
+    // Testing Library's own render: Mantine's wraps the first render in a fragment, so its
+    // rerender would mount a new tree
+    const { rerender } = rtlRender(view(items, jest.fn()), { wrapper: MantineProvider });
+
+    formatted.mockClear();
+    const onReact = jest.fn();
+    rerender(view(items, onReact));
+    expect(formatted).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole('button', { name: 'React: Body a' }));
+    expect(onReact).toHaveBeenCalledWith(items[1]);
+
+    // A new message from Theo: its row renders, Maya's rows do not
+    formatted.mockClear();
+    const next = message('c', 'theo', 3);
+    rerender(view([...items, next], onReact));
+    expect(formatted.mock.contexts).toEqual([toDate(next.createdAt)]);
+    formatted.mockRestore();
+  });
+
+  it('labels actions with the plain preview, but copies the whole body', async () => {
+    const writeText = jest.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { clipboard: { writeText } });
+    const body = `**Bold** move ${'and more '.repeat(20)}`;
+    render(
+      <TeamThread
+        {...defaultProps}
+        actions={['copy']}
+        items={[message('md', 'maya', 1, { body, format: 'markdown' })]}
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: /^Copy: Bold move and more/ }));
+    expect(writeText).toHaveBeenCalledWith(body);
+    expect(await screen.findByRole('button', { name: /^Copied: Bold move/ })).toBeInTheDocument();
   });
 
   it('shows reactions and files, interactive with handlers', async () => {
@@ -194,10 +262,12 @@ describe('TeamThread', () => {
         loadingOlder
         hasOlder
         onLoadOlder={() => {}}
-        labels={{ newMessages: 'Unread' }}
+        labels={{ newMessages: 'Unread', log: '#launch', loadingOlder: 'Fetching' }}
       />
     );
     expect(screen.getByText('Unread')).toBeInTheDocument();
     expect(container.querySelector('.mantine-TeamThread-loader')).toBeInTheDocument();
+    expect(screen.getByRole('log', { name: '#launch' })).toHaveAttribute('aria-busy', 'true');
+    expect(screen.getByRole('progressbar', { name: 'Fetching' })).toBeInTheDocument();
   });
 });

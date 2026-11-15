@@ -8,11 +8,12 @@ import {
   MantineColor,
   Menu,
   StylesApiProps,
+  useDirection,
   useProps,
   useStyles,
 } from '@mantine/core';
 import { useClipboard } from '@mantine/hooks';
-import React, { useState } from 'react';
+import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   CheckIcon,
   CopyIcon,
@@ -37,6 +38,15 @@ export interface MessageActionItem {
 
 export type MessageAction = MessageActionName | MessageActionItem;
 
+/** Whose message the actions belong to, for the labels of the toolbar and the menu button */
+export interface MessageActionsOwner {
+  /** Name of the author, from the `author` prop */
+  author?: string;
+
+  /** The current user wrote the message, from the `own` prop */
+  own?: boolean;
+}
+
 export interface MessageActionsLabels {
   reply: string;
   react: string;
@@ -45,8 +55,11 @@ export interface MessageActionsLabels {
   copy: string;
   copied: string;
 
-  /** The button that opens the overflow menu */
-  more: string;
+  /** The button that opens the overflow menu, for example "More actions for Maya's message" */
+  more: (owner: MessageActionsOwner) => string;
+
+  /** Accessible name of the toolbar, for example "Actions for Maya's message" */
+  toolbar: (owner: MessageActionsOwner) => string;
 }
 
 export type MessageActionsStylesNames = 'root' | 'action';
@@ -56,11 +69,20 @@ export interface MessageActionsProps
   /** Built-in names and custom items, in order */
   actions: MessageAction[];
 
-  /** Plain text of the message, for button labels and the copy action */
+  /** Text of the message: the copy action copies it, and button labels show it unless `preview` is set */
   text: string;
 
-  /** Plain text for button labels when `text` is markdown; `text` by default */
-  preview?: string;
+  /**
+   * Plain text for button labels when `text` is markdown; `text` by default. A function is called
+   * only when a button shows, so a thread skips stripping markdown for rows without actions
+   */
+  preview?: string | (() => string);
+
+  /** Name of the author, for the labels of the toolbar and the menu button */
+  author?: string;
+
+  /** The current user wrote the message, for the labels of the toolbar and the menu button */
+  own?: boolean;
   onReply?: () => void;
   onReact?: () => void;
   onThread?: () => void;
@@ -86,11 +108,42 @@ const defaultLabels: MessageActionsLabels = {
   edit: 'Edit',
   copy: 'Copy',
   copied: 'Copied',
-  more: 'More actions',
+  more: ({ author, own }) =>
+    own
+      ? 'More actions for your message'
+      : author
+        ? `More actions for ${author}'s message`
+        : 'More actions',
+  toolbar: ({ author, own }) =>
+    own
+      ? 'Actions for your message'
+      : author
+        ? `Actions for ${author}'s message`
+        : 'Message actions',
 };
 
 const defaultProps: Partial<MessageActionsProps> = { maxVisible: 3 };
 
+type Clipboard = ReturnType<typeof useClipboard>;
+
+// useClipboard keeps state and a timer, so only toolbars with a copy action mount one
+function WithClipboard({ children }: { children: (clipboard: Clipboard) => React.ReactNode }) {
+  return children(useClipboard({ timeout: 1500 }));
+}
+
+// Where each key moves focus; `step` is -1 in right-to-left layouts
+const KEYS: Record<string, (index: number, count: number, step: number) => number> = {
+  ArrowRight: (index, count, step) => (index + step + count) % count,
+  ArrowLeft: (index, count, step) => (index - step + count) % count,
+  Home: () => 0,
+  End: (_index, count) => count - 1,
+};
+
+/**
+ * Buttons for one message, as a toolbar: one tab stop, arrow keys move between the buttons and
+ * Home and End jump to the ends (the WAI-ARIA toolbar pattern). Built-ins show when their handler
+ * is set; past `maxVisible` the rest go in a menu, mounted on first use
+ */
 export const MessageActions = factory<MessageActionsFactory>((_props) => {
   const props = useProps('MessageActions', defaultProps, _props);
   const {
@@ -105,6 +158,8 @@ export const MessageActions = factory<MessageActionsFactory>((_props) => {
     actions,
     text,
     preview,
+    author,
+    own,
     onReply,
     onReact,
     onThread,
@@ -112,6 +167,9 @@ export const MessageActions = factory<MessageActionsFactory>((_props) => {
     maxVisible,
     labels,
     mod,
+    onKeyDown,
+    role = 'toolbar',
+    'aria-label': ariaLabel,
     ...others
   } = props;
 
@@ -128,90 +186,161 @@ export const MessageActions = factory<MessageActionsFactory>((_props) => {
     attributes,
   });
 
-  const allLabels = { ...defaultLabels, ...labels };
-  const clipboard = useClipboard({ timeout: 1500 });
+  const { dir } = useDirection();
+  const [menuMounted, setMenuMounted] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [active, setActive] = useState(0);
+  const moreRef = useRef<HTMLButtonElement>(null);
 
-  const builtIns: Record<MessageActionName, MessageActionItem | null> = {
-    reply: onReply
-      ? { id: 'reply', label: allLabels.reply, icon: <ReplyIcon />, onClick: onReply }
-      : null,
-    react: onReact
-      ? { id: 'react', label: allLabels.react, icon: <SmileIcon />, onClick: onReact }
-      : null,
-    thread: onThread
-      ? { id: 'thread', label: allLabels.thread, icon: <ThreadIcon />, onClick: onThread }
-      : null,
-    edit: onEdit
-      ? { id: 'edit', label: allLabels.edit, icon: <EditIcon />, onClick: onEdit }
-      : null,
-    copy: {
-      id: 'copy',
-      label: clipboard.copied ? allLabels.copied : allLabels.copy,
-      icon: clipboard.copied ? <CheckIcon /> : <CopyIcon />,
-      onClick: () => clipboard.copy(text),
-    },
-  };
+  // The menu mounts on the first click, which replaces the trigger: focus the new trigger before
+  // opening, so the menu gives focus back to it when it closes
+  useLayoutEffect(() => {
+    if (menuMounted) {
+      moreRef.current!.focus();
+      setMenuOpen(true);
+    }
+  }, [menuMounted]);
 
-  const resolved = actions
-    .map((action) => (typeof action === 'string' ? builtIns[action] : action))
-    .filter((action): action is MessageActionItem => action !== null);
+  // Every action but copy, whose label follows the clipboard; built only for names in `actions`
+  const allLabels = { ...defaultLabels, ...labels };
+  const { reply, react, thread, edit } = allLabels;
+  const resolved = useMemo(() => {
+    const item = (
+      id: string,
+      label: string,
+      icon: React.ReactNode,
+      onClick: (() => void) | undefined
+    ): MessageActionItem | null => (onClick ? { id, label, icon, onClick } : null);
+
+    return actions
+      .map((action) => {
+        switch (action) {
+          case 'reply':
+            return item('reply', reply, <ReplyIcon />, onReply);
+          case 'react':
+            return item('react', react, <SmileIcon />, onReact);
+          case 'thread':
+            return item('thread', thread, <ThreadIcon />, onThread);
+          case 'edit':
+            return item('edit', edit, <EditIcon />, onEdit);
+          default:
+            return action;
+        }
+      })
+      .filter((action) => action !== null);
+  }, [actions, onReply, onReact, onThread, onEdit, reply, react, thread, edit]);
 
   if (resolved.length === 0) {
     return null;
   }
 
-  const overflow = resolved.length > maxVisible!;
-  const visible = overflow ? resolved.slice(0, maxVisible! - 1) : resolved;
-  const rest = overflow ? resolved.slice(maxVisible! - 1) : [];
-  const short = truncate(preview ?? text, 80);
+  const short = truncate(typeof preview === 'function' ? preview() : (preview ?? text), 80);
+  const owner = { author, own };
 
-  return (
-    <Box ref={ref} mod={[{ 'menu-open': menuOpen }, mod]} {...getStyles('root')} {...others}>
-      {visible.map((action) => (
-        <ActionIcon
-          key={action.id}
-          variant="subtle"
-          color={action.color ?? 'gray'}
-          size="sm"
-          radius="xl"
-          aria-label={`${action.label}: ${short}`}
-          onClick={action.onClick}
-          {...getStyles('action')}
-        >
-          {action.icon}
-        </ActionIcon>
-      ))}
-      {overflow && (
-        <Menu position="bottom-end" onChange={setMenuOpen}>
-          <Menu.Target>
-            <ActionIcon
-              variant="subtle"
-              color="gray"
-              size="sm"
-              radius="xl"
-              aria-label={allLabels.more}
-              {...getStyles('action')}
-            >
-              <DotsIcon />
-            </ActionIcon>
-          </Menu.Target>
-          <Menu.Dropdown>
-            {rest.map((action) => (
-              <Menu.Item
-                key={action.id}
-                leftSection={action.icon}
-                color={action.color}
-                onClick={action.onClick}
-              >
-                {action.label}
-              </Menu.Item>
-            ))}
-          </Menu.Dropdown>
-        </Menu>
-      )}
-    </Box>
-  );
+  const render = (clipboard: Clipboard | null) => {
+    const items = resolved.map(
+      (action): MessageActionItem =>
+        action === 'copy'
+          ? {
+              id: 'copy',
+              label: clipboard!.copied ? allLabels.copied : allLabels.copy,
+              icon: clipboard!.copied ? <CheckIcon /> : <CopyIcon />,
+              onClick: () => clipboard!.copy(text),
+            }
+          : action
+    );
+    const overflow = items.length > maxVisible!;
+    const visible = overflow ? items.slice(0, maxVisible! - 1) : items;
+    const rest = overflow ? items.slice(maxVisible! - 1) : [];
+    const count = visible.length + (overflow ? 1 : 0);
+
+    // The one button in the tab order, kept in range when buttons go away
+    const current = Math.min(active, count - 1);
+    const stop = (index: number) => ({
+      tabIndex: index === current ? 0 : -1,
+      onFocus: () => setActive(index),
+    });
+
+    const moreButton = (extra: React.ComponentPropsWithRef<'button'>) => (
+      <ActionIcon
+        variant="subtle"
+        color="gray"
+        size="sm"
+        radius="xl"
+        aria-label={allLabels.more(owner)}
+        {...stop(visible.length)}
+        {...getStyles('action')}
+        {...extra}
+      >
+        <DotsIcon />
+      </ActionIcon>
+    );
+
+    return (
+      <Box
+        ref={ref}
+        role={role}
+        aria-label={ariaLabel ?? allLabels.toolbar(owner)}
+        mod={[{ 'menu-open': menuOpen }, mod]}
+        onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
+          const buttons = Array.from(event.currentTarget.children) as HTMLElement[];
+          const index = buttons.indexOf(event.target as HTMLElement);
+          const move = KEYS[event.key];
+
+          if (index !== -1 && move) {
+            event.preventDefault();
+            buttons[move(index, buttons.length, dir === 'rtl' ? -1 : 1)].focus();
+          }
+
+          onKeyDown?.(event);
+        }}
+        {...getStyles('root')}
+        {...others}
+      >
+        {visible.map((action, index) => (
+          <ActionIcon
+            key={action.id}
+            variant="subtle"
+            color={action.color ?? 'gray'}
+            size="sm"
+            radius="xl"
+            aria-label={`${action.label}: ${short}`}
+            onClick={action.onClick}
+            {...stop(index)}
+            {...getStyles('action')}
+          >
+            {action.icon}
+          </ActionIcon>
+        ))}
+        {overflow &&
+          (menuMounted ? (
+            <Menu position="bottom-end" opened={menuOpen} onChange={setMenuOpen}>
+              <Menu.Target>{moreButton({ ref: moreRef })}</Menu.Target>
+              <Menu.Dropdown>
+                {rest.map((action) => (
+                  <Menu.Item
+                    key={action.id}
+                    leftSection={action.icon}
+                    color={action.color}
+                    onClick={action.onClick}
+                  >
+                    {action.label}
+                  </Menu.Item>
+                ))}
+              </Menu.Dropdown>
+            </Menu>
+          ) : (
+            moreButton({
+              'aria-haspopup': 'menu',
+              'aria-expanded': false,
+              onClick: () => setMenuMounted(true),
+            })
+          ))}
+      </Box>
+    );
+  };
+
+  return resolved.includes('copy') ? <WithClipboard>{render}</WithClipboard> : render(null);
 });
 
 MessageActions.displayName = 'MessageActions';

@@ -31,7 +31,11 @@ The one `styles.css` covers every entry.
 
 `ChatThread` takes messages oldest first. Consecutive messages from one person within
 `groupWindow` (5 minutes by default) share one group, each new day gets a divider, and the
-messages of `currentUserId` sit on the right. The status of your last message shows under it.
+messages of `currentUserId` sit on the right. The status of your last message shows under it;
+"Sending" and "Not sent" show under every message that has them.
+
+Screen readers hear who wrote each message ("You" for your own, `labels.you`) and when, also
+where the screen shows no name or time; times are `<time datetime>` elements.
 
 `ChatThread` scrolls itself (it is a Mantine `ScrollArea`), so give it a height or let it fill a
 flex column with `style={{ flex: 1 }}`. It opens at the newest message and follows new ones while
@@ -68,12 +72,24 @@ const [replyTo, setReplyTo] = useState<Message | null>(null);
 always show. After three, the rest go in a menu. Reactions and attachments on a message render
 under its bubble; pass `onToggleReaction` and `onOpenAttachment` to make them interactive.
 
+The buttons of a message form a toolbar with one tab stop: Tab reaches the first button (or the
+one used last), the arrow keys move between them, Home and End jump to the ends, and Tab moves on
+to the next message. The toolbar and its menu button are named after the message's author, "More
+actions for Maya's message" or "for your message" (`labels.more` and `labels.toolbar` are
+functions of `{ author, own }`). The menu mounts on first use. The copy action copies the whole
+`body`, markdown included; button labels use the plain-text preview.
+
 ## Long threads
 
 Pass `onLoadOlder`, `hasOlder` and `loadingOlder` to load history as the user scrolls up; the view
 stays where it was while older messages are added above. `unreadAfterId` draws a "New messages"
 line after the last read message; its text is `labels.newMessages`, the same key on `MessageList`,
 `ChatThread`, `TeamThread` and `ThreadPanel`, so one translation object fits them all.
+
+The list is a `role="log"` named by `labels.log` ("Messages"), or by `aria-label` when you pass
+one. While older messages load, and in the update that adds them, it is `aria-busy`, so screen
+readers do not read the whole page of history out as new messages; the loader at the top is
+labelled `labels.loadingOlder`.
 
 ## Building your own layout
 
@@ -82,15 +98,35 @@ line after the last read message; its text is `labels.newMessages`, the same key
 scrolling and jumps.
 
 ```tsx
+const renderNote = useCallback(
+  (note: Note, { groupStart }: MessageListItemContext<Note>) => (
+    <NoteRow note={note} showName={groupStart} />
+  ),
+  []
+);
+
 <MessageList
   items={notes}
   groupWith={(previous, note) => previous.authorId === note.authorId}
-  renderItem={(note, { groupStart }) => <NoteRow note={note} showName={groupStart} />}
+  renderItem={renderNote}
 />
 ```
 
-Inside `renderItem`, `jumpTo(id)` scrolls to an item and flashes it (`highlighted` is true for 1.6
-seconds). To jump from outside the list, for example from a sidebar, pass `controlRef`; it gets
+Each item is memoised on the item, its neighbours and its context, so when the list renders again
+only new and changed items render. That needs a stable `renderItem`: wrap it in `useCallback` or
+define it outside the component. A new function on every render still works, but renders every
+item each time.
+
+`ChatThread` and `TeamThread` do this for you: their rows render again only when their message,
+group or status changes. Handlers such as `onReply` may be new arrows on every render; they are
+always called in their newest form. Keep `renderBody`, `actions`, `labels`, `users` and the Styles
+API objects stable (or defined outside the component), since a change to one of them renders
+every row.
+
+Inside `renderItem`, `jumpTo(id)` scrolls to an item, flashes it (`highlighted` is true for 1.6
+seconds) and moves keyboard focus to it, so screen readers read it and Tab continues from there.
+Pass `jumpTo(id, { focus: false })` when focus must stay put, for example while the user types in
+a search box that jumps to matches. To jump from outside the list, for example from a sidebar, pass `controlRef`; it gets
 `{ jumpTo }`. `ChatThread`, `TeamThread` and `AssistantThread` take `controlRef` too and pass it to
 their list.
 
@@ -305,6 +341,9 @@ the first section that matches. Channels show a `#`.
 
 `Composer` grows with its text up to `maxRows`. Enter sends, Shift+Enter adds a line. `onSend`
 gets a draft: `{ text, format, attachments, replyToId }`, with the text trimmed.
+After sending, by Enter or with the button, the cursor stays in the box. With `replyTo`, the reply
+bar describes the box (`aria-describedby`), so screen readers say whom the message answers when
+the box gets focus.
 
 `modes` adds a switch above the box, for example Reply and Internal note; the chosen `value` goes in
 `draft.mode`. A mode with `note: true` tints the composer yellow, and its `placeholder` replaces the

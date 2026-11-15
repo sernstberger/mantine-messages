@@ -1,5 +1,7 @@
 import { render, screen, tests } from '@mantine-tests/core';
-import { act } from '@testing-library/react';
+import { MantineProvider } from '@mantine/core';
+import { act, render as rtlRender } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 import type { MessageListControl } from '../MessageList/MessageList';
 import type { ChatMessage, MessagesUser } from '../types';
@@ -67,9 +69,24 @@ describe('ChatThread', () => {
     scrollIntoView.mockRestore();
   });
 
+  it('names the log and the history loader from its labels', () => {
+    render(
+      <ChatThread
+        {...defaultProps}
+        loadingOlder
+        labels={{ log: 'Chat with Maya', loadingOlder: 'Fetching' }}
+      />
+    );
+    expect(screen.getByRole('log', { name: 'Chat with Maya' })).toHaveAttribute(
+      'aria-busy',
+      'true'
+    );
+    expect(screen.getByRole('progressbar', { name: 'Fetching' })).toBeInTheDocument();
+  });
+
   it('is a live log with a divider and every message', () => {
     render(<ChatThread {...defaultProps} />);
-    expect(screen.getByRole('log')).toBeInTheDocument();
+    expect(screen.getByRole('log', { name: 'Messages' })).toBeInTheDocument();
     expect(screen.getByRole('separator')).toBeInTheDocument();
     expect(screen.getByText('Hi there')).toBeInTheDocument();
     expect(screen.getByText('Hello!')).toHaveAttribute('data-own');
@@ -79,6 +96,108 @@ describe('ChatThread', () => {
     render(<ChatThread {...defaultProps} />);
     expect(screen.getByText('Maya Lindqvist')).toBeInTheDocument();
     expect(screen.queryByText('You')).not.toBeInTheDocument();
+  });
+
+  it('renders again only the rows that changed', async () => {
+    const renderBody = jest.fn((message: ChatMessage) => message.body);
+    const first = jest.fn();
+    const view = (list: ChatMessage[], onReply?: (message: ChatMessage) => void) => (
+      <ChatThread {...defaultProps} messages={list} renderBody={renderBody} onReply={onReply} />
+    );
+    // Testing Library's own render: Mantine's wraps the first render in a fragment, so its
+    // rerender would mount a new tree
+    const { rerender } = rtlRender(view(messages, first), { wrapper: MantineProvider });
+    expect(renderBody).toHaveBeenCalledTimes(2);
+
+    // A new inline handler each render, as apps often pass: no row renders, the newest handler runs
+    const second = jest.fn();
+    rerender(view(messages, second));
+    expect(renderBody).toHaveBeenCalledTimes(2);
+    await userEvent.click(screen.getByRole('button', { name: 'Reply: Hi there' }));
+    expect(second).toHaveBeenCalledWith(messages[0]);
+    expect(first).not.toHaveBeenCalled();
+
+    // A reply from Maya arrives: only it renders; b keeps its group, its status and its time
+    renderBody.mockClear();
+    const reply: ChatMessage = {
+      id: 'c',
+      authorId: 'maya',
+      body: 'Great',
+      createdAt: new Date(2026, 10, 15, 9, 2),
+      replyToId: 'b',
+    };
+    rerender(view([...messages, reply], second));
+    expect(renderBody.mock.calls.map(([message]) => message.id)).toEqual(['c']);
+
+    // Taking the handler away renders the rows, without their reply buttons
+    rerender(view([...messages, reply]));
+    expect(screen.queryByRole('button', { name: /^Reply:/ })).not.toBeInTheDocument();
+  });
+
+  it('says who wrote each message and when, for screen readers', () => {
+    const at = (minute: number) => new Date(2026, 10, 15, 9, minute);
+    render(
+      <ChatThread
+        {...defaultProps}
+        locale="en-US"
+        labels={{ you: 'Du' }}
+        messages={[
+          { id: 'a1', authorId: 'maya', body: 'One', createdAt: at(0) },
+          { id: 'a2', authorId: 'maya', body: 'Two', createdAt: at(1) },
+          { id: 'm1', authorId: 'me', body: 'Mine', createdAt: at(2) },
+        ]}
+      />
+    );
+    const hidden = (id: string) =>
+      Array.from(
+        document
+          .querySelector(`[data-item-id="${id}"]`)!
+          .querySelectorAll('.mantine-VisuallyHidden-root')
+      ).map((element) => element.textContent);
+
+    // a1 shows Maya's name and its time is not visible: only the time is hidden
+    expect(hidden('a1')).toEqual([' 9:00 AM']);
+    // a2 follows without a name, and ends the group, so its time is visible
+    expect(hidden('a2')).toEqual(['Maya Lindqvist: ']);
+    expect(hidden('m1')).toEqual(['Du: ']);
+
+    const times = Array.from(document.querySelectorAll('time')).map((time) => [
+      time.getAttribute('datetime'),
+      time.textContent,
+    ]);
+    expect(times).toEqual([
+      [at(0).toISOString(), '9:00 AM'],
+      [at(1).toISOString(), '9:01 AM'],
+      [at(2).toISOString(), '9:02 AM'],
+    ]);
+  });
+
+  it('says sending and failed under every own message, other statuses only under the last', () => {
+    const at = (minute: number) => new Date(2026, 10, 15, 9, minute);
+    const own = (id: string, minute: number, status: ChatMessage['status']): ChatMessage => ({
+      id,
+      authorId: 'me',
+      body: `Body ${id}`,
+      createdAt: at(minute),
+      status,
+    });
+    render(
+      <ChatThread
+        {...defaultProps}
+        messages={[
+          own('f', 0, 'failed'),
+          own('s', 1, 'sending'),
+          own('d', 2, 'delivered'),
+          own('r', 3, 'read'),
+        ]}
+      />
+    );
+    const status = (id: string) =>
+      document.querySelector(`[data-item-id="${id}"] .mantine-ChatThread-status`)?.textContent;
+    expect(status('f')).toBe('Not sent');
+    expect(status('s')).toBe('Sending');
+    expect(status('d')).toBeUndefined();
+    expect(status('r')).toBe(' · Read');
   });
 
   it('shows the status of the last own message, with custom labels', () => {

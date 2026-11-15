@@ -151,6 +151,113 @@ describe('MessageList scrolling', () => {
     jest.useRealTimers();
   });
 
+  it('moves focus to the item it jumps to, without a second scroll', () => {
+    const control = React.createRef<MessageListControl>();
+    render(
+      <MessageList
+        items={start}
+        controlRef={control}
+        renderItem={(entry) => <span>{entry.id}</span>}
+      />,
+      { wrapper: MantineProvider }
+    );
+    const target = document.querySelector<HTMLElement>('[data-item-id="b"]')!;
+    const focus = jest.spyOn(target, 'focus');
+    act(() => control.current!.jumpTo('b'));
+    expect(target).toHaveFocus();
+    expect(target).toHaveAttribute('tabindex', '-1');
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+  });
+
+  it('leaves focus alone with { focus: false }, and ignores an unknown id', () => {
+    const control = React.createRef<MessageListControl>();
+    render(
+      <>
+        <input aria-label="Search" />
+        <MessageList
+          items={start}
+          controlRef={control}
+          renderItem={(entry) => <span>{entry.id}</span>}
+        />
+      </>,
+      { wrapper: MantineProvider }
+    );
+    const search = screen.getByRole('textbox', { name: 'Search' });
+    search.focus();
+    act(() => control.current!.jumpTo('b', { focus: false }));
+    expect(search).toHaveFocus();
+    expect(document.querySelector('[data-item-id="b"]')).not.toHaveAttribute('tabindex');
+    expect(() => act(() => control.current!.jumpTo('missing'))).not.toThrow();
+    expect(search).toHaveFocus();
+  });
+
+  describe('when sizes change without a render', () => {
+    // ScrollArea observes sizes too, so keep every observer and fire them all
+    let callbacks: (() => void)[];
+    const resized = () => act(() => callbacks.forEach((callback) => callback()));
+    let observed: Element[];
+    const disconnect = jest.fn();
+    const original = window.ResizeObserver;
+
+    beforeEach(() => {
+      observed = [];
+      callbacks = [];
+      window.ResizeObserver = class {
+        constructor(callback: () => void) {
+          callbacks.push(callback);
+        }
+
+        observe(element: Element) {
+          observed.push(element);
+        }
+
+        unobserve() {}
+
+        disconnect = disconnect;
+      } as any;
+    });
+
+    afterEach(() => {
+      window.ResizeObserver = original;
+    });
+
+    it('stays at the bottom while the user is there, for example as the composer grows', () => {
+      const { viewport, userScrollsTo } = setup();
+      expect(observed).toEqual(expect.arrayContaining([viewport, viewport.firstElementChild]));
+      userScrollsTo(800);
+      height = 1100;
+      resized();
+      expect(viewport.scrollTop).toBe(1100);
+
+      // Scrolled up to read: a resize leaves the view alone
+      userScrollsTo(300);
+      resized();
+      expect(viewport.scrollTop).toBe(300);
+    });
+
+    it('does not pin with autoScroll off, and reads autoScroll when it fires', () => {
+      const { viewport, userScrollsTo, rerender } = setup({ autoScroll: false });
+      userScrollsTo(800);
+      height = 1100;
+      resized();
+      expect(viewport.scrollTop).toBe(800);
+
+      // Turned on later: the observer reads the current value
+      rerender(start, { autoScroll: true });
+      resized();
+      expect(viewport.scrollTop).toBe(1100);
+    });
+
+    it('disconnects on unmount', () => {
+      disconnect.mockClear();
+      const view = render(<MessageList items={start} renderItem={(entry) => entry.id} />, {
+        wrapper: MantineProvider,
+      });
+      view.unmount();
+      expect(disconnect).toHaveBeenCalled();
+    });
+  });
+
   it('never scrolls with autoScroll={false}', () => {
     const { rerender } = setup({ autoScroll: false, isOwn: () => true });
     rerender([...start, item('d')]);
