@@ -2,14 +2,28 @@ import { render, screen, tests } from '@mantine-tests/core';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Composer, ComposerProps, ComposerStylesNames } from './Composer';
+import { itHasStaticVarsResolver } from '../../../test-utils/it-has-static-vars-resolver';
 import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
 
 const defaultProps: ComposerProps = {};
 
+const busyProps: ComposerProps = {
+  replyTo: { id: 'm1', authorName: 'Maya', body: 'Can you send it?' },
+  modes: [
+    { value: 'reply', label: 'Reply' },
+    { value: 'note', label: 'Note', note: true },
+  ],
+  leftSection: <span>left</span>,
+  rightSection: <span>right</span>,
+};
+
+const getRoot = (container: HTMLElement) =>
+  container.querySelector<HTMLElement>('.mantine-Composer-root')!;
+
 describe('Composer', () => {
   tests.itSupportsSystemProps<ComposerProps, ComposerStylesNames>({
     component: Composer,
-    props: defaultProps,
+    props: busyProps,
     styleProps: true,
     extend: true,
     variant: true,
@@ -17,8 +31,25 @@ describe('Composer', () => {
     classes: true,
     refType: HTMLDivElement,
     displayName: 'Composer',
-    stylesApiSelectors: ['root', 'send'],
+    stylesApiSelectors: [
+      'root',
+      'modes',
+      'reply',
+      'replyText',
+      'replyLabel',
+      'replyAuthor',
+      'replyBody',
+      'cancelReply',
+      'field',
+      'section',
+      'input',
+      'send',
+    ],
   });
+
+  tests.axe([<Composer {...defaultProps} />, <Composer {...busyProps} />]);
+
+  itHasStaticVarsResolver({ component: Composer });
 
   itSupportsAttributes({
     component: Composer,
@@ -33,7 +64,7 @@ describe('Composer', () => {
     const box = screen.getByRole('textbox', { name: 'Message' });
 
     await userEvent.type(box, '  hello  {Enter}');
-    expect(onSend).toHaveBeenCalledWith({ text: 'hello', format: 'text', attachments: [] });
+    expect(onSend).toHaveBeenCalledWith({ text: 'hello', format: 'text' });
     expect(box).toHaveValue('');
   });
 
@@ -53,7 +84,7 @@ describe('Composer', () => {
 
     await userEvent.type(screen.getByRole('textbox'), 'hi');
     await userEvent.click(button);
-    expect(onSend).toHaveBeenCalledWith({ text: 'hi', format: 'text', attachments: [] });
+    expect(onSend).toHaveBeenCalledWith({ text: 'hi', format: 'text' });
   });
 
   it('keeps focus in the box after sending with the button or Enter', async () => {
@@ -113,7 +144,7 @@ describe('Composer', () => {
     await userEvent.type(box, 'hi{Enter}');
     expect(onChange).toHaveBeenCalledTimes(2);
     expect(onKeyDown).toHaveBeenCalledTimes(3);
-    expect(onSend).toHaveBeenCalledWith({ text: 'hi', format: 'text', attachments: [] });
+    expect(onSend).toHaveBeenCalledWith({ text: 'hi', format: 'text' });
   });
 
   it('works controlled', async () => {
@@ -191,7 +222,6 @@ describe('Composer', () => {
     expect(onSend).toHaveBeenCalledWith({
       text: '**yes**',
       format: 'markdown',
-      attachments: [],
       replyToId: 'm1',
     });
   });
@@ -235,7 +265,6 @@ describe('Composer modes', () => {
     expect(onSend).toHaveBeenCalledWith({
       text: 'hi',
       format: 'text',
-      attachments: [],
       mode: 'reply',
     });
   });
@@ -275,6 +304,75 @@ describe('Composer modes', () => {
     expect(container.querySelector('.mantine-Composer-root')).not.toHaveAttribute('data-mode');
 
     await userEvent.type(screen.getByRole('textbox'), 'hi{Enter}');
-    expect(onSend).toHaveBeenCalledWith({ text: 'hi', format: 'text', attachments: [] });
+    expect(onSend).toHaveBeenCalledWith({ text: 'hi', format: 'text' });
+  });
+
+  it('sets only the section size variable by default', () => {
+    const { container } = render(<Composer />);
+    const root = getRoot(container);
+    expect(root.style.getPropertyValue('--composer-radius')).toBe('');
+    expect(root.style.getPropertyValue('--composer-section-size')).toBe(
+      'var(--composer-section-size-sm)'
+    );
+  });
+
+  it('sets the radius and section size variables from props', () => {
+    const { container } = render(<Composer radius="xs" size="lg" />);
+    const root = getRoot(container);
+    expect(root.style.getPropertyValue('--composer-radius')).toBe('var(--mantine-radius-xs)');
+    expect(root.style.getPropertyValue('--composer-section-size')).toBe(
+      'var(--composer-section-size-lg)'
+    );
+  });
+
+  it('sets variables from vars', () => {
+    const { container } = render(
+      <Composer vars={() => ({ root: { '--composer-radius': '3px' } })} />
+    );
+    expect(getRoot(container).style.getPropertyValue('--composer-radius')).toBe('3px');
+  });
+
+  it('sizes the children from size and keeps the default sizes at size sm', () => {
+    const { container, rerender } = render(<Composer {...busyProps} />);
+    const send = () => container.querySelector('.mantine-Composer-send')!;
+    const close = () => container.querySelector('.mantine-Composer-cancelReply')!;
+    const modes = () => container.querySelector('.mantine-Composer-modes')!;
+    expect(send()).toHaveAttribute('data-size', 'lg');
+    expect(close()).toHaveAttribute('data-size', 'sm');
+    expect(modes()).toHaveAttribute('data-size', 'xs');
+
+    rerender(<Composer {...busyProps} size="xl" radius="md" />);
+    expect(send()).toHaveAttribute('data-size', 'input-xl');
+    expect(close()).toHaveAttribute('data-size', 'xl');
+    expect(modes()).toHaveAttribute('data-size', 'lg');
+  });
+
+  it('renders leftSection and rightSection around the text box', () => {
+    const { container } = render(
+      <Composer leftSection={<span>attach</span>} rightSection={<span>emoji</span>} />
+    );
+    const sections = container.querySelectorAll('.mantine-Composer-section');
+    expect(sections).toHaveLength(2);
+    expect(sections[0]).toHaveAttribute('data-position', 'left');
+    expect(sections[0]).toHaveTextContent('attach');
+    expect(sections[1]).toHaveAttribute('data-position', 'right');
+    expect(sections[1]).toHaveTextContent('emoji');
+  });
+
+  it('renders no section without leftSection and rightSection', () => {
+    const { container } = render(<Composer />);
+    expect(container.querySelector('.mantine-Composer-section')).toBeNull();
+  });
+
+  it('passes unstyled to the components it renders', () => {
+    const { container } = render(<Composer {...busyProps} unstyled />);
+    const names = ['SegmentedControl', 'Text', 'CloseButton', 'Textarea', 'ActionIcon'];
+    for (const name of names) {
+      const elements = container.querySelectorAll(`.mantine-${name}-root`);
+      expect(elements.length).toBeGreaterThan(0);
+      for (const element of elements) {
+        expect([...element.classList].filter((cls) => !cls.startsWith('mantine-'))).toEqual([]);
+      }
+    }
   });
 });

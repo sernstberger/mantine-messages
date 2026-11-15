@@ -1,8 +1,14 @@
 .root {
+  --composer-section-size-xs: rem(28px);
+  --composer-section-size-sm: rem(34px);
+  --composer-section-size-md: rem(44px);
+  --composer-section-size-lg: rem(50px);
+  --composer-section-size-xl: rem(60px);
+
   display: flex;
   flex-direction: column;
   border: 1px solid var(--mantine-color-default-border);
-  border-radius: var(--mantine-radius-xl);
+  border-radius: var(--composer-radius, var(--mantine-radius-xl));
   background-color: var(--mantine-color-body);
 
   &:focus-within {
@@ -49,6 +55,15 @@
   min-width: 0;
 }
 
+.replyLabel {
+  color: var(--mantine-color-dimmed);
+}
+
+.replyAuthor {
+  font-weight: 600;
+  color: var(--mantine-color-text);
+}
+
 .field {
   display: flex;
   align-items: flex-end;
@@ -64,4 +79,12 @@
 
 .send {
   flex-shrink: 0;
+}
+
+.section {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  align-self: flex-end;
+  min-height: var(--composer-section-size, rem(34px));
 }
