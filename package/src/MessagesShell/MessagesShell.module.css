@@ -1,0 +1,66 @@
+/* Panes side by side at the full height the shell is given */
+.root {
+  position: relative;
+  display: flex;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: var(--shell-radius);
+  background-color: var(--mantine-color-body);
+
+  &[data-with-border] {
+    border: 1px solid var(--mantine-color-default-border);
+  }
+}
+
+.list {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  width: 300px;
+  min-height: 0;
+  overflow: hidden;
+  border-right: 1px solid var(--mantine-color-default-border);
+}
+
+.main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.aside {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  width: 280px;
+  min-height: 0;
+  overflow: hidden;
+  border-left: 1px solid var(--mantine-color-default-border);
+  background-color: var(--mantine-color-body);
+
+  &[hidden] {
+    display: none;
+  }
+
+  /* Collapsed and opened: over the right edge of Main */
+  &[data-overlay] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 3;
+    max-width: 100%;
+    box-shadow: var(--mantine-shadow-lg);
+  }
+}
+
+/* Behind the open collapsed aside */
+.asideBackdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background-color: rgb(0, 0, 0, 0.25);
+}

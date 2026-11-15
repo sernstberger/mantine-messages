@@ -12,6 +12,7 @@ generateDeclarations({
     getComponentPath('Message/Message.tsx'),
     getComponentPath('TeamThread/TeamThread.tsx'),
     getComponentPath('ThreadPanel/ThreadPanel.tsx'),
+    getComponentPath('MessagesShell/MessagesShell.tsx'),
     getComponentPath('MarkdownBody/MarkdownBody.tsx'),
     getComponentPath('AssistantThread/AssistantThread.tsx'),
     getComponentPath('MessageList/MessageList.tsx'),

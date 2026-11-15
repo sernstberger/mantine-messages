@@ -6,6 +6,7 @@ import type {
   MessageActionsFactory,
   MessageFactory,
   MessageListFactory,
+  MessagesShellFactory,
   ReactionsFactory,
   TeamThreadFactory,
   ThreadPanelFactory,
@@ -207,6 +208,33 @@ export const ThreadPanelStylesApi: StylesApiData<ThreadPanelFactory> = {
   vars: {},
 };
 
+export const MessagesShellStylesApi: StylesApiData<MessagesShellFactory> = {
+  selectors: {
+    root: 'Root element: the panes side by side',
+    list: '`MessagesShell.List`, a region, 300px wide by default',
+    main: '`MessagesShell.Main`, a region that takes the rest of the width',
+    aside: '`MessagesShell.Aside`, a complementary region, 280px wide by default',
+    asideBackdrop: 'Behind the collapsed aside while it is open; a click closes the aside',
+    asideToggle: '`MessagesShell.AsideToggle`, shown while the aside is collapsed',
+  },
+  vars: {
+    root: { '--shell-radius': 'Corner radius, from `radius`' },
+  },
+  modifiers: [
+    { modifier: 'data-with-border', selector: 'root', condition: '`withBorder` is set' },
+    {
+      modifier: 'data-aside-collapsed',
+      selector: 'root',
+      condition: 'The shell is narrower than `asideBreakpoint`',
+    },
+    {
+      modifier: 'data-overlay',
+      selector: 'aside',
+      condition: 'The aside is collapsed and open, over `Main`',
+    },
+  ],
+};
+
 export const MarkdownBodyStylesApi: StylesApiData<MarkdownBodyFactory> = {
   selectors: {
     root: 'Root element, a Mantine Typography',
@@ -270,6 +298,7 @@ export const STYLES_API_DATA = {
   Message: MessageStylesApi,
   TeamThread: TeamThreadStylesApi,
   ThreadPanel: ThreadPanelStylesApi,
+  MessagesShell: MessagesShellStylesApi,
   MarkdownBody: MarkdownBodyStylesApi,
   AssistantThread: AssistantThreadStylesApi,
 };

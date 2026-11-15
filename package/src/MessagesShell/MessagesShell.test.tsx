@@ -1,0 +1,187 @@
+import { render, screen, tests } from '@mantine-tests/core';
+import { fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import React, { useState } from 'react';
+import { MessagesShell, MessagesShellProps, MessagesShellStylesNames } from './MessagesShell';
+
+const panes = (
+  <>
+    <MessagesShell.List>Conversations here</MessagesShell.List>
+    <MessagesShell.Main>
+      <MessagesShell.AsideToggle />
+      Thread here
+    </MessagesShell.Main>
+    <MessagesShell.Aside>Details here</MessagesShell.Aside>
+  </>
+);
+
+const defaultProps: MessagesShellProps = { children: panes };
+
+const { ResizeObserver: originalObserver } = window;
+
+/** The shell measures itself through ResizeObserver; this one reports `width` at once */
+function measureAs(width: number) {
+  window.ResizeObserver = class {
+    constructor(private callback: ResizeObserverCallback) {}
+
+    observe() {
+      this.callback(
+        [
+          {
+            borderBoxSize: [{ inlineSize: width, blockSize: 600 }],
+            contentRect: { x: 0, y: 0, top: 0, left: 0, bottom: 600, right: width },
+          } as unknown as ResizeObserverEntry,
+        ],
+        this as unknown as ResizeObserver
+      );
+    }
+
+    unobserve() {}
+
+    disconnect() {}
+  };
+}
+
+const aside = () => screen.getByRole('complementary', { hidden: true });
+
+describe('MessagesShell', () => {
+  afterEach(() => {
+    window.ResizeObserver = originalObserver;
+  });
+
+  tests.itSupportsSystemProps<MessagesShellProps, MessagesShellStylesNames>({
+    component: MessagesShell,
+    props: defaultProps,
+    styleProps: true,
+    extend: true,
+    variant: true,
+    size: true,
+    classes: true,
+    refType: HTMLDivElement,
+    displayName: 'MessagesShell',
+    stylesApiSelectors: ['root', 'list', 'main', 'aside'],
+  });
+
+  it('lays out labelled regions, with labels of your own', () => {
+    render(
+      <MessagesShell withBorder radius="lg">
+        <MessagesShell.List aria-label="Tickets">Tickets</MessagesShell.List>
+        <MessagesShell.Main>Main</MessagesShell.Main>
+        <MessagesShell.Aside>Aside</MessagesShell.Aside>
+      </MessagesShell>
+    );
+    expect(screen.getByRole('region', { name: 'Tickets' })).toHaveClass(
+      'mantine-MessagesShell-list'
+    );
+    expect(screen.getByRole('region', { name: 'Main' })).toBeInTheDocument();
+    expect(screen.getByRole('complementary', { name: 'Details' })).toBeVisible();
+    const root = screen.getByRole('region', { name: 'Main' }).parentElement!;
+    expect(root).toHaveAttribute('data-with-border');
+    expect(root).toHaveStyle({ '--shell-radius': 'var(--mantine-radius-lg)' });
+    expect(root).not.toHaveAttribute('data-aside-collapsed');
+  });
+
+  it('keeps the aside beside Main while there is room, without a toggle', () => {
+    measureAs(1200);
+    render(<MessagesShell>{panes}</MessagesShell>);
+    expect(aside()).toBeVisible();
+    expect(screen.queryByRole('button', { name: 'Details' })).toBeNull();
+  });
+
+  it('collapses the aside below the breakpoint; the toggle and Escape open and close it', async () => {
+    measureAs(800);
+    const onAsideOpenedChange = jest.fn();
+    const onClick = jest.fn();
+    const onKeyDown = jest.fn();
+    render(
+      <MessagesShell onAsideOpenedChange={onAsideOpenedChange}>
+        <MessagesShell.Main>
+          <MessagesShell.AsideToggle onClick={onClick} />
+        </MessagesShell.Main>
+        <MessagesShell.Aside onKeyDown={onKeyDown}>
+          <button type="button">Inside</button>
+        </MessagesShell.Aside>
+      </MessagesShell>
+    );
+
+    const toggle = await screen.findByRole('button', { name: 'Details' });
+    expect(toggle.closest('[data-aside-collapsed]')).toBeInTheDocument();
+    expect(aside()).not.toBeVisible();
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(toggle).toHaveAttribute('aria-controls', aside().id);
+
+    await userEvent.click(toggle);
+    expect(onClick).toHaveBeenCalled();
+    expect(onAsideOpenedChange).toHaveBeenLastCalledWith(true);
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(aside()).toBeVisible();
+    expect(aside()).toHaveAttribute('data-overlay');
+
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Inside' }), { key: 'a' });
+    expect(aside()).toBeVisible();
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Inside' }), { key: 'Escape' });
+    expect(onKeyDown).toHaveBeenCalledTimes(2);
+    expect(onAsideOpenedChange).toHaveBeenLastCalledWith(false);
+    expect(aside()).not.toBeVisible();
+
+    await userEvent.click(toggle);
+    expect(aside()).toBeVisible();
+    await userEvent.click(document.querySelector('.mantine-MessagesShell-asideBackdrop')!);
+    expect(aside()).not.toBeVisible();
+    expect(document.querySelector('.mantine-MessagesShell-asideBackdrop')).toBeNull();
+    await userEvent.click(toggle);
+    await userEvent.click(toggle);
+    expect(aside()).not.toBeVisible();
+  });
+
+  it('ignores Escape while the aside has room', () => {
+    const onAsideOpenedChange = jest.fn();
+    render(<MessagesShell onAsideOpenedChange={onAsideOpenedChange}>{panes}</MessagesShell>);
+    fireEvent.keyDown(aside(), { key: 'Escape' });
+    expect(onAsideOpenedChange).not.toHaveBeenCalled();
+  });
+
+  it('can be controlled, take its own toggle label, and never collapse with a breakpoint of 0', async () => {
+    measureAs(800);
+
+    function Controlled() {
+      const [opened, setOpened] = useState(true);
+      return (
+        <MessagesShell asideOpened={opened} onAsideOpenedChange={setOpened}>
+          <MessagesShell.Main>
+            <MessagesShell.AsideToggle className="toggle">Ticket details</MessagesShell.AsideToggle>
+          </MessagesShell.Main>
+          <MessagesShell.Aside>Details</MessagesShell.Aside>
+        </MessagesShell>
+      );
+    }
+
+    const { unmount } = render(<Controlled />);
+    const toggle = await screen.findByRole('button', { name: 'Ticket details' });
+    expect(toggle).toHaveClass('toggle', 'mantine-MessagesShell-asideToggle');
+    expect(aside()).toBeVisible();
+    await userEvent.click(toggle);
+    expect(aside()).not.toBeVisible();
+    unmount();
+
+    render(<MessagesShell asideBreakpoint={0}>{panes}</MessagesShell>);
+    expect(aside()).toBeVisible();
+    expect(screen.queryByRole('button', { name: 'Details' })).toBeNull();
+  });
+
+  it('starts with the collapsed aside open when asked', async () => {
+    measureAs(800);
+    render(<MessagesShell defaultAsideOpened>{panes}</MessagesShell>);
+    expect(await screen.findByRole('button', { name: 'Details' })).toHaveAttribute(
+      'aria-expanded',
+      'true'
+    );
+    expect(aside()).toBeVisible();
+  });
+
+  it('needs the shell around its parts', () => {
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    expect(() => render(<MessagesShell.List />)).toThrow(/must be used inside MessagesShell/);
+    jest.restoreAllMocks();
+  });
+});

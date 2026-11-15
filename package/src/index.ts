@@ -86,3 +86,15 @@ export type {
   ThreadPanelStylesNames,
   ThreadPanelLabels,
 } from './ThreadPanel/ThreadPanel';
+
+export { MessagesShell } from './MessagesShell/MessagesShell';
+export type {
+  MessagesShellProps,
+  MessagesShellFactory,
+  MessagesShellStylesNames,
+  MessagesShellCssVariables,
+  MessagesShellListProps,
+  MessagesShellMainProps,
+  MessagesShellAsideProps,
+  MessagesShellAsideToggleProps,
+} from './MessagesShell/MessagesShell';

@@ -103,6 +103,38 @@ const list = useRef<MessageListControl>(null);
 <Button onClick={() => list.current?.jumpTo('n42')}>Show the first reply</Button>
 ```
 
+## Panes
+
+`MessagesShell` puts the panes of a messaging app side by side: `MessagesShell.List` (300px,
+change it with `w`), `MessagesShell.Main` (the rest of the width) and `MessagesShell.Aside`
+(280px), each optional. It fills the height you give it, draws the borders between panes, and
+each pane is a labelled region (`aria-label` names it). `withBorder` and `radius` frame the whole.
+
+The shell measures itself. Below `asideBreakpoint` (960px by default, `0` never) the aside hides
+and `MessagesShell.AsideToggle`, which renders nothing while there is room, opens it over `Main`;
+Escape or a click beside it closes it. Control it with `asideOpened` and `onAsideOpenedChange`, for example to open a
+thread panel as soon as a thread is picked. The Messenger demo above and the work queue below are
+built on it.
+
+```tsx
+<MessagesShell withBorder radius="lg" h={600}>
+  <MessagesShell.List aria-label="Conversations">
+    <ScrollArea style={{ flex: 1 }}>
+      <Inbox conversations={conversations} value={selected} onChange={setSelected} />
+    </ScrollArea>
+  </MessagesShell.List>
+  <MessagesShell.Main aria-label="Conversation">
+    <Group justify="space-between" px="md" py="sm">
+      <Text fw={600}>{title}</Text>
+      <MessagesShell.AsideToggle />
+    </Group>
+    <ChatThread messages={messages} users={users} currentUserId="me" style={{ flex: 1 }} />
+    <Composer onSend={send} m="sm" />
+  </MessagesShell.Main>
+  <MessagesShell.Aside>{details}</MessagesShell.Aside>
+</MessagesShell>
+```
+
 ## Team chat
 
 `TeamThread` shows Slack-style rows: avatar, name and time on the first message of a group, and
