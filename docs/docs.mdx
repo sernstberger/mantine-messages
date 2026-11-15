@@ -122,6 +122,48 @@ one. While older messages load, and in the update that adds them, it is `aria-bu
 readers do not read the whole page of history out as new messages; the loader at the top is
 labelled `labels.loadingOlder`.
 
+### Windowing
+
+Every message of a thread is in the page by default, which is right for most threads. It stops
+being right at a few thousand messages. Measured with `ChatThread` in a 600px panel (production
+build, Chromium, Firefox and WebKit):
+
+- 1,000 messages: opens in 0.2 to 0.4 s, 11,000 DOM nodes, a new message shows in under 30 ms
+- 2,500 messages: opens in 0.4 to 0.8 s, 28,000 nodes, a new message in 26 to 63 ms; still
+  comfortable
+- 5,000 messages: opens in 0.8 to 1.5 s, 55,000 nodes, a new message in 64 to 128 ms
+- 10,000 messages: opens in 1.7 to 3.9 s, 114,000 nodes, 239 MB of JavaScript heap (Chromium), a
+  new message in 191 to 342 ms, and scrolling drops to 20 frames a second in WebKit
+
+Below about 2,500 messages, leave it as it is, and page history in with `onLoadOlder`. Above that,
+render only the rows in view. Like Mantine's own `Combobox`, `Tree` and `Table`, mantine-messages
+does not ship a virtualizer: you bring one, and `MessageList` gives it what it needs. Pass a
+`rowsComponent` to `MessageList`, `ChatThread`, `TeamThread` or `AssistantThread`. It receives:
+
+- `rows`: every row, oldest first, as data: items, date dividers and the unread line, each with a
+  `key` (an item's `id`)
+- `viewportRef`: the scrolling element, for the virtualizer's `getScrollElement`
+- `handlersRef`: set `{ scrollToIndex }` on it, so `jumpTo` can reach a message that is not
+  rendered
+
+Render each row in view with `MessageList.Row`, which takes `style` and `ref` to position and
+measure it. The list keeps its chat behaviour with a window: it opens at the newest message and
+follows new ones, keeps the message you are reading in place when older ones load above, and
+`jumpTo` scrolls to a message outside the window, waits for it to render, then focuses and flashes
+it. The demo uses [@tanstack/react-virtual](https://tanstack.com/virtual/latest), the virtualizer
+Mantine's docs recommend, on 10,000 messages; it opens in 58 ms in Chromium, with 321 DOM nodes and
+17 MB of heap, and a new message shows in 9 ms. `initialOffset` starts the virtualizer at the end,
+where the list opens.
+
+<Demo data={demos.longThread} />
+
+With a window, only the rendered rows are in the accessibility tree. The list is still a
+`role="log"` with polite announcements, so new messages are read out, but a screen reader's browse
+cursor reaches only the messages near the view, and focus on a message is lost when it scrolls far
+out of the window. `jumpTo` with `focus` (the default) brings a message into the window and
+focuses it, so search results and reply quotes still lead keyboard and screen reader users to the
+message.
+
 ## Building your own layout
 
 `MessageList` is the engine under `ChatThread`: give it any items with `id`, `authorId` and

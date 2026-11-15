@@ -21,6 +21,7 @@
     "@mdx-js/react": "^3.1.0",
     "@next/mdx": "16.2.2",
     "@tabler/icons-react": "^3.33.0",
+    "@tanstack/react-virtual": "^3.14.22",
     "@types/mdx": "^2.0.13",
     "mantine-messages": "workspace:*",
     "next": "16.2.2",
