@@ -1,4 +1,4 @@
-import { formatDay, formatShort, formatTime, formatBytes } from './format';
+import { formatDay, formatShort, formatTime, formatBytes, formatRelative } from './format';
 
 const now = new Date(2026, 10, 15, 12, 0);
 
@@ -46,5 +46,22 @@ describe('formatBytes', () => {
     expect(formatBytes(512, 'en-US')).toBe('512 B');
     expect(formatBytes(1536, 'en-US')).toBe('1.5 KB');
     expect(formatBytes(5 * 1024 * 1024, 'en-US')).toBe('5 MB');
+  });
+});
+
+describe('formatRelative', () => {
+  const ago = (milliseconds: number) => new Date(now.getTime() - milliseconds);
+  const MINUTE = 60 * 1000;
+
+  it('says now, minutes, hours or days ago', () => {
+    expect(formatRelative(ago(30 * 1000), 'en-US', now)).toBe('now');
+    expect(formatRelative(ago(5 * MINUTE), 'en-US', now)).toBe('5 minutes ago');
+    expect(formatRelative(ago(2 * 60 * MINUTE), 'en-US', now)).toBe('2 hours ago');
+    expect(formatRelative(ago(24 * 60 * MINUTE), 'en-US', now)).toBe('yesterday');
+    expect(formatRelative(ago(3 * 24 * 60 * MINUTE), 'en-US', now)).toBe('3 days ago');
+  });
+
+  it('measures from the current time by default', () => {
+    expect(formatRelative(new Date(), 'en-US')).toBe('now');
   });
 });

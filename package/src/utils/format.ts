@@ -72,3 +72,23 @@ export function formatBytes(bytes: number, locale?: string) {
 
   return `${format(bytes / 1024 / 1024)} MB`;
 }
+
+const RELATIVE_UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
+  ['day', 24 * 60 * 60],
+  ['hour', 60 * 60],
+  ['minute', 60],
+];
+
+/** Time from now in words: "now", "5 minutes ago", "2 hours ago", "yesterday" */
+export function formatRelative(value: MessageDate, locale?: string, now = new Date()) {
+  const seconds = Math.round((toDate(value).getTime() - now.getTime()) / 1000);
+  const relative = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+
+  for (const [unit, size] of RELATIVE_UNITS) {
+    if (Math.abs(seconds) >= size) {
+      return relative.format(Math.round(seconds / size), unit);
+    }
+  }
+
+  return relative.format(0, 'second');
+}
