@@ -131,3 +131,6 @@ const replies = [
   'Oh nice, the menu looks great.',
   'Can we do the vegetarian option for 12 of them?',
 ];
+
+/** Same as the title's last part, so Storybook shows the app as one sidebar item */
+Messenger.storyName = 'Messenger';

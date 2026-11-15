@@ -232,3 +232,6 @@ export function Team() {
     </Box>
   );
 }
+
+/** Same as the title's last part, so Storybook shows the app as one sidebar item */
+Team.storyName = 'Team';

@@ -23,3 +23,6 @@ export function WorkQueue() {
     </Box>
   );
 }
+
+/** Same as the title's last part, so Storybook shows the app as one sidebar item */
+WorkQueue.storyName = 'WorkQueue';
