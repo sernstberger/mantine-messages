@@ -13,10 +13,10 @@ jobs:
   test_pull_request:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
       - name: Enable Corepack
         run: corepack enable
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v7
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
@@ -36,10 +36,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Enable Corepack
         run: corepack enable
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
@@ -51,7 +51,7 @@ jobs:
         run: echo "version=$(npx playwright --version | cut -d' ' -f2)" >> "$GITHUB_OUTPUT"
       - name: Cache browsers
         id: browsers
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
@@ -67,7 +67,7 @@ jobs:
         run: npx playwright test
       - name: Upload report
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report
           path: |
