@@ -218,6 +218,27 @@ Errors are read by their alert.
 
 <Demo data={demos.assistant} />
 
+## Work queue (example)
+
+A support work queue built from the package: an example app, not a component. Its source is in
+[`docs/demos/WorkQueue`](https://github.com/sernstberger/mantine-messages/tree/main/docs/demos/WorkQueue);
+copy what you need. Ticket fields (status, priority, assignee, SLA, snooze) are the app's own
+types; the package knows nothing about them.
+
+- Triage: a Mantine `Table` with status, priority, assignee, age and SLA; sort by priority, age
+  or SLA; filter by view (Inbox, Snoozed, Closed, All), priority and assignee; search; select
+  tickets to assign, tag or close them together
+- Timeline: one `MessageList` per ticket with a `renderItem` that draws emails as cards, chat
+  messages and internal notes (`visibility: 'internal'`) with `Message` parts, and events as
+  lines. An email card opens the full message in a `Modal`
+- Composer: `Composer` with Reply and Internal note `modes`; `draft.mode` decides which one is
+  added
+- Actions: assign, status, priority and snooze until a time; a snoozed ticket leaves the Inbox
+  until then. Each change adds an event to the timeline, and the Activity list beside it jumps to
+  that event through `controlRef`
+
+<Demo data={demos.workQueue} />
+
 ## Inbox
 
 `Inbox` lists conversations with a preview of the last message, its time and an unread count.

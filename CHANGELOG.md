@@ -37,3 +37,6 @@ will be 0.1.0.
 - `MessageList`: `controlRef` gets `{ jumpTo }`, so code outside the list can scroll to an item
   and flash it; `ChatThread`, `TeamThread` and `AssistantThread` pass it on. Type:
   `MessageListControl`
+- Work queue example in the docs and Storybook: a triage table (sort, filter, search, bulk
+  assign, close and tag), one timeline per ticket mixing emails, chat, internal notes and events,
+  Reply and Internal note from one composer, and assign, status, priority and snooze
