@@ -1,14 +1,14 @@
 import { Badge, Box, Group, Paper, Switch, Text } from '@mantine/core';
 import React, { useEffect, useRef, useState } from 'react';
-import { getAssistantText } from './AssistantThread/assistant-text';
-import { AssistantThread } from './AssistantThread/AssistantThread';
-import { Composer, type ComposerDraft } from './Composer/Composer';
-import type { AssistantMessage, AssistantPart } from './types';
-import { MarkdownAdapterProvider } from './MarkdownBody/MarkdownAdapterProvider';
-import { markdownAdapter } from '../../.storybook/markdown-adapter';
+import { getAssistantText } from './assistant-text';
+import { AssistantThread } from './AssistantThread';
+import { Composer, type ComposerDraft } from '../Composer/Composer';
+import type { AssistantMessage, AssistantPart } from '../types';
+import { MarkdownAdapterProvider } from '../MarkdownBody/MarkdownAdapterProvider';
+import { markdownAdapter } from '../../../.storybook/markdown-adapter';
 
 export default {
-  title: 'Assistant',
+  title: 'AssistantThread',
   decorators: [
     (Story: React.ComponentType) => (
       <MarkdownAdapterProvider adapter={markdownAdapter}>

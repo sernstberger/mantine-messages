@@ -2,7 +2,7 @@
 import { expect, openStory, scrollMetrics, scrollTo, test } from './support/story';
 
 test('opens at the newest message', async ({ page }) => {
-  await openStory(page, 'messages--long-thread');
+  await openStory(page, 'chatthread--long-thread');
   const log = page.getByRole('log');
 
   // Fully in view and at the very bottom, also after the Composer settles its height
@@ -11,7 +11,7 @@ test('opens at the newest message', async ({ page }) => {
 });
 
 test('stays at the bottom when a reply arrives', async ({ page }) => {
-  await openStory(page, 'messages--messenger');
+  await openStory(page, 'messenger--messenger');
   const log = page.getByRole('log');
   const items = log.locator('[data-item-id]');
   const before = await items.count();
@@ -28,7 +28,7 @@ test('stays at the bottom when a reply arrives', async ({ page }) => {
 });
 
 test('keeps the view steady when older messages load above', async ({ page }) => {
-  await openStory(page, 'messages--long-thread');
+  await openStory(page, 'chatthread--long-thread');
   const log = page.getByRole('log');
   const oldest = log.getByText('Message 41 of 80', { exact: true });
   await expect(log.getByText('Message 80 of 80')).toBeInViewport();
@@ -48,7 +48,7 @@ test('keeps the view steady when older messages load above', async ({ page }) =>
 // The viewport shrinks without a render as the Composer below grows with each line; a
 // ResizeObserver in use-message-list.ts keeps the newest message in view
 test('stays at the bottom while the composer grows', async ({ page }) => {
-  await openStory(page, 'messages--long-thread');
+  await openStory(page, 'chatthread--long-thread');
   const log = page.getByRole('log');
   await expect(log.getByText('Message 80 of 80')).toBeInViewport();
 

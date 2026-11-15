@@ -1,10 +1,10 @@
 import { Box, Group, ScrollArea, Stack, Text } from '@mantine/core';
 import React, { useState } from 'react';
-import { ChatThread } from './ChatThread/ChatThread';
-import { Composer } from './Composer/Composer';
-import { Inbox } from './Inbox/Inbox';
-import { MessagesShell } from './MessagesShell/MessagesShell';
-import { sampleConversations, sampleMessages, sampleUsers } from './sample-data';
+import { ChatThread } from '../ChatThread/ChatThread';
+import { Composer } from '../Composer/Composer';
+import { Inbox } from '../Inbox/Inbox';
+import { MessagesShell } from './MessagesShell';
+import { sampleConversations, sampleMessages, sampleUsers } from '../sample-data';
 
 export default { title: 'MessagesShell' };
 

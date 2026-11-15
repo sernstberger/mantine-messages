@@ -2,7 +2,7 @@
 import { expect, openStory, scrollMetrics, test } from './support/story';
 
 test('a streaming answer grows the thread and stays at the bottom', async ({ page }) => {
-  await openStory(page, 'assistant--assistant');
+  await openStory(page, 'assistantthread--assistant');
   const log = page.getByRole('log');
   const composer = page.getByRole('textbox', { name: 'Ask anything' });
   const start = await scrollMetrics(log);
