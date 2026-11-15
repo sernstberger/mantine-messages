@@ -1,4 +1,5 @@
 import {
+  FOCUS_CLASS_NAMES,
   Box,
   BoxProps,
   Button,
@@ -205,7 +206,13 @@ export const MessagesShellAside = factory<MessagesShellAsideFactory>((_props) =>
             ctx.setAsideOpened(false);
           }
         }}
-        {...ctx.getStyles('aside', { className, style, classNames, styles })}
+        {...ctx.getStyles('aside', {
+          className:
+            [overlay && FOCUS_CLASS_NAMES.never, className].filter(Boolean).join(' ') || undefined,
+          style,
+          classNames,
+          styles,
+        })}
         {...others}
       />
     </>

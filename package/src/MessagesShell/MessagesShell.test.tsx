@@ -316,6 +316,7 @@ describe('MessagesShell', () => {
 
     await userEvent.click(toggle);
     expect(aside()).toHaveFocus();
+    expect(aside()).toHaveClass('mantine-focus-never');
     await userEvent.tab();
     expect(screen.getByRole('button', { name: 'Inside' })).toHaveFocus();
 
