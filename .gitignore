@@ -145,3 +145,7 @@ package/README.md
 docs/next-env.d.ts
 docs/docgen.json
 .claude/run.log
+
+# Agent worktrees and local logs; build output of storybook build
+.claude/worktrees/
+storybook-static/
