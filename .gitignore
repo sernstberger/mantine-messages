@@ -145,3 +145,9 @@ package/README.md
 docs/next-env.d.ts
 docs/docgen.json
 .claude/run.log
+
+# Playwright and the static Storybook it tests
+storybook-static
+playwright-report
+blob-report
+test-results

@@ -1,5 +1,14 @@
 {
-  "include": ["package", "scripts", "@types", "test-utils", "docs/demos/WorkQueue"],
+  "include": [
+    "package",
+    "scripts",
+    "@types",
+    "test-utils",
+    "docs/demos/WorkQueue",
+    "e2e",
+    "harness",
+    "playwright.config.ts"
+  ],
   "compilerOptions": {
     "types": ["node", "jest", "@testing-library/jest-dom"],
     "target": "ES2015",
