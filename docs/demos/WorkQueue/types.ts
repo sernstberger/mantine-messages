@@ -1,7 +1,5 @@
 import type { ChatMessage, MessageBase, MessagesUser, SystemEvent } from 'mantine-messages';
 
-// Work-queue fields belong to this example app, never to the package
-
 export type TicketStatus = 'open' | 'pending' | 'closed';
 
 export type TicketPriority = 'urgent' | 'high' | 'normal' | 'low';

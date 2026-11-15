@@ -31,7 +31,6 @@ export function useWorkQueue(nowProp?: Date) {
   );
   const counts = useMemo(() => countByView(tickets, now), [tickets, now]);
 
-  // A bulk action applies to the selection, which then clears
   const bulk = (action: QueueAction) => {
     dispatch(action);
     setSelectedIds([]);
@@ -46,19 +45,16 @@ export function useWorkQueue(nowProp?: Date) {
     agents,
     tags: TAGS,
 
-    /** Tickets in the view that match the filters, sorted */
     visible,
     counts,
     filters,
 
-    /** Changing a filter clears the selection: never act on tickets the user cannot see */
     setFilters: (next: QueueFilters) => {
       setFiltersState(next);
       setSelectedIds([]);
     },
     sort,
 
-    /** The sorted key flips its direction; another key starts ascending */
     sortBy: (key: SortKey) => setSort((current) => nextSort(current, key)),
     selectedIds,
     setSelectedIds,

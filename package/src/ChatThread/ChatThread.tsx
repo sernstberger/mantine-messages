@@ -173,10 +173,8 @@ const defaultProps: Partial<ChatThreadProps> = {
   actions: ['reply', 'react', 'edit'],
 };
 
-// Parts of the inner MessageList that ChatThread's Styles API also styles
 const listParts = ['list', 'divider', 'unread', 'loader', 'item'] as const;
 
-// What every row shares; rebuilt only when one of these props changes
 interface ChatRowShared {
   getStyles: GetStylesApi<ChatThreadFactory>;
   labels: ChatThreadLabels;
@@ -196,19 +194,17 @@ interface ChatRowShared {
 interface ChatRowProps {
   message: ChatMessage;
 
-  /** The answered message; `null` when it is not in `messages`, `undefined` for no reply */
+  // null: the answered message is not loaded; undefined: this message is not a reply
   original: ChatMessage | null | undefined;
   groupStart: boolean;
   groupEnd: boolean;
   highlighted: boolean;
 
-  /** This is the current user's newest message, which shows every status */
   lastOwn: boolean;
   jumpTo: (id: string) => void;
   shared: ChatRowShared;
 }
 
-// One message; memoised, so a thread that renders again renders only the rows that changed
 const ChatRow = memo(function ChatRow({
   message,
   original,
@@ -229,10 +225,8 @@ const ChatRow = memo(function ChatRow({
   const date = toDate(message.createdAt);
   const time = formatTime(date, locale);
   const status = message.status;
-  // Sending and failed are said for every own message, the rest only for the last one
   const showStatus = own && !!status && (lastOwn || status === 'sending' || status === 'failed');
 
-  // The answered message: a caption, then a faded copy tucked under the reply's bubble
   const quote =
     original === null ? (
       <Box mod={{ unavailable: true }} {...getStyles('quote')}>
@@ -397,13 +391,12 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
     [messages, currentUserId]
   );
 
-  // Handlers are called through this, so a new handler function each render (an inline arrow)
-  // does not render every row again; rows only need to know whether a handler is set
+  // Called through a ref, so an inline handler does not render every memoized row
   const handlers = useRef(props);
   handlers.current = props;
   const has = [!!onReply, !!onReact, !!onEdit, !!onToggleReaction, !!onOpenAttachment] as const;
 
-  // getStyles is new each render, but what it returns only changes with these props and the theme
+  // getStyles is new each render; its result changes only with these props and the theme
   const shared = useMemo<ChatRowShared>(
     () => ({
       getStyles,

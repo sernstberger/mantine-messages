@@ -26,7 +26,6 @@ const time = (item: TimelineItem) =>
 /** Emails, chat, internal notes and events of one ticket, in one list */
 export function TicketTimeline({ items, users, controlRef, onOpenEmail }: TicketTimelineProps) {
   const nameOf = nameGetter(users);
-  // The note's accent bar sits on the start edge
   const { dir } = useDirection();
   const bar = dir === 'rtl' ? '-3px' : '3px';
 

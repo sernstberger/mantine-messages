@@ -9,7 +9,6 @@ import type { Ticket } from './types';
 const now = new Date(2026, 10, 16, 10, 0);
 const ticketById = (id: string) => createTickets(now).find((ticket) => ticket.id === id)!;
 
-/** TicketView over the real reducer, so actions show up in the ticket */
 function Harness({ initial, onBack = () => {} }: { initial: Ticket; onBack?: () => void }) {
   const [tickets, dispatch] = useReducer(queueReducer, [initial]);
   return (

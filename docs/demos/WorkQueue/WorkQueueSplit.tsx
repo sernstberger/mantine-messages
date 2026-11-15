@@ -29,11 +29,10 @@ export function WorkQueueSplit({ now: nowProp, defaultTicketId, h = 640 }: WorkQ
   const { dispatch } = queue;
   const timeline = useRef<MessageListControl>(null);
   const [detailsOpened, setDetailsOpened] = useState(false);
-  // The open ticket stays open when it leaves the view (closed or snoozed) until another is picked
+  // Stays open after leaving the view (closed, snoozed) until another ticket is picked
   const [openId, setOpenId] = useState(() => defaultTicketId ?? queue.visible[0]?.id);
   const open = queue.tickets.find((ticket) => ticket.id === openId);
 
-  // Opening a ticket reads it
   useEffect(() => {
     if (open?.unread) {
       dispatch({ type: 'markRead', id: open.id });
@@ -115,7 +114,7 @@ export function WorkQueueSplit({ now: nowProp, defaultTicketId, h = 640 }: WorkQ
               dispatch={dispatch}
               onJumpTo={(id) => {
                 timeline.current!.jumpTo(id);
-                // Collapsed details cover the timeline: get out of the way of the item
+                // Collapsed details cover the timeline
                 setDetailsOpened(false);
               }}
             />

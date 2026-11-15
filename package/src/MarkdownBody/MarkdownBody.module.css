@@ -5,12 +5,10 @@
   white-space: normal;
   overflow-wrap: anywhere;
 
-  /* Typography spaces paragraphs for articles; messages are tighter */
   & :where(p, ul, ol, blockquote, table) {
     margin-bottom: var(--mantine-spacing-sm);
   }
 
-  /* Wide tables scroll instead of widening the message */
   & :where(table) {
     display: block;
     max-width: 100%;
@@ -25,7 +23,6 @@
   overflow: hidden;
 }
 
-/* Language on the left, copy button on the right */
 .codeHeader {
   display: flex;
   align-items: center;

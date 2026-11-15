@@ -43,7 +43,6 @@ const RESULTS = {
   ],
 };
 
-/** One change the fake model makes per tick */
 type Step = (message: AssistantMessage) => AssistantMessage;
 
 function updateLast(
@@ -71,7 +70,6 @@ const append =
 const settle = (part: AssistantPart): AssistantPart =>
   part.type === 'tool' ? part : { ...part, state: 'done' };
 
-/** Where Stop leaves a part: text and reasoning done, a running tool failed */
 const stopPart = (part: AssistantPart): AssistantPart => {
   if (part.type !== 'tool') {
     return { ...part, state: 'done' };
@@ -80,10 +78,8 @@ const stopPart = (part: AssistantPart): AssistantPart => {
   return part.state === 'running' ? { ...part, state: 'error', output: 'Stopped' } : part;
 };
 
-/** Words with the space before them, so joining them gives the text back */
 const tokens = (text: string) => text.match(/\s*\S+/g) ?? [];
 
-/** Everything the fake model does for one prompt: think, search, then write */
 function script(prompt: string, fail: boolean): Step[] {
   const reasoning = `They asked: "${prompt}". A hook that delays a changing value fits. Check the Mantine docs for an existing one, then show the code and the gotchas.`;
 
@@ -139,7 +135,6 @@ const initialMessages: AssistantMessage[] = [
   script(FIRST, false).reduce((message, step) => step(message), answerShell('answer-0')),
 ];
 
-/** A fake model: streams a canned answer, one step every 30 ms, with Stop, regenerate and edit */
 function useFakeAssistant() {
   const [messages, setMessages] = useState<AssistantMessage[]>(initialMessages);
   const [fail, setFail] = useState(false);
@@ -148,7 +143,6 @@ function useFakeAssistant() {
 
   useEffect(() => () => clearInterval(timer.current), []);
 
-  /** Answers the last prompt of `history` */
   const run = (history: AssistantMessage[]) => {
     clearInterval(timer.current);
     count.current += 1;

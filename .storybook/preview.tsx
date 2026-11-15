@@ -51,7 +51,11 @@ const preview: Preview = {
 
       const scheme = (context.globals.theme || 'light') as 'light' | 'dark';
 
-      return <MantineProvider forceColorScheme={scheme}>{renderStory()}</MantineProvider>;
+      return (
+        <React.StrictMode>
+          <MantineProvider forceColorScheme={scheme}>{renderStory()}</MantineProvider>
+        </React.StrictMode>
+      );
     },
   ],
 };

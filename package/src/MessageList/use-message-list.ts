@@ -29,9 +29,8 @@ export interface UseMessageListOptions {
   loadingOlder?: boolean;
 }
 
-// How close to an edge, in px, still counts as at that edge
-const BOTTOM = 80;
-const TOP = 120;
+const AT_BOTTOM_THRESHOLD_PX = 80;
+const LOAD_OLDER_THRESHOLD_PX = 120;
 
 /**
  * Viewport behaviour of a message list. Opens at the newest item; follows new items, and the newest one as it grows, while the
@@ -49,48 +48,40 @@ export function useMessageList({
 }: UseMessageListOptions) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const atBottom = useRef(true);
-  // A smooth scroll fires scroll events on its way down; they must not count as the user leaving
-  const pinnedUntil = useRef(0);
+  const ignoreScrollPositionUntil = useRef(0);
   const previous = useRef<{ first?: string; last?: string; height: number }>({ height: 0 });
   const reduceMotion = useReducedMotion();
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const flash = useTimeout(() => setHighlightedId(null), 1600);
-  // `firstId` that onLoadOlder was last called for: scroll events can arrive before the app
-  // re-renders with loadingOlder, so without this one scroll could ask twice
-  const requestedFor = useRef<string | undefined>(undefined);
+  const loadOlderRequestedForFirstId = useRef<string | undefined>(undefined);
 
-  // Older items arriving at the top must not be read out as new messages by the live log, so the
-  // log stays aria-busy while they load and for the render that inserts them (React's "adjust
-  // state while rendering" pattern, so the flag is already set in the commit that adds them)
+  // Set during render, so the live log is already aria-busy in the commit that prepends older items
   const [ids, setIds] = useState({ first: firstId, last: lastId });
-  const [settling, setSettling] = useState(false);
+  const [prependingOlder, setPrependingOlder] = useState(false);
 
   if (ids.first !== firstId || ids.last !== lastId) {
     setIds({ first: firstId, last: lastId });
-    setSettling(ids.first !== undefined && firstId !== ids.first && lastId === ids.last);
+    setPrependingOlder(ids.first !== undefined && firstId !== ids.first && lastId === ids.last);
   }
 
   useEffect(() => {
-    if (settling) {
-      setSettling(false);
+    if (prependingOlder) {
+      setPrependingOlder(false);
     }
-  }, [settling]);
+  }, [prependingOlder]);
 
-  // When loading ends without new items (for example it failed), the user may ask again
   useIsomorphicEffect(() => {
     if (!loadingOlder) {
-      requestedFor.current = undefined;
+      loadOlderRequestedForFirstId.current = undefined;
     }
   }, [loadingOlder]);
 
-  // Runs after every render, so `previous.height` is always the height before this render
   useIsomorphicEffect(() => {
     const viewport = viewportRef.current!;
     const before = previous.current;
     previous.current = { first: firstId, last: lastId, height: viewport.scrollHeight };
 
     if (firstId === before.first && lastId === before.last) {
-      // Same items, but the newest may have grown, for example an answer streaming in
       if (autoScroll && atBottom.current && viewport.scrollHeight > before.height) {
         viewport.scrollTop = viewport.scrollHeight;
       }
@@ -106,7 +97,6 @@ export function useMessageList({
       return;
     }
 
-    // Ids changed and nothing was prepended, so the newest item is new
     if (!autoScroll) {
       return;
     }
@@ -115,7 +105,7 @@ export function useMessageList({
 
     if (fresh || atBottom.current || lastIsOwn) {
       atBottom.current = true;
-      pinnedUntil.current = Date.now() + 600;
+      ignoreScrollPositionUntil.current = Date.now() + 600;
       viewport.scrollTo({
         top: viewport.scrollHeight,
         behavior: fresh || reduceMotion ? 'auto' : 'smooth',
@@ -123,10 +113,7 @@ export function useMessageList({
     }
   });
 
-  // Sizes also change without a render: the composer below grows a line and the viewport
-  // shrinks, an image loads, fonts settle. While the user is at the bottom, stay there.
-  // A plain ResizeObserver: Mantine's useResizeObserver keeps the size in state, which would
-  // render the whole list on every change only to scroll
+  // Not useResizeObserver: it keeps the size in state, which would render the whole list to scroll
   const autoScrollRef = useRef(autoScroll);
   autoScrollRef.current = autoScroll;
   useEffect(() => {
@@ -136,9 +123,9 @@ export function useMessageList({
         viewport.scrollTop = viewport.scrollHeight;
       }
     });
-    // The viewport, and ScrollArea's content box inside it
+    const scrollAreaContent = viewport.firstElementChild!;
     observer.observe(viewport);
-    observer.observe(viewport.firstElementChild!);
+    observer.observe(scrollAreaContent);
 
     return () => observer.disconnect();
   }, []);
@@ -146,24 +133,24 @@ export function useMessageList({
   const onScrollPositionChange = () => {
     const viewport = viewportRef.current!;
 
-    if (Date.now() >= pinnedUntil.current) {
+    if (Date.now() >= ignoreScrollPositionUntil.current) {
       atBottom.current =
-        viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight <= BOTTOM;
+        viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight <=
+        AT_BOTTOM_THRESHOLD_PX;
     }
 
     if (
       onLoadOlder &&
       hasOlder &&
       !loadingOlder &&
-      requestedFor.current !== firstId &&
-      viewport.scrollTop <= TOP
+      loadOlderRequestedForFirstId.current !== firstId &&
+      viewport.scrollTop <= LOAD_OLDER_THRESHOLD_PX
     ) {
-      requestedFor.current = firstId;
+      loadOlderRequestedForFirstId.current = firstId;
       onLoadOlder();
     }
   };
 
-  // Stable, so rows memoised on their context do not re-render when the list does
   const latest = useRef({ reduceMotion, flash });
   latest.current = { reduceMotion, flash };
   const jumpTo = useCallback((id: string, { focus = true }: MessageListJumpOptions = {}) => {
@@ -178,7 +165,6 @@ export function useMessageList({
       });
 
       if (focus) {
-        // Focusable from code only, so the item adds no tab stop
         target.tabIndex = -1;
         target.focus({ preventScroll: true });
       }
@@ -194,6 +180,6 @@ export function useMessageList({
     onScrollPositionChange,
     jumpTo,
     highlightedId,
-    busy: loadingOlder || settling,
+    busy: loadingOlder || prependingOlder,
   };
 }

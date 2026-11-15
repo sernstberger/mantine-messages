@@ -67,7 +67,6 @@ function Demo() {
 
   useEffect(() => () => clearInterval(timer.current), []);
 
-  // A fake model: streams the same reply, a word every 40 ms
   const ask = (history: AssistantMessage[]) => {
     clearInterval(timer.current);
     count.current += 1;

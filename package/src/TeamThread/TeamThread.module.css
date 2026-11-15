@@ -1,9 +1,7 @@
-/* Rows run edge to edge, so hover and note backgrounds fill the width */
 .root .list {
   padding-inline: 0;
 }
 
-/* One message, a Message */
 .row {
   position: relative;
   padding: rem(2px) var(--mantine-spacing-md);
@@ -23,7 +21,6 @@
     background-color: var(--mantine-color-yellow-light);
     box-shadow: inset 3px 0 0 var(--mantine-color-yellow-filled);
 
-    /* The accent bar sits on the start edge */
     @mixin rtl {
       box-shadow: inset -3px 0 0 var(--mantine-color-yellow-filled);
     }
@@ -41,7 +38,6 @@
   margin-top: rem(2px);
 }
 
-/* Lines up with the first line of the text */
 .gutterTime {
   line-height: rem(21px);
 }
@@ -72,7 +68,6 @@
   margin-inline-start: rem(4px);
 }
 
-/* Toolbar over the top end corner; shown on hover, keyboard focus and while its menu is open */
 .actions {
   position: absolute;
   top: rem(-14px);
@@ -93,7 +88,6 @@
   }
 }
 
-/* "12 replies  Last reply 2 hours ago" */
 .threadSummary {
   display: inline-flex;
   align-items: center;

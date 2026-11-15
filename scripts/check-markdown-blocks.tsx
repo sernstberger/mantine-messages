@@ -48,7 +48,6 @@ const samples: Record<string, string> = {
   'crlf line endings': 'One\r\n\r\nTwo\r\n\r\n- a\r\n- b\r\n',
 };
 
-// A long answer like an assistant streams: headings, lists, code and tables, repeated
 const section = (n: number) =>
   `## Step ${n}\n\nInstall the package and wrap your app:\n\n` +
   `- first item with \`code\`\n- second item\n\n` +

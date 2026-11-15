@@ -176,13 +176,11 @@ const defaultProps: Partial<TeamThreadProps> = {
   actions: ['react', 'thread', 'edit', 'copy'],
 };
 
-// Parts of the inner MessageList that TeamThread's Styles API also styles
 const listParts = ['list', 'divider', 'unread', 'loader', 'item'] as const;
 
 const isEvent = (item: TeamThreadItem): item is SystemEvent => 'kind' in item;
 const isInternal = (message: ChatMessage) => message.visibility === 'internal';
 
-// What every row shares; rebuilt only when one of these props changes
 interface TeamRowShared {
   getStyles: GetStylesApi<TeamThreadFactory>;
   labels: TeamThreadLabels;
@@ -207,7 +205,6 @@ interface TeamRowProps {
   shared: TeamRowShared;
 }
 
-// One message; memoised, so a thread that renders again renders only the rows that changed
 const TeamRow = memo(function TeamRow({
   message,
   groupStart,
@@ -226,7 +223,6 @@ const TeamRow = memo(function TeamRow({
   const internal = isInternal(message);
   const { thread } = message;
 
-  // "12 replies  Last reply 2 hours ago" with the first three people who answered
   const renderThreadSummary = (summary: MessageThreadSummary) => {
     const content = (
       <>
@@ -389,13 +385,12 @@ export const TeamThread = factory<TeamThreadFactory>((_props) => {
   const theme = useMantineTheme();
   const usersById = useMemo(() => new Map(users.map((user) => [user.id, user])), [users]);
   const allLabels = useMemo(() => ({ ...defaultLabels, ...labels }), [labels]);
-  // Only a thread shows the count; elsewhere 0, so a new message keeps renderItem the same
+  // 0 outside a thread, so a new message does not change renderItem
   const replyCount = threadParentId
     ? items.filter((item) => !isEvent(item) && item.id !== threadParentId).length
     : 0;
 
-  // Handlers are called through this, so a new handler function each render (an inline arrow)
-  // does not render every row again; rows only need to know whether a handler is set
+  // Called through a ref, so an inline handler does not render every memoized row
   const handlers = useRef(props);
   handlers.current = props;
   const has = [
@@ -406,7 +401,7 @@ export const TeamThread = factory<TeamThreadFactory>((_props) => {
     !!onOpenAttachment,
   ] as const;
 
-  // getStyles is new each render, but what it returns only changes with these props and the theme
+  // getStyles is new each render; its result changes only with these props and the theme
   const shared = useMemo<TeamRowShared>(
     () => ({
       getStyles,
@@ -485,7 +480,6 @@ export const TeamThread = factory<TeamThreadFactory>((_props) => {
     [shared, selectedId, threadParentId, replyCount]
   );
 
-  // Same author, same visibility, close in time; events and the parent of a thread stand alone
   const sameGroup = useCallback(
     (previous: TeamThreadItem, item: TeamThreadItem) =>
       !isEvent(previous) &&

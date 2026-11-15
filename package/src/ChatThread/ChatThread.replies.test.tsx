@@ -144,7 +144,6 @@ describe('ChatThread replies', () => {
       />,
       { wrapper: MantineProvider }
     );
-    // getPreview gives "Plan: word word ..." (155 characters); truncate keeps 79 plus the ellipsis
     const preview = `Plan: ${'word '.repeat(30).trim()}`;
     const label = `Reply: ${preview.slice(0, 79)}…`;
     expect(screen.getByRole('button', { name: label })).toBeInTheDocument();

@@ -139,13 +139,8 @@ const defaultProps: Partial<AssistantThreadProps> = { autoScroll: true };
 
 const toolColors = { running: 'blue', done: 'teal', error: 'red' } as const;
 
-// Parts of the inner MessageList that AssistantThread's Styles API also styles
 const listParts = ['list', 'item'] as const;
 
-/**
- * One text part. The markdown element is memoized on the text: when only a later part changes,
- * React reuses the element and skips MarkdownBody, so finished parts are never parsed again
- */
 function TextPart({
   text,
   streaming,
@@ -155,6 +150,7 @@ function TextPart({
   streaming: boolean;
   getStyles: GetStyles;
 }) {
+  // Memoized on the text: when a later part changes, React skips MarkdownBody for this one
   const body = useMemo(() => <MarkdownBody>{text}</MarkdownBody>, [text]);
 
   return (
@@ -164,7 +160,6 @@ function TextPart({
   );
 }
 
-/** A reasoning or tool step: a header button that shows and hides the body */
 function Step({
   label,
   badge,
@@ -199,7 +194,6 @@ function Step({
   );
 }
 
-/** Input and output of a tool; only rendered while its step is open */
 function ToolDetails({
   part,
   labels,
@@ -231,7 +225,6 @@ function ToolDetails({
   );
 }
 
-/** A prompt being edited: Enter or Send submits the trimmed text, Escape or Cancel closes */
 function PromptEditor({
   defaultValue,
   labels,
@@ -262,7 +255,6 @@ function PromptEditor({
         minRows={1}
         maxRows={10}
         aria-label={labels.editPrompt}
-        // The caret starts at the end of the text, ready to add to it
         onFocus={(event) => {
           const end = event.currentTarget.value.length;
           event.currentTarget.setSelectionRange(end, end);
@@ -293,7 +285,6 @@ function PromptEditor({
   );
 }
 
-/** A text part, or a reasoning or tool step, of an answer */
 function Part({
   part,
   labels,
@@ -352,14 +343,9 @@ interface AnswerProps {
   labels: AssistantThreadLabels;
   getStyles: GetStyles;
 
-  /** Set on the last answer when the thread has `onRegenerate` */
   onRegenerate?: (message: AssistantMessage) => void;
 }
 
-/**
- * One answer. Memoized, and the thread keeps every prop stable, so while an answer streams the
- * finished answers above it do not render again
- */
 const Answer = memo(function Answer({ message, labels, getStyles, onRegenerate }: AnswerProps) {
   const streaming = message.status === 'streaming';
   const text = useMemo(() => getAssistantText(message), [message]);
@@ -431,13 +417,11 @@ interface PromptProps {
   labels: AssistantThreadLabels;
   getStyles: GetStyles;
 
-  /** Set when the prompt can be edited now: the thread has `onEdit` and is not streaming */
   onStartEdit?: (message: AssistantMessage) => void;
   onCancel: (message: AssistantMessage) => void;
   onSubmit: (message: AssistantMessage, text: string) => void;
 }
 
-/** One prompt, or its editor. Memoized like `Answer` */
 const Prompt = memo(function Prompt({
   message,
   editing,
@@ -450,7 +434,7 @@ const Prompt = memo(function Prompt({
   const text = useMemo(() => getAssistantText(message), [message]);
 
   return (
-    // Focusable from code only: focus comes here after an edit is sent
+    // tabIndex -1: focus lands here after an edit is sent
     <Box mod={{ role: 'user' }} tabIndex={-1} {...getStyles('turn')}>
       {editing ? (
         <PromptEditor
@@ -476,11 +460,9 @@ const Prompt = memo(function Prompt({
   );
 });
 
-/** Where focus goes once a prompt editor closes */
 interface FocusAfterEdit {
   id: string;
 
-  /** The prompt's Edit button (after Cancel), or the prompt itself (after sending) */
   target: 'edit' | 'prompt';
 }
 
@@ -501,7 +483,7 @@ export const AssistantThread = factory<AssistantThreadFactory>((_props) => {
     onEdit,
     labels,
     controlRef,
-    // Off by default: the status region below announces each finished answer once instead
+    // 'off': the status region below announces each finished answer once instead
     'aria-live': ariaLive = 'off',
     ...others
   } = props;
@@ -520,9 +502,7 @@ export const AssistantThread = factory<AssistantThreadFactory>((_props) => {
     attributes,
   });
 
-  // Answers and prompts are memoized; what they get stays the same from one token to the next.
-  // getStyles is a new function on every render, but for the inner parts it returns only what
-  // these inputs decide (className and style go to the root alone)
+  // Stable across tokens, so memoized parts skip rendering (getStyles is new on every render)
   const partStyles = useMemo(
     () => getStyles,
     [theme, classNames, styles, unstyled, vars, attributes]
@@ -530,8 +510,7 @@ export const AssistantThread = factory<AssistantThreadFactory>((_props) => {
   const labelsKey = JSON.stringify(labels ?? {});
   const allLabels = useMemo(() => ({ ...defaultLabels, ...labels }), [labelsKey]);
 
-  // The latest callbacks, called through stable functions, so callbacks written inline by the
-  // app do not render every answer again on every token
+  // Called through a ref, so inline callbacks do not render every answer on each token
   const latest = useRef({ onRegenerate, onEdit });
   latest.current = { onRegenerate, onEdit };
   const regenerate = useCallback(
@@ -543,7 +522,6 @@ export const AssistantThread = factory<AssistantThreadFactory>((_props) => {
   const last = messages[messages.length - 1];
   const busy = last?.status === 'streaming';
 
-  // When an edit closes, focus goes back to the prompt instead of falling to the page
   const rootRef = useRef<HTMLDivElement>(null);
   const mergedRef = useMergedRef(ref, rootRef);
   const focusAfterEdit = useRef<FocusAfterEdit | null>(null);
@@ -570,7 +548,6 @@ export const AssistantThread = factory<AssistantThreadFactory>((_props) => {
     const prompts = Array.from(
       rootRef.current!.querySelectorAll<HTMLElement>('[data-item-id] > [data-role="user"]')
     );
-    // The edited prompt, or the newest one when the app replaced it with a new message
     const prompt =
       prompts.find((element) => element.parentElement!.dataset.itemId === pending.id) ??
       prompts[prompts.length - 1];
@@ -580,9 +557,7 @@ export const AssistantThread = factory<AssistantThreadFactory>((_props) => {
     (pending.target === 'edit' && edit ? edit : prompt)?.focus();
   });
 
-  // The log is aria-live="off", so tokens are not read out. The status region says "Thinking"
-  // once when an answer starts and reads the answer's text once when it finishes; errors are
-  // read by the Alert (role="alert")
+  // The log is aria-live="off": this region says "Thinking" once, then the finished answer once
   const [announcement, setAnnouncement] = useState('');
   const streamingId = useRef<string | null>(null);
 
@@ -598,7 +573,7 @@ export const AssistantThread = factory<AssistantThreadFactory>((_props) => {
 
     if (last && last.id === streamingId.current) {
       streamingId.current = null;
-      // Plain text: a screen reader would read markdown's asterisks and backticks aloud
+      // Plain text: markdown's asterisks and backticks would be read aloud
       setAnnouncement(last.status === 'error' ? '' : stripMarkdown(getAssistantText(last)));
     }
   });

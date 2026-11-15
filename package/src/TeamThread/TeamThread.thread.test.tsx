@@ -87,7 +87,6 @@ describe('TeamThread threads', () => {
     expect(screen.getByText('2 replies')).toBeInTheDocument();
     expect(screen.queryByText('12 replies')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Reply in thread/ })).not.toBeInTheDocument();
-    // Maya's first reply comes a minute after her parent message but starts its own group
     expect(row('r1')).not.toHaveAttribute('data-compact');
   });
 

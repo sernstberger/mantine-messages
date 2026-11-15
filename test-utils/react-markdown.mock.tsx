@@ -1,11 +1,7 @@
 import React from 'react';
 import type { Components, Options } from 'react-markdown';
 
-/**
- * react-markdown is ESM only and Jest runs CommonJS, so tests get this stand-in (see
- * jest.config.cjs). It understands just enough markdown to call the components it is given:
- * fenced code blocks, inline code and links. The real rendering is checked in Storybook.
- */
+/** Stand-in for ESM-only react-markdown: fenced code, inline code and links; Storybook checks the rest */
 
 /** Options of every render, newest last; tests empty it in beforeEach */
 export const markdownRenders: Options[] = [];

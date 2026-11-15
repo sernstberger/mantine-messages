@@ -17,7 +17,6 @@ const message = (id: string, body: string): ChatMessage => ({
 const first = message('a', 'First thread');
 const second = message('b', 'Second thread');
 
-/** A channel with two thread buttons and a text box; the panel shows the picked thread */
 function Channel(props: Partial<ThreadPanelProps> & { removeOpeners?: boolean }) {
   const { removeOpeners, ...panelProps } = props;
   const [open, setOpen] = useState<ChatMessage | null>(null);
@@ -102,7 +101,6 @@ describe('ThreadPanel focus', () => {
   it('leaves focus alone when it closes while focus is outside it', async () => {
     render(<Channel />);
     await userEvent.click(screen.getByRole('button', { name: 'Open first' }));
-    // The app closes the panel from its own toolbar
     await userEvent.click(screen.getByRole('button', { name: 'Hide threads' }));
     expect(screen.queryByRole('heading', { name: 'Thread' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Hide threads' })).toHaveFocus();

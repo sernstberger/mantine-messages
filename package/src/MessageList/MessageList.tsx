@@ -129,7 +129,6 @@ interface ItemContentProps<T extends MessageBase> extends MessageListItemContext
   renderItem: MessageListProps<T>['renderItem'];
 }
 
-// One item's content, rendered again only when its item, neighbours, flags or renderItem change
 const ItemContent = memo(function ItemContent<T extends MessageBase>({
   item,
   renderItem,

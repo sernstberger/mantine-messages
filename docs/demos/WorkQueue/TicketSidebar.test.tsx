@@ -5,7 +5,6 @@ import { agents, createTickets } from './data';
 import { TicketSidebar } from './TicketSidebar';
 import type { Ticket } from './types';
 
-// A Monday
 const now = new Date(2026, 10, 16, 10, 0);
 const ticketById = (id: string) => createTickets(now).find((ticket) => ticket.id === id)!;
 

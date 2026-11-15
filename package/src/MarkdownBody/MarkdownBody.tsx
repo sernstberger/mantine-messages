@@ -79,9 +79,7 @@ const defaultLabels: MarkdownBodyLabels = {
   opensInNewTab: '(opens in a new tab)',
 };
 
-// The renderers below are module-level components, so their identity never changes between
-// renders (a new component type would remount every code block); styles and labels reach them
-// through this context
+// Renderers are module-level: a component type created per render would remount every code block
 const [MarkdownBodyProvider, useMarkdownBodyContext] = createSafeContext<{
   getStyles: GetStylesApi<MarkdownBodyFactory>;
   labels: MarkdownBodyLabels;
@@ -103,7 +101,6 @@ function MarkdownCode({ children }: React.ComponentPropsWithoutRef<'code'>) {
   return <Code {...getStyles('code')}>{children}</Code>;
 }
 
-/** A fenced code block: react-markdown passes a `<code class="language-x">` element as the child */
 function MarkdownPre({ children }: React.ComponentPropsWithoutRef<'pre'>) {
   const { getStyles, labels } = useMarkdownBodyContext();
   const code = children as React.ReactElement<{ className?: string; children?: React.ReactNode }>;
@@ -142,11 +139,7 @@ const defaultComponents: Components = { a: MarkdownLink, code: MarkdownCode, pre
 
 type PluginList = NonNullable<Options['remarkPlugins']>;
 
-/**
- * One block of the text, parsed by react-markdown. Memoized: a block whose text, components and
- * plugins are unchanged is not parsed again when MarkdownBody renders
- */
-const MarkdownPiece = memo(function MarkdownPiece({
+const MarkdownSegment = memo(function MarkdownSegment({
   text,
   components,
   remarkPlugins,
@@ -193,13 +186,10 @@ export const MarkdownBody = factory<MarkdownBodyFactory>((_props) => {
     attributes,
   });
 
-  // Kept while the props are the same, so the memoized blocks below can skip parsing
   const plugins = useMemo<PluginList>(() => [remarkGfm, ...(remarkPlugins ?? [])], [remarkPlugins]);
   const allComponents = useMemo(() => ({ ...defaultComponents, ...components }), [components]);
 
-  // Top-level blocks, each parsed on its own: as an answer streams in only the last block changes,
-  // so each token parses one block instead of the whole text. The blocks give the same elements
-  // as the whole text (scripts/check-markdown-blocks checks this against react-markdown)
+  // Block by block, so a streaming answer reparses only its last block
   const blocks = useMemo(
     () => (remarkPlugins ? [children] : splitMarkdownBlocks(children)),
     [children, remarkPlugins]
@@ -210,9 +200,9 @@ export const MarkdownBody = factory<MarkdownBodyFactory>((_props) => {
       <Typography ref={ref} {...getStyles('root')} {...others}>
         {blocks.map((block, index) => (
           <React.Fragment key={index}>
-            {/* react-markdown puts a newline between top-level elements; keep it between blocks */}
+            {/* react-markdown puts a newline between top-level elements */}
             {index > 0 && '\n'}
-            <MarkdownPiece text={block} components={allComponents} remarkPlugins={plugins} />
+            <MarkdownSegment text={block} components={allComponents} remarkPlugins={plugins} />
           </React.Fragment>
         ))}
       </Typography>

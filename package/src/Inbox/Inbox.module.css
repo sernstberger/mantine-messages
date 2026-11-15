@@ -9,7 +9,6 @@
   margin-bottom: var(--mantine-spacing-xs);
 }
 
-/* A heading and its conversations */
 .section {
   display: flex;
   flex-direction: column;

@@ -11,7 +11,7 @@
   border-radius: var(--mantine-radius-md);
   overflow: hidden;
 
-  /* With width and height attributes the box keeps their aspect ratio while it scales */
+  /* width and height attributes keep the aspect ratio while it scales */
   & :where(img) {
     height: auto;
   }

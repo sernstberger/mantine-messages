@@ -7,7 +7,6 @@
 }
 
 .bubble {
-  /* above the tucked-in quote */
   position: relative;
   padding: rem(6px) rem(12px);
   border-radius: var(--mantine-radius-lg);
@@ -30,7 +29,7 @@
     background-color: var(--mantine-primary-color-filled);
     color: var(--mantine-primary-color-contrast);
   }
-  /* Markdown from renderBody: links and code stay readable on the filled bubble */
+
   &[data-own] :where(a, code) {
     color: inherit;
   }
@@ -43,7 +42,6 @@
     background-color: alpha(var(--mantine-color-white), 0.2);
   }
 
-  /* A code block keeps its own background, so its text must not take the bubble's white */
   &[data-own] :where(pre) {
     color: var(--mantine-color-text);
   }
@@ -56,14 +54,12 @@
     outline: 1px solid var(--mantine-color-error);
   }
 
-  /* After a click on a quote that points here */
   &:where([data-highlighted]) {
     outline: 2px solid var(--mantine-primary-color-filled);
     outline-offset: 2px;
   }
 }
 
-/* A bubble with what it answers above it */
 .content {
   display: flex;
   max-width: 100%;
@@ -76,7 +72,6 @@
   }
 }
 
-/* "You replied to Maya" */
 .quoteLabel {
   display: flex;
   align-items: center;
@@ -85,7 +80,6 @@
   padding-inline: var(--mantine-spacing-sm);
 }
 
-/* Faded copy of the answered message, tucked under the reply's bubble */
 .quote {
   max-width: 100%;
   margin-bottom: rem(-10px);
@@ -120,7 +114,6 @@
   }
 }
 
-/* One message: avatar column and content */
 .row {
   display: flex;
   align-items: flex-end;
@@ -137,13 +130,11 @@
   }
 }
 
-/* Keeps follow-up messages in line with the avatar of their group */
 .avatarSpace {
   flex-shrink: 0;
   width: rem(26px);
 }
 
-/* A bubble and its actions */
 .line {
   display: flex;
   align-items: center;
@@ -155,7 +146,6 @@
   }
 }
 
-/* Shown on hover, keyboard focus and while their menu is open; always where there is no hover */
 .actions {
   opacity: 0;
 

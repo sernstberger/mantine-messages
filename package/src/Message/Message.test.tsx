@@ -1,6 +1,7 @@
 import { render, screen, tests } from '@mantine-tests/core';
 import React from 'react';
 import { Message, MessageProps, MessageStylesNames } from './Message';
+import { getRenderError } from '../../../test-utils/get-render-error';
 import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
 
 const defaultProps: MessageProps = {
@@ -66,10 +67,9 @@ describe('Message', () => {
   });
 
   it('throws when a part is used outside Message', () => {
-    const error = jest.spyOn(console, 'error').mockImplementation(() => {});
-    expect(() => render(<Message.Body>Hi</Message.Body>)).toThrow(
+    expect(getRenderError(<Message.Body>Hi</Message.Body>)).toHaveProperty(
+      'message',
       'Message.Avatar, Message.Body and Message.Meta must be used inside Message'
     );
-    error.mockRestore();
   });
 });

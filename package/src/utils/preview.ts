@@ -1,27 +1,26 @@
 import type { ChatMessage } from '../types';
 
+const TABLE_SEPARATOR_OR_RULE = /^[\s|:-]*-{3,}[\s|:-]*$/gm;
+
 /** Markdown reduced to plain text, on one line */
 export function stripMarkdown(text: string): string {
-  return (
-    text
-      .replace(/```[^\n]*\n?([\s\S]*?)```/g, '$1')
-      .replace(/`([^`]+)`/g, '$1')
-      .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
-      .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
-      .replace(/^\s{0,3}#{1,6}\s+/gm, '')
-      .replace(/^\s{0,3}>\s?/gm, '')
-      .replace(/^\s*[-*+]\s+/gm, '')
-      .replace(/\*\*(.+?)\*\*/g, '$1')
-      .replace(/\*(.+?)\*/g, '$1')
-      .replace(/(^|\W)__(.+?)__(?=\W|$)/g, '$1$2')
-      .replace(/(^|\W)_(.+?)_(?=\W|$)/g, '$1$2')
-      .replace(/~~(.+?)~~/g, '$1')
-      // Table separator rows and horizontal rules: only dashes, colons, pipes and spaces
-      .replace(/^[\s|:-]*-{3,}[\s|:-]*$/gm, '')
-      .replace(/\|/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim()
-  );
+  return text
+    .replace(/```[^\n]*\n?([\s\S]*?)```/g, '$1')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/^\s{0,3}#{1,6}\s+/gm, '')
+    .replace(/^\s{0,3}>\s?/gm, '')
+    .replace(/^\s*[-*+]\s+/gm, '')
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/\*(.+?)\*/g, '$1')
+    .replace(/(^|\W)__(.+?)__(?=\W|$)/g, '$1$2')
+    .replace(/(^|\W)_(.+?)_(?=\W|$)/g, '$1$2')
+    .replace(/~~(.+?)~~/g, '$1')
+    .replace(TABLE_SEPARATOR_OR_RULE, '')
+    .replace(/\|/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 /** Plain text of a message for previews, quotes and labels */
@@ -37,11 +36,7 @@ type PreviewSource = Pick<ChatMessage, 'body' | 'format' | 'preview'>;
 
 const previews = new WeakMap<PreviewSource, PreviewSource & { result: string }>();
 
-/**
- * `getPreview`, remembered per message object: stripping markdown is 15 passes over the body, and
- * a thread needs the preview of every message on every render. A message changed in place (same
- * object, new body) is noticed and stripped again
- */
+// Cached per message object: stripping markdown is 15 passes, and every render needs every preview
 export function getCachedPreview(message: PreviewSource): string {
   const hit = previews.get(message);
 

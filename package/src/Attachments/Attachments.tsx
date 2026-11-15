@@ -72,7 +72,6 @@ export const Attachments = factory<AttachmentsFactory>((_props) => {
         const part = attachment.mimeType?.startsWith('image/') ? 'image' : 'file';
         const content =
           part === 'image' ? (
-            // Lazy: a long history does not fetch every image at once
             <Image
               src={attachment.url}
               alt={attachment.name}
@@ -96,7 +95,6 @@ export const Attachments = factory<AttachmentsFactory>((_props) => {
             </>
           );
 
-        // With onOpen a button, else a link that opens the file in a new tab
         return onOpen ? (
           <UnstyledButton
             key={attachment.id}

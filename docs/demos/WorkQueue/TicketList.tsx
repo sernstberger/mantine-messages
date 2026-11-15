@@ -37,7 +37,6 @@ interface RowProps {
 
 const STEPS: Record<string, number> = { ArrowDown: 1, ArrowUp: -1 };
 
-/** ArrowDown and ArrowUp move the focus to the next or previous row */
 function moveFocus(event: React.KeyboardEvent<HTMLButtonElement>) {
   const step = STEPS[event.key];
 

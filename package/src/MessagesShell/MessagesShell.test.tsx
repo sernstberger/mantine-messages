@@ -3,6 +3,7 @@ import { fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React, { useState } from 'react';
 import { MessagesShell, MessagesShellProps, MessagesShellStylesNames } from './MessagesShell';
+import { getRenderError } from '../../../test-utils/get-render-error';
 import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
 
 const panes = (
@@ -20,7 +21,6 @@ const defaultProps: MessagesShellProps = { children: panes };
 
 const { ResizeObserver: originalObserver } = window;
 
-/** The shell measures itself through ResizeObserver; this one reports `width` at once */
 function measureAs(width: number) {
   window.ResizeObserver = class {
     constructor(private callback: ResizeObserverCallback) {}
@@ -188,8 +188,9 @@ describe('MessagesShell', () => {
   });
 
   it('needs the shell around its parts', () => {
-    jest.spyOn(console, 'error').mockImplementation(() => {});
-    expect(() => render(<MessagesShell.List />)).toThrow(/must be used inside MessagesShell/);
-    jest.restoreAllMocks();
+    expect(getRenderError(<MessagesShell.List />)).toHaveProperty(
+      'message',
+      expect.stringMatching(/must be used inside MessagesShell/)
+    );
   });
 });

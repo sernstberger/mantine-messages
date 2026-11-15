@@ -30,7 +30,6 @@ export function SplitView() {
   );
 }
 
-// Below 960px the details pane hides behind the Details button in the ticket header
 export function SplitViewNarrow() {
   return (
     <Box p="md" w={800}>

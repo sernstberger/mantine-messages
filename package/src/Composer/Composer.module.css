@@ -9,7 +9,7 @@
     border-color: var(--mantine-primary-color-filled);
   }
 
-  /* An internal note: a yellow tint over the body colour; not :where(), so it beats focus */
+  /* not :where(), so it beats the focus background */
   &[data-note],
   &[data-note]:focus-within {
     border-color: var(--mantine-color-yellow-filled);
@@ -20,13 +20,11 @@
   }
 }
 
-/* Mode switch, for example Reply and Internal note */
 .modes {
   align-self: flex-start;
   margin: rem(8px) rem(10px) 0;
 }
 
-/* "Replying to Maya" and the message, above the text box */
 .reply {
   display: flex;
   align-items: center;

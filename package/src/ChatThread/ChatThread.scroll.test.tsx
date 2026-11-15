@@ -55,7 +55,6 @@ function setup(messages = start, props: Partial<React.ComponentProps<typeof Chat
   const rerender = (next: ChatMessage[]) =>
     view.rerender(<ChatThread messages={next} users={users} currentUserId="me" {...props} />);
 
-  /** The user scrolls to `top` after the pinned time of the last automatic scroll */
   const userScrollsTo = (top: number) => {
     now += 1000;
     Object.defineProperty(viewport, 'scrollTop', {
@@ -97,7 +96,6 @@ describe('ChatThread scrolling', () => {
 
   it('ignores scroll events from its own smooth scroll', () => {
     const { rerender, viewport } = setup();
-    // Halfway down an automatic scroll, before the pinned time is over
     Object.defineProperty(viewport, 'scrollTop', { configurable: true, value: 100 });
     fireEvent.scroll(viewport);
 

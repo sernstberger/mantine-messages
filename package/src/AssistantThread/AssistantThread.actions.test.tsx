@@ -55,7 +55,6 @@ describe('AssistantThread actions', () => {
     render(<AssistantThread messages={[prompt, answer]} />);
     fireEvent.click(screen.getByRole('button', { name: 'Copy: Here it is.' }));
     expect(writeText).toHaveBeenCalledWith('Here it is.');
-    // The copied state arrives after the clipboard write resolves
     expect(await screen.findByRole('button', { name: 'Copied: Here it is.' })).toBeInTheDocument();
   });
 
@@ -79,7 +78,6 @@ describe('AssistantThread actions', () => {
       />
     );
     expect(screen.getByRole('alert')).toHaveTextContent('Timed out');
-    // Errors are announced by the alert, not the status region
     expect(screen.getByRole('status')).toBeEmptyDOMElement();
     await userEvent.click(screen.getByRole('button', { name: 'Retry now' }));
     expect(onRegenerate).toHaveBeenCalledTimes(1);

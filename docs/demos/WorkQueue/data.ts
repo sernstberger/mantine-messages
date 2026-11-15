@@ -34,7 +34,6 @@ export const users: MessagesUser[] = [...agents, ...customers];
 
 const MINUTE = 60 * 1000;
 
-/** Builds one ticket's timeline with ids `<ticket>-1`, `<ticket>-2`, … and times relative to now */
 function timeline(ticketId: string, now: Date, customer: Customer) {
   const items: TimelineItem[] = [];
   const at = (minutesAgo: number) => new Date(now.getTime() - minutesAgo * MINUTE);
