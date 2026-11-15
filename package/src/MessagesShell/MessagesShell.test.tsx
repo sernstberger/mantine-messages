@@ -3,6 +3,7 @@ import { fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React, { useState } from 'react';
 import { MessagesShell, MessagesShellProps, MessagesShellStylesNames } from './MessagesShell';
+import { ThreadPanel } from '../ThreadPanel/ThreadPanel';
 import { getRenderError } from '../../../test-utils/get-render-error';
 import { itHasStaticVarsResolver } from '../../../test-utils/it-has-static-vars-resolver';
 import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
@@ -268,6 +269,101 @@ describe('MessagesShell', () => {
     );
     expect(aside()).toBeVisible();
   });
+
+  it('passes unstyled to the toggle and the backdrop', async () => {
+    measureAs(800);
+    const { container } = render(
+      <MessagesShell unstyled defaultAsideOpened>
+        {panes}
+      </MessagesShell>
+    );
+    await screen.findByRole('button', { name: 'Details' });
+    for (const name of ['Button', 'Overlay']) {
+      const elements = container.querySelectorAll(`.mantine-${name}-root`);
+      expect(elements.length).toBeGreaterThan(0);
+      for (const element of elements) {
+        expect([...element.classList].filter((cls) => !cls.startsWith('mantine-'))).toEqual([]);
+      }
+    }
+  });
+
+  it('takes the pane names and the toggle text from labels', async () => {
+    measureAs(800);
+    render(
+      <MessagesShell labels={{ list: 'Liste', aside: 'Infos', asideToggle: 'Infos anzeigen' }}>
+        {panes}
+      </MessagesShell>
+    );
+    expect(screen.getByRole('region', { name: 'Liste' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Main' })).toBeInTheDocument();
+    expect(screen.getByRole('complementary', { name: 'Infos', hidden: true })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Infos anzeigen' })).toBeInTheDocument();
+  });
+
+  it('moves focus into the open aside and back to the toggle when it closes', async () => {
+    measureAs(800);
+    render(
+      <MessagesShell>
+        <MessagesShell.Main>
+          <MessagesShell.AsideToggle />
+        </MessagesShell.Main>
+        <MessagesShell.Aside>
+          <button type="button">Inside</button>
+        </MessagesShell.Aside>
+      </MessagesShell>
+    );
+    const toggle = await screen.findByRole('button', { name: 'Details' });
+
+    await userEvent.click(toggle);
+    expect(aside()).toHaveFocus();
+    await userEvent.tab();
+    expect(screen.getByRole('button', { name: 'Inside' })).toHaveFocus();
+
+    await userEvent.keyboard('{Escape}');
+    expect(aside()).not.toBeVisible();
+    expect(toggle).toHaveFocus();
+
+    await userEvent.click(toggle);
+    await userEvent.click(document.querySelector('.mantine-MessagesShell-asideBackdrop')!);
+    expect(toggle).toHaveFocus();
+  });
+
+  it('leaves focus alone when the aside closes while focus is elsewhere', async () => {
+    measureAs(800);
+    const tree = (opened: boolean) => (
+      <>
+        <input aria-label="Elsewhere" />
+        <MessagesShell asideOpened={opened}>
+          <MessagesShell.Main>
+            <MessagesShell.AsideToggle />
+          </MessagesShell.Main>
+          <MessagesShell.Aside>Details</MessagesShell.Aside>
+        </MessagesShell>
+      </>
+    );
+    const { rerender } = render(tree(false));
+    await screen.findByRole('button', { name: 'Details' });
+    rerender(tree(true));
+    const input = screen.getByRole('textbox', { name: 'Elsewhere' });
+    input.focus();
+    rerender(tree(false));
+    expect(input).toHaveFocus();
+  });
+
+  tests.axe([
+    <MessagesShell key="thread">
+      <MessagesShell.Main>Main</MessagesShell.Main>
+      <MessagesShell.Aside aria-label="Thread pane">
+        <ThreadPanel role="region">
+          <ThreadPanel.Footer>Footer</ThreadPanel.Footer>
+        </ThreadPanel>
+      </MessagesShell.Aside>
+    </MessagesShell>,
+    <MessagesShell key="wide">{panes}</MessagesShell>,
+    <MessagesShell key="open" defaultAsideOpened asideBreakpoint={100000}>
+      {panes}
+    </MessagesShell>,
+  ]);
 
   it('needs the shell around its parts', () => {
     expect(getRenderError(<MessagesShell.List />)).toHaveProperty(

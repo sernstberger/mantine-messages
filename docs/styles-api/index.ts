@@ -278,8 +278,9 @@ export const MessagesShellStylesApi: StylesApiData<MessagesShellFactory> = {
     list: '`MessagesShell.List`, a region, 300px wide by default',
     main: '`MessagesShell.Main`, a region that takes the rest of the width',
     aside: '`MessagesShell.Aside`, a complementary region, 280px wide by default',
-    asideBackdrop: 'Behind the collapsed aside while it is open; a click closes the aside',
-    asideToggle: '`MessagesShell.AsideToggle`, shown while the aside is collapsed',
+    asideBackdrop:
+      'Behind the collapsed aside while it is open, a Mantine Overlay; a click closes the aside',
+    asideToggle: '`MessagesShell.AsideToggle`, a Mantine Button shown while the aside is collapsed',
   },
   vars: {
     root: {

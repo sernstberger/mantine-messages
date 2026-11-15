@@ -174,7 +174,11 @@ Accessibility
 - `ThreadPanel`: focus moves to the title when the panel opens from a focused control and back to
   that control when it closes; the focused title shows the theme's focus ring around its text.
   Escape still does not close it, by design
-- `MessagesShell`: Escape on the `AsideToggle` or the open aside closes the collapsed aside
+- `MessagesShell`: Escape on the `AsideToggle` or the open aside closes the collapsed aside; focus
+  moves into the aside when it opens over `Main` and back to the toggle when it closes
+- `MessagesShell`: `unstyled` reaches the `AsideToggle` button and the backdrop; new `labels`
+  prop (`list`, `main`, `aside`, `asideToggle`) for the pane names and the toggle text;
+  `asideBreakpoint` shows its default in the props table
 
 Layout and styling
 

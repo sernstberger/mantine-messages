@@ -222,8 +222,13 @@ each pane is a labelled region (`aria-label` names it). `withBorder` and `radius
 
 The shell measures itself. Below `asideBreakpoint` (960px by default, `0` never) the aside hides
 and `MessagesShell.AsideToggle`, which renders nothing while there is room, opens it over `Main`;
-Escape or a click beside it closes it. Control it with `asideOpened` and `onAsideOpenedChange`,
-for example to open a thread panel as soon as a thread is picked. The Messenger demo above and the
+Escape or a click beside it closes it. Focus moves into the aside when it opens and back to the
+toggle when it closes. Control it with `asideOpened` and `onAsideOpenedChange`,
+for example to open a thread panel as soon as a thread is picked. The pane names and the toggle
+text are `labels` (`list`, `main`, `aside`, `asideToggle`), merged with the English defaults; an
+`aria-label` or `children` on the part wins. `unstyled` reaches the toggle's button and the
+backdrop. A `ThreadPanel` inside `MessagesShell.Aside` takes `role="region"`, so the page has no
+nested complementary landmark. The Messenger demo above and the
 work queue below are built on it.
 
 ```tsx
@@ -285,7 +290,7 @@ const replies = messages.filter((message) => message.threadId === open?.id);
   onOpenThread={setOpen}
 />
 {open && (
-  <ThreadPanel subtitle="#launch" onClose={() => setOpen(null)}>
+  <ThreadPanel role="region" subtitle="#launch" onClose={() => setOpen(null)}>
     <ThreadPanel.Replies parent={open} replies={replies} users={users} currentUserId="me" />
     <ThreadPanel.Footer>
       <Composer onSend={(draft) => reply(open.id, draft)} />
@@ -293,6 +298,9 @@ const replies = messages.filter((message) => message.threadId === open?.id);
   </ThreadPanel>
 )}
 ```
+
+Inside `MessagesShell.Aside`, give the panel `role="region"` as above: it is a complementary
+landmark by default, and one inside another landmark is flagged by axe.
 
 ### Custom team messages
 
@@ -600,7 +608,7 @@ type ThreadSelectors = TeamThread.StylesNames;
 Every text the package adds is a label, so an app in another language changes no component. Each
 component takes `labels`, a partial object that is merged over the English defaults: `Inbox`,
 `ChatThread`, `TeamThread`, `ThreadPanel`, `Composer`, `MessageList`, `MessageActions`,
-`Reactions`, `MarkdownBody` and `AssistantThread`. Keep the object stable (module level or
+`Reactions`, `MessagesShell`, `MarkdownBody` and `AssistantThread`. Keep the object stable (module level or
 `useMemo`), as noted above for long threads.
 
 Labels that depend on a number or a person are functions, so the translation can inflect them:
@@ -675,8 +683,8 @@ Every action is reachable without a pointer.
 - Message actions: one tab stop per toolbar; the arrow keys, Home and End move between the buttons
 - Thread panel: focus moves to its title when it opens from a control and goes back when it
   closes; Escape does not close it
-- Shell aside: while it is collapsed and open over `Main`, Escape closes it, from the aside or from
-  `MessagesShell.AsideToggle`
+- Shell aside: while it is collapsed and open over `Main`, focus moves into it, Escape closes it,
+  from the aside or from `MessagesShell.AsideToggle`, and focus goes back to the toggle
 - Quotes, thread summaries, conversations and reactions are buttons, so Enter and Space work
 
 `jumpTo` moves keyboard focus to the item it scrolls to, so screen readers read it and Tab
