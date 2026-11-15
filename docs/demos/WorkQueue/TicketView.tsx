@@ -86,7 +86,7 @@ export function TicketView({
             {ticket.id} · {nameOf(ticket.customerId)}
           </Text>
         </Box>
-        <Badge variant="light" color={STATUS_COLORS[ticket.status]}>
+        <Badge tt="none" variant="light" color={STATUS_COLORS[ticket.status]}>
           {STATUS_LABELS[ticket.status]}
         </Badge>
         {headerSection}

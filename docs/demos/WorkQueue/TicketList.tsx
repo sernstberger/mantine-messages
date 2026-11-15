@@ -96,7 +96,7 @@ function Row({ ticket, now, nameOf, open, checked, onOpen, onToggle }: RowProps)
             {previewOf(ticket)}
           </Text>
           <Group gap={6} mt={4} wrap="nowrap">
-            <Badge size="xs" variant="light" color={PRIORITY_COLORS[ticket.priority]}>
+            <Badge tt="none" size="xs" variant="light" color={PRIORITY_COLORS[ticket.priority]}>
               {PRIORITY_LABELS[ticket.priority]}
             </Badge>
             <Text size="xs" fw={500} c={sla.color}>

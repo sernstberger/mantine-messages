@@ -99,7 +99,7 @@ describe('TicketSidebar', () => {
   it('lists the events and jumps to one', async () => {
     const { onJumpTo } = renderSidebar(ticketById('T-1041'));
     await userEvent.click(
-      screen.getByRole('button', { name: 'Maya Lindqvist assigned this to Theo Okafor' })
+      screen.getByRole('button', { name: /^Maya Lindqvist assigned this to Theo Okafor/ })
     );
     expect(onJumpTo).toHaveBeenCalledWith('T-1041-2');
   });

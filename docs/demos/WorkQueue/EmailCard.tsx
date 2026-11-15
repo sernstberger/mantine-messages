@@ -23,7 +23,7 @@ export function EmailCard({ email, time, onOpen }: EmailCardProps) {
           </Text>
         </Text>
         <Text size="xs" c="dimmed" style={{ flexShrink: 0 }}>
-          Email · {time}
+          {time}
         </Text>
       </Group>
       <Text size="xs" c="dimmed" truncate>

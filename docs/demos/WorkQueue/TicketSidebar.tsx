@@ -6,8 +6,8 @@ import {
   Select,
   Stack,
   Text,
+  NavLink,
   TextInput,
-  UnstyledButton,
 } from '@mantine/core';
 import type { SystemEvent } from 'mantine-messages';
 import React, { useState } from 'react';
@@ -133,21 +133,28 @@ export function TicketSidebar({ ticket, agents, now, dispatch, onJumpTo }: Ticke
       {ticket.tags.length > 0 && (
         <Group gap={4}>
           {ticket.tags.map((tag) => (
-            <Badge key={tag} variant="light" color="gray">
+            <Badge tt="none" key={tag} variant="light" color="gray">
               #{tag}
             </Badge>
           ))}
         </Group>
       )}
 
-      <Text size="xs" fw={700} c="dimmed" tt="uppercase" mt="sm">
+      <Text size="sm" fw={600} mt="sm">
         Activity
       </Text>
-      {events.map((event) => (
-        <UnstyledButton key={event.id} fz="xs" onClick={() => onJumpTo(event.id)}>
-          {event.text}
-        </UnstyledButton>
-      ))}
+      <div>
+        {events.map((event) => (
+          <NavLink
+            key={event.id}
+            component="button"
+            label={event.text}
+            description={formatDateTime(new Date(event.createdAt))}
+            onClick={() => onJumpTo(event.id)}
+            styles={{ root: { borderRadius: 'var(--mantine-radius-sm)' } }}
+          />
+        ))}
+      </div>
     </Stack>
   );
 }

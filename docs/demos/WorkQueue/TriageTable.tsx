@@ -120,12 +120,12 @@ export function TriageTable({
                 </Text>
               </Table.Td>
               <Table.Td>
-                <Badge variant="light" color={STATUS_COLORS[ticket.status]}>
+                <Badge tt="none" variant="light" color={STATUS_COLORS[ticket.status]}>
                   {STATUS_LABELS[ticket.status]}
                 </Badge>
               </Table.Td>
               <Table.Td>
-                <Badge variant="dot" color={PRIORITY_COLORS[ticket.priority]}>
+                <Badge tt="none" variant="dot" color={PRIORITY_COLORS[ticket.priority]}>
                   {PRIORITY_LABELS[ticket.priority]}
                 </Badge>
               </Table.Td>

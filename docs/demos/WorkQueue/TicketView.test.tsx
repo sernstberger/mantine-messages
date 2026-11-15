@@ -68,14 +68,14 @@ describe('TicketView', () => {
     await userEvent.click(screen.getByRole('combobox', { name: 'Priority' }));
     await userEvent.click(screen.getByRole('option', { name: 'Low' }));
     expect(
-      screen.getByRole('button', { name: 'You changed the priority to Low' })
+      screen.getByRole('button', { name: /^You changed the priority to Low/ })
     ).toBeInTheDocument();
     expect(screen.getByText(/^You changed the priority to Low ·/)).toBeInTheDocument();
   });
 
   it('jumps to an event in the timeline from the activity list, and flashes it', async () => {
     render(<Harness initial={ticketById('T-1042')} />);
-    await userEvent.click(screen.getByRole('button', { name: 'Ticket created from email' }));
+    await userEvent.click(screen.getByRole('button', { name: /^Ticket created from email/ }));
     expect(screen.getByText(/^Ticket created from email ·/).parentElement).toHaveAttribute(
       'data-highlighted'
     );

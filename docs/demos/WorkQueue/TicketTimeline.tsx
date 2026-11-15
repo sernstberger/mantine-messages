@@ -49,7 +49,8 @@ export function TicketTimeline({ items, users, controlRef, onOpenEmail }: Ticket
               {nameOf(message.authorId)}
             </Text>
             <Text component="span" size="xs" c="dimmed">
-              {note ? 'Internal note' : 'Chat'} · {time(message)}
+              {note && 'Internal note · '}
+              {time(message)}
             </Text>
           </Message.Meta>
           <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>

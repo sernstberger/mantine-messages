@@ -29,7 +29,7 @@ describe('TicketTimeline', () => {
 
     const chat = screen.getByText(/following up on my email/).closest('.mantine-Message-root');
     expect(chat).not.toHaveAttribute('data-note');
-    expect(chat).toHaveTextContent(/Nora Feld\s*Chat ·/);
+    expect(chat).toHaveTextContent(/Nora Feld\s*\d/);
   });
 
   it('opens an email from its card', async () => {

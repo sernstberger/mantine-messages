@@ -155,7 +155,7 @@ describe('WorkQueueSplit', () => {
     await userEvent.click(toggle);
     expect(details()).toBeVisible();
     await userEvent.click(
-      within(details()).getByRole('button', { name: 'Ticket created from email' })
+      within(details()).getByRole('button', { name: /^Ticket created from email/ })
     );
     expect(details()).not.toBeVisible();
     expect(screen.getByText(/^Ticket created from email ·/).parentElement).toHaveAttribute(
