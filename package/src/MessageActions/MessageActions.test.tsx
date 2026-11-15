@@ -254,4 +254,87 @@ describe('MessageActions', () => {
     expect(writeText).toHaveBeenCalledWith('**Bold** move');
     expect(await screen.findByRole('button', { name: 'Copied: Bold move' })).toBeInTheDocument();
   });
+
+  const overflowProps: MessageActionsProps = {
+    text: 'Hi',
+    maxVisible: 1,
+    onReact: () => {},
+    onEdit: () => {},
+    actions: ['react', 'edit'],
+  };
+
+  it('passes size, radius, variant and color to the buttons', () => {
+    const { container } = render(
+      <MessageActions {...defaultProps} size="lg" radius="xs" variant="filled" color="teal" />
+    );
+    const button = screen.getByRole('button');
+    expect(button).toHaveAttribute('data-size', 'lg');
+    expect(button).toHaveAttribute('data-variant', 'filled');
+    expect(button).toHaveStyle({
+      '--ai-radius': 'var(--mantine-radius-xs)',
+      '--ai-bg': 'var(--mantine-color-teal-filled)',
+    });
+    expect(container.querySelector('.mantine-MessageActions-root')).toHaveAttribute(
+      'data-size',
+      'lg'
+    );
+  });
+
+  it("keeps today's look without props, and a custom item color wins", () => {
+    render(
+      <MessageActions
+        {...defaultProps}
+        actions={[
+          'reply',
+          { id: 'x', label: 'Remove', icon: <span />, onClick: () => {}, color: 'red' },
+        ]}
+      />
+    );
+    const [reply, remove] = screen.getAllByRole('button');
+    expect(reply).toHaveAttribute('data-size', 'sm');
+    expect(reply).toHaveAttribute('data-variant', 'subtle');
+    expect(reply).toHaveStyle({
+      '--ai-radius': 'var(--mantine-radius-xl)',
+      '--ai-color': 'var(--mantine-color-gray-light-color)',
+    });
+    expect(remove).toHaveStyle({ '--ai-color': 'var(--mantine-color-red-light-color)' });
+  });
+
+  it('applies classNames, styles and attributes of menu and menuItem to the menu', async () => {
+    render(
+      <MessageActions
+        {...overflowProps}
+        radius="xs"
+        classNames={{ menu: 'custom-menu', menuItem: 'custom-item' }}
+        styles={{ menu: { opacity: 0.5 }, menuItem: { opacity: 0.6 } }}
+        attributes={{ menu: { 'data-test': 'menu' }, menuItem: { 'data-test': 'item' } }}
+      />
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'More actions' }));
+    const item = await screen.findByRole('menuitem', { name: 'Edit' });
+    const dropdown = item.closest('.mantine-Menu-dropdown')!;
+    expect(dropdown).toHaveClass('custom-menu');
+    expect(dropdown).toHaveStyle({
+      opacity: '0.5',
+      '--popover-radius': 'var(--mantine-radius-xs)',
+    });
+    expect(dropdown).toHaveAttribute('data-test', 'menu');
+    expect(item).toHaveClass('custom-item');
+    expect(item).toHaveStyle({ opacity: '0.6' });
+    expect(item).toHaveAttribute('data-test', 'item');
+  });
+
+  it('passes unstyled to the buttons and the menu', async () => {
+    const { container } = render(<MessageActions {...overflowProps} unstyled />);
+    await userEvent.click(screen.getByRole('button', { name: 'More actions' }));
+    await screen.findByRole('menuitem', { name: 'Edit' });
+    const parts = [
+      ...container.querySelectorAll('.mantine-ActionIcon-root'),
+      ...document.querySelectorAll('.mantine-Menu-dropdown, .mantine-Menu-item'),
+    ];
+    expect(parts.length).toBeGreaterThan(2);
+    for (const element of parts) {
+      expect([...element.classList].filter((name) => !name.startsWith('mantine-'))).toEqual([]);
+    }
+  });
 });

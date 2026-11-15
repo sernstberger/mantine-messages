@@ -1,9 +1,13 @@
 import {
   Box,
   BoxProps,
+  createVarsResolver,
   ElementProps,
   factory,
   Factory,
+  getRadius,
+  MantineColor,
+  MantineRadius,
   StylesApiProps,
   UnstyledButton,
   useProps,
@@ -13,7 +17,15 @@ import React from 'react';
 import type { MessageReaction } from '../types';
 import classes from './Reactions.module.css';
 
-export type ReactionsStylesNames = 'root' | 'reaction';
+export type ReactionsStylesNames = 'root' | 'reaction' | 'emoji' | 'count';
+
+export type ReactionsCssVariables = {
+  root:
+    | '--reactions-radius'
+    | '--reactions-active-bg'
+    | '--reactions-active-color'
+    | '--reactions-active-border';
+};
 
 export interface ReactionsLabels {
   /** Accessible label of one reaction */
@@ -32,17 +44,46 @@ export interface ReactionsProps
 
   /** Text, for translation */
   labels?: Partial<ReactionsLabels>;
+
+  /** Key of `theme.radius` or any valid CSS value to set `border-radius` of reactions, numbers are converted to rem @default 'xl' */
+  radius?: MantineRadius;
+
+  /** Key of `theme.colors` or any valid CSS color to set the colors of reactions the current user made @default theme.primaryColor */
+  color?: MantineColor;
 }
 
 export type ReactionsFactory = Factory<{
   props: ReactionsProps;
   ref: HTMLDivElement;
   stylesNames: ReactionsStylesNames;
+  vars: ReactionsCssVariables;
 }>;
 
 const defaultLabels: ReactionsLabels = {
   reaction: ({ emoji, count, mine }) => `${emoji} ${count}${mine ? ', including you' : ''}`,
 };
+
+const varsResolver = createVarsResolver<ReactionsFactory>((theme, { radius, color }) => {
+  const light = theme.variantColorResolver({
+    color: color || theme.primaryColor,
+    theme,
+    variant: 'light',
+  });
+  const filled = theme.variantColorResolver({
+    color: color || theme.primaryColor,
+    theme,
+    variant: 'filled',
+  });
+
+  return {
+    root: {
+      '--reactions-radius': radius === undefined ? undefined : getRadius(radius),
+      '--reactions-active-bg': color ? light.background : undefined,
+      '--reactions-active-color': color ? light.color : undefined,
+      '--reactions-active-border': color ? filled.background : undefined,
+    },
+  };
+});
 
 export const Reactions = factory<ReactionsFactory>((_props) => {
   const props = useProps('Reactions', {}, _props);
@@ -59,6 +100,8 @@ export const Reactions = factory<ReactionsFactory>((_props) => {
     currentUserId,
     onToggle,
     labels,
+    radius,
+    color,
     ...others
   } = props;
 
@@ -73,6 +116,7 @@ export const Reactions = factory<ReactionsFactory>((_props) => {
     unstyled,
     vars,
     attributes,
+    varsResolver,
   });
 
   const allLabels = { ...defaultLabels, ...labels };
@@ -89,8 +133,12 @@ export const Reactions = factory<ReactionsFactory>((_props) => {
         const label = allLabels.reaction({ emoji, count: userIds.length, mine });
         const content = (
           <>
-            <span aria-hidden="true">{emoji}</span>
-            <span aria-hidden="true">{userIds.length}</span>
+            <span aria-hidden="true" {...getStyles('emoji')}>
+              {emoji}
+            </span>
+            <span aria-hidden="true" {...getStyles('count')}>
+              {userIds.length}
+            </span>
           </>
         );
 
@@ -100,6 +148,7 @@ export const Reactions = factory<ReactionsFactory>((_props) => {
             aria-label={label}
             aria-pressed={mine}
             mod={{ active: mine }}
+            unstyled={unstyled}
             onClick={() => onToggle(emoji)}
             {...getStyles('reaction')}
           >
@@ -123,3 +172,4 @@ export const Reactions = factory<ReactionsFactory>((_props) => {
 
 Reactions.displayName = 'Reactions';
 Reactions.classes = classes;
+Reactions.varsResolver = varsResolver;

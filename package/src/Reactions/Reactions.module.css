@@ -11,12 +11,13 @@
   gap: rem(4px);
   padding: rem(1px) rem(8px);
   border: 1px solid var(--mantine-color-default-border);
-  border-radius: var(--mantine-radius-xl);
+  border-radius: var(--reactions-radius, var(--mantine-radius-xl));
   font-size: var(--mantine-font-size-xs);
   background-color: var(--mantine-color-body);
 
   &[data-active] {
-    border-color: var(--mantine-primary-color-filled);
-    background-color: var(--mantine-primary-color-light);
+    border-color: var(--reactions-active-border, var(--mantine-primary-color-filled));
+    background-color: var(--reactions-active-bg, var(--mantine-primary-color-light));
+    color: var(--reactions-active-color, inherit);
   }
 }

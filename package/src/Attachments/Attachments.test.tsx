@@ -2,6 +2,7 @@ import { render, screen, tests } from '@mantine-tests/core';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Attachments, AttachmentsProps, AttachmentsStylesNames } from './Attachments';
+import { itHasStaticVarsResolver } from '../../../test-utils/it-has-static-vars-resolver';
 import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
 
 const attachments = [
@@ -11,7 +12,15 @@ const attachments = [
 ];
 const defaultProps: AttachmentsProps = { attachments };
 
+const getRoot = (container: HTMLElement) =>
+  container.querySelector<HTMLElement>('.mantine-Attachments-root')!;
+
 describe('Attachments', () => {
+  tests.axe([
+    <Attachments {...defaultProps} />,
+    <Attachments {...defaultProps} onOpen={() => {}} />,
+  ]);
+
   tests.itSupportsSystemProps<AttachmentsProps, AttachmentsStylesNames>({
     component: Attachments,
     props: defaultProps,
@@ -22,7 +31,7 @@ describe('Attachments', () => {
     classes: true,
     refType: HTMLDivElement,
     displayName: 'Attachments',
-    stylesApiSelectors: ['root', 'image', 'file'],
+    stylesApiSelectors: ['root', 'image', 'file', 'fileIcon', 'fileName', 'fileSize'],
   });
 
   itSupportsAttributes({
@@ -73,5 +82,51 @@ describe('Attachments', () => {
     await userEvent.click(screen.getByRole('button', { name: 'menu.png' }));
     await userEvent.click(screen.getByRole('button', { name: /invoice\.pdf/ }));
     expect(onOpen.mock.calls.map(([attachment]) => attachment.id)).toEqual(['1', '2']);
+  });
+
+  itHasStaticVarsResolver({ component: Attachments });
+
+  it('sets no theming variables by default', () => {
+    const { container } = render(<Attachments {...defaultProps} />);
+    const root = getRoot(container);
+    for (const name of ['radius', 'image-max-width', 'file-max-width']) {
+      expect(root.style.getPropertyValue(`--attachments-${name}`)).toBe('');
+    }
+  });
+
+  it('sets the radius from props', () => {
+    const { container } = render(<Attachments {...defaultProps} radius="xs" />);
+    expect(getRoot(container).style.getPropertyValue('--attachments-radius')).toBe(
+      'var(--mantine-radius-xs)'
+    );
+  });
+
+  it('sets variables from vars', () => {
+    const { container } = render(
+      <Attachments
+        {...defaultProps}
+        vars={() => ({ root: { '--attachments-image-max-width': '10rem' } })}
+      />
+    );
+    expect(getRoot(container).style.getPropertyValue('--attachments-image-max-width')).toBe(
+      '10rem'
+    );
+  });
+
+  it('passes unstyled to the components it renders', () => {
+    const { container } = render(<Attachments {...defaultProps} unstyled />);
+    const { container: opening } = render(
+      <Attachments {...defaultProps} onOpen={() => {}} unstyled />
+    );
+    const names = ['UnstyledButton', 'Image', 'Text'];
+    for (const root of [container, opening]) {
+      for (const name of names) {
+        const elements = root.querySelectorAll(`.mantine-${name}-root`);
+        expect(elements.length).toBeGreaterThan(0);
+        for (const element of elements) {
+          expect([...element.classList].filter((cls) => !cls.startsWith('mantine-'))).toEqual([]);
+        }
+      }
+    }
   });
 });

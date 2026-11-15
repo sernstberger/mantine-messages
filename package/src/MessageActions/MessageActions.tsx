@@ -6,6 +6,8 @@ import {
   factory,
   Factory,
   MantineColor,
+  MantineRadius,
+  MantineSize,
   Menu,
   StylesApiProps,
   useDirection,
@@ -62,7 +64,7 @@ export interface MessageActionsLabels {
   toolbar: (owner: MessageActionsOwner) => string;
 }
 
-export type MessageActionsStylesNames = 'root' | 'action';
+export type MessageActionsStylesNames = 'root' | 'action' | 'menu' | 'menuItem';
 
 export interface MessageActionsProps
   extends BoxProps, StylesApiProps<MessageActionsFactory>, ElementProps<'div'> {
@@ -93,6 +95,18 @@ export interface MessageActionsProps
 
   /** Text, for translation */
   labels?: Partial<MessageActionsLabels>;
+
+  /** Controls the size of the buttons @default 'sm' */
+  size?: MantineSize | (string & {});
+
+  /** Key of `theme.radius` or any valid CSS value to set `border-radius` of the buttons and the menu, numbers are converted to rem @default 'xl' for the buttons, the theme's for the menu */
+  radius?: MantineRadius;
+
+  /** Variant of the buttons @default 'subtle' */
+  variant?: string;
+
+  /** Key of `theme.colors` or any valid CSS color of the buttons, a custom item's `color` wins @default 'gray' */
+  color?: MantineColor;
 }
 
 export type MessageActionsFactory = Factory<{
@@ -122,7 +136,12 @@ const defaultLabels: MessageActionsLabels = {
         : 'Message actions',
 };
 
-const defaultProps: Partial<MessageActionsProps> = { maxVisible: 3 };
+const defaultProps = {
+  maxVisible: 3,
+  size: 'sm',
+  variant: 'subtle',
+  color: 'gray',
+} satisfies Partial<MessageActionsProps>;
 
 type Clipboard = ReturnType<typeof useClipboard>;
 
@@ -166,6 +185,10 @@ export const MessageActions = factory<MessageActionsFactory>((_props) => {
     onEdit,
     maxVisible,
     labels,
+    size,
+    radius,
+    variant,
+    color,
     mod,
     onKeyDown,
     role = 'toolbar',
@@ -247,9 +270,9 @@ export const MessageActions = factory<MessageActionsFactory>((_props) => {
             }
           : action
     );
-    const overflow = items.length > maxVisible!;
-    const visible = overflow ? items.slice(0, maxVisible! - 1) : items;
-    const rest = overflow ? items.slice(maxVisible! - 1) : [];
+    const overflow = items.length > maxVisible;
+    const visible = overflow ? items.slice(0, maxVisible - 1) : items;
+    const rest = overflow ? items.slice(maxVisible - 1) : [];
     const count = visible.length + (overflow ? 1 : 0);
 
     const current = Math.min(active, count - 1);
@@ -258,12 +281,16 @@ export const MessageActions = factory<MessageActionsFactory>((_props) => {
       onFocus: () => setActive(index),
     });
 
+    const menu = getStyles('menu');
+    const menuItem = getStyles('menuItem');
+
     const moreButton = (extra: React.ComponentPropsWithRef<'button'>) => (
       <ActionIcon
-        variant="subtle"
-        color="gray"
-        size="sm"
-        radius="xl"
+        variant={variant}
+        color={color}
+        size={size}
+        radius={radius ?? 'xl'}
+        unstyled={unstyled}
         aria-label={allLabels.more(owner)}
         {...stop(visible.length)}
         {...getStyles('action')}
@@ -279,6 +306,8 @@ export const MessageActions = factory<MessageActionsFactory>((_props) => {
         role={role}
         aria-label={ariaLabel ?? allLabels.toolbar(owner)}
         mod={[{ 'menu-open': menuOpen }, mod]}
+        variant={variant}
+        size={size}
         onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
           const buttons = Array.from(event.currentTarget.children) as HTMLElement[];
           const index = buttons.indexOf(event.target as HTMLElement);
@@ -297,10 +326,11 @@ export const MessageActions = factory<MessageActionsFactory>((_props) => {
         {visible.map((action, index) => (
           <ActionIcon
             key={action.id}
-            variant="subtle"
-            color={action.color ?? 'gray'}
-            size="sm"
-            radius="xl"
+            variant={variant}
+            color={action.color ?? color}
+            size={size}
+            radius={radius ?? 'xl'}
+            unstyled={unstyled}
             aria-label={`${action.label}: ${short}`}
             onClick={action.onClick}
             {...stop(index)}
@@ -311,7 +341,16 @@ export const MessageActions = factory<MessageActionsFactory>((_props) => {
         ))}
         {overflow &&
           (menuMounted ? (
-            <Menu position="bottom-end" opened={menuOpen} onChange={setMenuOpen}>
+            <Menu
+              position="bottom-end"
+              opened={menuOpen}
+              onChange={setMenuOpen}
+              radius={radius}
+              unstyled={unstyled}
+              classNames={{ dropdown: menu.className, item: menuItem.className }}
+              styles={{ dropdown: menu.style, item: menuItem.style }}
+              attributes={{ dropdown: attributes?.menu, item: attributes?.menuItem }}
+            >
               <Menu.Target>{moreButton({ ref: moreRef })}</Menu.Target>
               <Menu.Dropdown>
                 {rest.map((action) => (

@@ -106,14 +106,31 @@ export const MessageListStylesApi: StylesApiData<MessageListFactory> = {
 };
 
 export const MessageActionsStylesApi: StylesApiData<MessageActionsFactory> = {
-  selectors: { root: 'Root element', action: 'One action button, or the More button' },
+  selectors: {
+    root: 'Root element',
+    action: 'One action button, or the More button',
+    menu: 'Dropdown of the More menu',
+    menuItem: 'One item of the More menu',
+  },
   vars: {},
   modifiers: [{ modifier: 'data-menu-open', selector: 'root', condition: 'The More menu is open' }],
 };
 
 export const ReactionsStylesApi: StylesApiData<ReactionsFactory> = {
-  selectors: { root: 'Root element', reaction: 'One emoji and its count' },
-  vars: {},
+  selectors: {
+    root: 'Root element',
+    reaction: 'One emoji and its count',
+    emoji: 'The emoji',
+    count: 'Number of people who reacted',
+  },
+  vars: {
+    root: {
+      '--reactions-radius': 'Corner radius of reactions, from `radius`',
+      '--reactions-active-bg': 'Background of your reactions, from `color`',
+      '--reactions-active-color': 'Text color of your reactions, from `color`',
+      '--reactions-active-border': 'Border color of your reactions, from `color`',
+    },
+  },
   modifiers: [
     {
       modifier: 'data-active',
@@ -128,8 +145,17 @@ export const AttachmentsStylesApi: StylesApiData<AttachmentsFactory> = {
     root: 'Root element',
     image: 'Image thumbnail',
     file: 'File chip with name and size',
+    fileIcon: 'Icon of a file chip',
+    fileName: 'Name of a file',
+    fileSize: 'Size of a file',
   },
-  vars: {},
+  vars: {
+    root: {
+      '--attachments-radius': 'Corner radius of images and files, from `radius`',
+      '--attachments-image-max-width': 'Largest width of an image, 15rem by default',
+      '--attachments-file-max-width': 'Largest width of a file chip, 17.5rem by default',
+    },
+  },
 };
 
 export const ComposerStylesApi: StylesApiData<ComposerFactory> = {
