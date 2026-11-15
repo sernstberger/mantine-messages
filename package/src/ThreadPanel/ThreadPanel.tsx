@@ -152,7 +152,7 @@ export interface ThreadPanelProps
   /** Called when the user closes the panel with its close button */
   onClose?: () => void;
 
-  /** Shows the close button; `true` by default when `onClose` is set */
+  /** Shows the close button, shown when `onClose` is set unless this is `false` */
   withCloseButton?: boolean;
 
   /** Props passed down to the close button */
@@ -283,15 +283,14 @@ export const ThreadPanel = factory<ThreadPanelFactory>((_props) => {
               id={titleId}
               order={titleOrder}
               size="md"
-              lh="md"
               tabIndex={-1}
               unstyled={unstyled}
-              {...getStyles('title')}
+              {...getStyles('title', { focusable: true })}
             >
               {title}
             </Title>
             {subtitle && (
-              <Text size="xs" c="dimmed" truncate unstyled={unstyled} {...getStyles('subtitle')}>
+              <Text size="xs" truncate unstyled={unstyled} {...getStyles('subtitle')}>
                 {subtitle}
               </Text>
             )}

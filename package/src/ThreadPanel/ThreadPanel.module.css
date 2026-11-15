@@ -19,20 +19,15 @@
   min-width: 0;
 }
 
-/* The title takes focus when the panel opens: the theme's focus ring, not the browser's */
 .title {
   width: fit-content;
   max-width: 100%;
+  border-radius: var(--mantine-radius-xs);
+  line-height: var(--mantine-line-height-md);
+}
 
-  &:focus {
-    outline: none;
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--mantine-primary-color-filled);
-    outline-offset: 1px;
-    border-radius: var(--mantine-radius-xs);
-  }
+.subtitle {
+  color: var(--mantine-color-dimmed);
 }
 
 .thread {
