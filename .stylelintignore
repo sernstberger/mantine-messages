@@ -2,3 +2,5 @@ docs/.next
 docs/out
 package/dist
 coverage
+storybook-static
+playwright-report
