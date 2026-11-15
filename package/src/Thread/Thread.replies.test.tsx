@@ -132,4 +132,21 @@ describe('Thread replies', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Answer: Can you send the invoice?' }));
     expect(onReply).toHaveBeenCalledWith(messages[0]);
   });
+
+  it('quotes and labels markdown as plain text, cutting long labels', () => {
+    const long = `**Plan:** ${'word '.repeat(30)}`;
+    render(
+      <Thread
+        messages={[{ ...messages[0], body: long, format: 'markdown' }, messages[1]]}
+        users={users}
+        currentUserId="me"
+        onReply={() => {}}
+      />,
+      { wrapper: MantineProvider }
+    );
+    // getPreview gives "Plan: word word ..." (155 characters); truncate keeps 79 plus the ellipsis
+    const label = `Reply: ${('Plan: ' + 'word '.repeat(30).trim()).slice(0, 79)}…`;
+    expect(screen.getByRole('button', { name: label })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Plan: word/ })).toBeInTheDocument();
+  });
 });

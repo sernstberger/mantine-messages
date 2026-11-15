@@ -18,6 +18,7 @@ import { useReducedMotion, useTimeout } from '@mantine/hooks';
 import React, { useMemo, useRef, useState } from 'react';
 import type { ChatMessage, MessageStatus, MessagesUser } from '../types';
 import { formatDay, formatTime } from '../utils/format';
+import { getPreview, truncate } from '../utils/preview';
 import { groupMessages } from '../utils/group-messages';
 import classes from './Thread.module.css';
 import { useStickToBottom } from './use-stick-to-bottom';
@@ -216,7 +217,7 @@ export const Thread = factory<ThreadFactory>((_props) => {
         </Text>
         <UnstyledButton onClick={() => jumpTo(original.id)} {...getStyles('quote')}>
           <Text size="xs" lineClamp={2}>
-            {original.body}
+            {getPreview(original)}
           </Text>
         </UnstyledButton>
       </>
@@ -282,7 +283,7 @@ export const Thread = factory<ThreadFactory>((_props) => {
                         color="gray"
                         size="sm"
                         radius="xl"
-                        aria-label={`${allLabels.reply}: ${message.body}`}
+                        aria-label={`${allLabels.reply}: ${truncate(getPreview(message), 80)}`}
                         onClick={() => onReply(message)}
                         {...getStyles('replyButton')}
                       >

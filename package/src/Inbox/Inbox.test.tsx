@@ -58,4 +58,19 @@ describe('Inbox', () => {
     render(<Inbox conversations={[]} emptyLabel="Nothing yet" />);
     expect(screen.getByText('Nothing yet')).toBeInTheDocument();
   });
+
+  it('previews markdown as plain text', () => {
+    render(
+      <Inbox
+        conversations={[
+          {
+            id: 'x',
+            title: 'X',
+            lastMessage: { authorId: 'x', body: '**Ship** it', format: 'markdown', createdAt: 0 },
+          },
+        ]}
+      />
+    );
+    expect(screen.getByText('Ship it')).toBeInTheDocument();
+  });
 });

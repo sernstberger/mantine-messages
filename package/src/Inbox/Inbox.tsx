@@ -17,6 +17,7 @@ import { useUncontrolled } from '@mantine/hooks';
 import React from 'react';
 import type { Conversation } from '../types';
 import { formatShort } from '../utils/format';
+import { getPreview } from '../utils/preview';
 import classes from './Inbox.module.css';
 
 export type InboxStylesNames =
@@ -127,7 +128,7 @@ export const Inbox = factory<InboxFactory>((_props) => {
                 </Text>
               )}
               <Text component="span" size="sm" truncate {...getStyles('preview')}>
-                {conversation.lastMessage?.body}
+                {conversation.lastMessage && getPreview(conversation.lastMessage)}
               </Text>
               {unread > 0 && (
                 <Badge size="sm" circle={unread < 10} {...getStyles('unread')}>
