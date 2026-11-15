@@ -49,7 +49,7 @@ describe('Message', () => {
       'calc(2.25rem * var(--mantine-scale))'
     );
     expect(container.querySelector('.mantine-Message-avatar')).toHaveStyle({
-      '--avatar-size': 'calc(2.25rem * var(--mantine-scale))',
+      '--avatar-size': 'var(--message-avatar-size)',
     });
 
     rerender(<Message {...defaultProps} avatarSize="lg" />);
@@ -57,8 +57,24 @@ describe('Message', () => {
       'var(--message-avatar-size-lg)'
     );
     expect(container.querySelector('.mantine-Message-avatar')).toHaveStyle({
-      '--avatar-size': 'var(--avatar-size-lg)',
+      '--avatar-size': 'var(--message-avatar-size)',
     });
+  });
+
+  it('moves the avatar with the column when vars overrides the size', () => {
+    const { container } = render(
+      <Message>
+        <Message.Avatar name="Maya" style={{ color: 'red' }} />
+        <Message.Body>Hi</Message.Body>
+      </Message>
+    );
+    const root = container.querySelector<HTMLElement>('.mantine-Message-root')!;
+    const avatar = container.querySelector<HTMLElement>('.mantine-Message-avatar')!;
+    expect(avatar.style.getPropertyValue('--avatar-size')).toBe('var(--message-avatar-size)');
+    expect(avatar.style.color).toBe('red');
+    expect(root.style.getPropertyValue('--message-avatar-size')).toBe(
+      'calc(2.25rem * var(--mantine-scale))'
+    );
   });
 
   it('sets the avatar size from a number', () => {
@@ -83,8 +99,12 @@ describe('Message', () => {
       </Message>
     );
     const [first, second] = container.querySelectorAll('.mantine-Message-avatar');
-    expect(first).toHaveStyle({ '--avatar-radius': 'var(--mantine-radius-md)' });
-    expect(second).toHaveStyle({ '--avatar-radius': 'var(--mantine-radius-xl)' });
+    expect(first).toHaveStyle({
+      '--avatar-radius': 'var(--mantine-radius-md)',
+    });
+    expect(second).toHaveStyle({
+      '--avatar-radius': 'var(--mantine-radius-xl)',
+    });
   });
 
   it('passes unstyled to the avatar', () => {

@@ -135,10 +135,16 @@ export interface ChatThreadProps
   /** IANA time zone for times and date dividers, from `MessagesProvider` (the runtime's without one) by default */
   timeZone?: string;
 
-  /** Longest gap, in milliseconds, between two messages of one group, 5 minutes by default */
+  /**
+   * Longest gap, in milliseconds, between two messages of one group
+   * @default 5 * 60 * 1000
+   */
   groupWindow?: number;
 
-  /** Show avatars and names of other people, `true` by default */
+  /**
+   * Show avatars and names of other people
+   * @default true
+   */
   withAuthors?: boolean;
 
   /**
@@ -155,11 +161,15 @@ export interface ChatThreadProps
 
   /**
    * Keep the newest message in view: open at the bottom, follow new messages while the user is at
-   * the bottom or when they sent them, `true` by default
+   * the bottom or when they sent them
+   * @default true
    */
   autoScroll?: boolean;
 
-  /** Actions beside each message; a built-in shows only when its handler is set, `['reply', 'react', 'edit']` by default */
+  /**
+   * Actions beside each message; a built-in shows only when its handler is set
+   * @default ['reply', 'react', 'edit']
+   */
   actions?: MessageAction[];
 
   /** Called when the user asks to reply to a message */
@@ -352,7 +362,10 @@ export const ChatThreadAvatar = factory<ChatThreadAvatarFactory>((_props) => {
       name={row.name}
       size={ctx.avatarSize}
       unstyled={ctx.unstyled}
-      {...ctx.getStyles('avatar', stylesOptions)}
+      {...ctx.getStyles('avatar', {
+        ...stylesOptions,
+        style: [{ '--avatar-size': 'var(--chat-thread-avatar-size)' }, style],
+      })}
       {...others}
     />
   ) : (
@@ -491,8 +504,8 @@ export interface ChatThreadBubbleProps
   /** Content of the bubble; `renderBody` of the thread, or the plain `body`, by default */
   children?: React.ReactNode;
 
-  /** Beside the bubble: `<ChatThread.Actions />` by default, `null` for none */
-  actions?: React.ReactNode;
+  /** After the bubble: `<ChatThread.Actions />` by default, `null` for none */
+  rightSection?: React.ReactNode;
 }
 
 export type ChatThreadBubbleFactory = Factory<{
@@ -502,10 +515,23 @@ export type ChatThreadBubbleFactory = Factory<{
   compound: true;
 }>;
 
-/** The bubble with the text, in a line with the actions */
+/**
+ * The bubble with the text, in a line with the actions. It carries the screen reader author name
+ * and time of the message, so a custom row keeps them by composing it
+ */
 export const ChatThreadBubble = factory<ChatThreadBubbleFactory>((_props) => {
-  const { classNames, className, style, styles, vars, ref, mod, children, actions, ...others } =
-    useProps('ChatThreadBubble', null, _props);
+  const {
+    classNames,
+    className,
+    style,
+    styles,
+    vars,
+    ref,
+    mod,
+    children,
+    rightSection,
+    ...others
+  } = useProps('ChatThreadBubble', null, _props);
   const ctx = useChatThreadContext();
   const { message, own, name, showAuthor, groupStart, groupEnd, highlighted, date, time } =
     useChatThreadMessageContext();
@@ -532,7 +558,7 @@ export const ChatThreadBubble = factory<ChatThreadBubbleFactory>((_props) => {
             </VisuallyHidden>
           )}
         </Box>
-        {actions === undefined ? <ChatThreadActions /> : actions}
+        {rightSection === undefined ? <ChatThreadActions /> : rightSection}
       </Box>
     </>
   );
@@ -575,7 +601,12 @@ export const ChatThreadAttachments = factory<ChatThreadAttachmentsFactory>((_pro
       locale={ctx.dates.locale}
       onOpen={onOpenAttachment && ((attachment) => onOpenAttachment(message, attachment))}
       unstyled={ctx.unstyled}
-      {...ctx.getStyles('attachments', { className, style, classNames, styles })}
+      {...ctx.getStyles('attachments', {
+        className,
+        style,
+        classNames,
+        styles,
+      })}
       {...others}
     />
   );
@@ -618,7 +649,12 @@ export const ChatThreadReactions = factory<ChatThreadReactionsFactory>((_props) 
       currentUserId={ctx.currentUserId}
       onToggleReaction={onToggleReaction && ((emoji) => onToggleReaction(message, emoji))}
       unstyled={ctx.unstyled}
-      {...ctx.getStyles('reactions', { className, style, classNames, styles })}
+      {...ctx.getStyles('reactions', {
+        className,
+        style,
+        classNames,
+        styles,
+      })}
       {...others}
     />
   );
@@ -641,7 +677,8 @@ export type ChatThreadMetaFactory = Factory<{
 
 /**
  * Time under the last message of a group, and the status of the current user's newest message
- * (sending and failed under every message)
+ * (sending and failed under every message). It carries the screen reader time and status of the
+ * message, so a custom row keeps them by composing it
  */
 export const ChatThreadMeta = factory<ChatThreadMetaFactory>((_props) => {
   const { classNames, className, style, styles, vars, ref, ...others } = useProps(
@@ -953,6 +990,12 @@ export const ChatThread = factory<ChatThreadFactory>((_props) => {
         unstyled={unstyled}
         classNames={Object.fromEntries(listParts.map((part) => [part, listStyles[part].className]))}
         styles={Object.fromEntries(listParts.map((part) => [part, listStyles[part].style]))}
+        attributes={Object.fromEntries(
+          listParts.map((part) => {
+            const { className: _className, style: _style, ...rest } = listStyles[part];
+            return [part, rest];
+          })
+        )}
         {...getStyles('root')}
         {...others}
         renderItem={renderItem}

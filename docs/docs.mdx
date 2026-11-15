@@ -53,7 +53,7 @@ gets the message and where it sits (`own`, `groupStart`, `groupEnd`, `highlighte
 `original` and `jumpTo`). Each part takes its data from the row, keeps the screen reader text of
 the default, and is styled by the thread's Styles API, so `classNames` and the theme reach custom
 rows too. Without children, `ChatThread.Message` renders the default row; `avatar` and the
-bubble's `actions` take a part or `null`. For the body alone, `renderBody` is shorter.
+bubble's `rightSection` take a part or `null`. For the body alone, `renderBody` is shorter.
 
 ```tsx
 <ChatThread
@@ -63,7 +63,7 @@ bubble's `actions` take a part or `null`. For the body alone, `renderBody` is sh
   renderMessage={(message, context) => (
     <ChatThread.Message message={message} context={context} avatar={null}>
       <ChatThread.Quote />
-      <ChatThread.Bubble actions={<ChatThread.Actions actions={['copy']} />}>
+      <ChatThread.Bubble rightSection={<ChatThread.Actions actions={['copy']} />}>
         <MarkdownBody>{message.body}</MarkdownBody>
       </ChatThread.Bubble>
       <ChatThread.Meta />
@@ -308,7 +308,7 @@ landmark by default, and one inside another landmark is flagged by axe.
 `renderMessage` gets messages and events alike: render events (items with `kind`) with
 `TeamThread.Event` and messages with `TeamThread.Message`, the row with the avatar or the hover
 time. Its parts are `TeamThread.Author`, `TeamThread.Text`, `TeamThread.Attachments`,
-`TeamThread.Reactions`, `TeamThread.ThreadSummary` and `TeamThread.Actions` (the `actions` slot of
+`TeamThread.Reactions`, `TeamThread.ThreadSummary` and `TeamThread.Actions` (the `rightSection` slot of
 the row, `null` for none); they share the thread's Styles API and labels.
 
 ```tsx

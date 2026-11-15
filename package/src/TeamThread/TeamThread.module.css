@@ -93,6 +93,11 @@
     opacity: 1;
     pointer-events: auto;
   }
+
+  @media (hover: none) {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
 .threadSummary {

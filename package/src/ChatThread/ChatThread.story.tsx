@@ -58,7 +58,12 @@ export function LongThread() {
           onSend={({ text: body }) =>
             setExtra((current) => [
               ...current,
-              { id: `long-new-${current.length}`, authorId: 'me', body, createdAt: new Date() },
+              {
+                id: `long-new-${current.length}`,
+                authorId: 'me',
+                body,
+                createdAt: new Date(),
+              },
             ])
           }
         />
@@ -152,7 +157,7 @@ export function CustomChatRows() {
           renderMessage={(message, context) => (
             <ChatThread.Message message={message} context={context}>
               <ChatThread.Quote />
-              <ChatThread.Bubble actions={<ChatThread.Actions actions={['reply', 'copy']} />}>
+              <ChatThread.Bubble rightSection={<ChatThread.Actions actions={['reply', 'copy']} />}>
                 {message.format === 'markdown' ? (
                   <MarkdownBody>{message.body}</MarkdownBody>
                 ) : (
