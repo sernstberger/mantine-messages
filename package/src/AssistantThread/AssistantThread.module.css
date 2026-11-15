@@ -3,7 +3,7 @@
   flex-direction: column;
   gap: rem(6px);
   width: 100%;
-  max-width: 48rem;
+  max-width: var(--assistant-thread-max-width, 48rem);
   align-self: center;
   margin-top: var(--mantine-spacing-lg);
 
@@ -22,9 +22,9 @@
 }
 
 .bubble {
-  max-width: 85%;
+  max-width: var(--assistant-thread-prompt-max-width, 85%);
   padding: rem(8px) rem(14px);
-  border-radius: var(--mantine-radius-xl);
+  border-radius: var(--assistant-thread-prompt-radius, var(--mantine-radius-xl));
   font-size: var(--mantine-font-size-sm);
   line-height: 1.5;
   white-space: pre-wrap;
@@ -95,15 +95,30 @@
   @mixin hover {
     background-color: var(--mantine-color-default-hover);
   }
+}
 
-  & > svg {
-    flex-shrink: 0;
-    transition: transform 150ms ease;
+.stepLabel {
+  &[data-tool] {
+    font-family: var(--mantine-font-family-monospace);
   }
+}
 
-  &[data-expanded] > svg {
+.stepChevron {
+  display: inline-flex;
+  flex-shrink: 0;
+  transition: transform 150ms ease;
+
+  &[data-expanded] {
     transform: rotate(90deg);
   }
+}
+
+.stepBadge {
+  margin-inline-start: auto;
+}
+
+.stepCaption {
+  font-weight: 500;
 }
 
 .stepBody {
@@ -127,6 +142,11 @@
   align-self: stretch;
 }
 
+.retry {
+  display: block;
+  margin-top: var(--mantine-spacing-xs);
+}
+
 .actions {
   :where(.turn[data-role='user']) > & {
     opacity: 0;
@@ -144,4 +164,12 @@
 
 .editor {
   width: 100%;
+}
+
+.editorInput {
+  min-width: 0;
+}
+
+.editorActions {
+  margin-top: var(--mantine-spacing-xs);
 }

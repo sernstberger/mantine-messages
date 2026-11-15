@@ -26,7 +26,16 @@ describe('MarkdownBody', () => {
     classes: true,
     refType: HTMLDivElement,
     displayName: 'MarkdownBody',
-    stylesApiSelectors: ['root', 'link', 'code', 'codeBlock', 'codeHeader', 'copy', 'pre'],
+    stylesApiSelectors: [
+      'root',
+      'link',
+      'code',
+      'codeBlock',
+      'codeHeader',
+      'codeLanguage',
+      'copy',
+      'pre',
+    ],
   });
 
   itSupportsAttributes({
@@ -150,5 +159,26 @@ describe('MarkdownBody', () => {
     );
     expect(container.querySelector('.mantine-MarkdownBody-codeHeader')!.textContent).toBe('');
     expect(screen.getByText('bold link').tagName).toBe('B');
+  });
+
+  it('passes unstyled to the components it renders', () => {
+    const { container } = render(<MarkdownBody unstyled>{source}</MarkdownBody>);
+    const names = ['Typography', 'Anchor', 'Code', 'Text', 'ActionIcon'];
+
+    for (const name of names) {
+      const elements = [...container.querySelectorAll(`.mantine-${name}-root`)];
+      expect(elements.length).toBeGreaterThan(0);
+      for (const element of elements) {
+        expect([...element.classList].filter((cls) => !cls.startsWith('mantine-'))).toEqual([]);
+      }
+    }
+  });
+
+  it('puts the language of a code block under the codeLanguage selector', () => {
+    const { container } = render(<MarkdownBody>{source}</MarkdownBody>);
+    expect(container.querySelector('.mantine-MarkdownBody-codeLanguage')).toHaveTextContent('tsx');
+    const language = container.querySelector<HTMLElement>('.mantine-MarkdownBody-codeLanguage')!;
+    expect(language.style.color).toBe('');
+    expect(language.style.fontFamily).toBe('');
   });
 });

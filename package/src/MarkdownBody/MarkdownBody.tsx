@@ -30,6 +30,7 @@ export type MarkdownBodyStylesNames =
   | 'code'
   | 'codeBlock'
   | 'codeHeader'
+  | 'codeLanguage'
   | 'copy'
   | 'pre';
 
@@ -82,14 +83,15 @@ const defaultLabels: MarkdownBodyLabels = {
 // Renderers are module-level: a component type created per render would remount every code block
 const [MarkdownBodyProvider, useMarkdownBodyContext] = createSafeContext<{
   getStyles: GetStylesApi<MarkdownBodyFactory>;
+  unstyled: boolean | undefined;
   labels: MarkdownBodyLabels;
 }>('MarkdownBody component was not found in the tree');
 
 function MarkdownLink({ href, children }: React.ComponentPropsWithoutRef<'a'>) {
-  const { getStyles, labels } = useMarkdownBodyContext();
+  const { getStyles, unstyled, labels } = useMarkdownBodyContext();
 
   return (
-    <Anchor href={href} target="_blank" rel="noreferrer" {...getStyles('link')}>
+    <Anchor href={href} target="_blank" rel="noreferrer" unstyled={unstyled} {...getStyles('link')}>
       {children}
       <VisuallyHidden> {labels.opensInNewTab}</VisuallyHidden>
     </Anchor>
@@ -97,12 +99,17 @@ function MarkdownLink({ href, children }: React.ComponentPropsWithoutRef<'a'>) {
 }
 
 function MarkdownCode({ children }: React.ComponentPropsWithoutRef<'code'>) {
-  const { getStyles } = useMarkdownBodyContext();
-  return <Code {...getStyles('code')}>{children}</Code>;
+  const { getStyles, unstyled } = useMarkdownBodyContext();
+
+  return (
+    <Code unstyled={unstyled} {...getStyles('code')}>
+      {children}
+    </Code>
+  );
 }
 
 function MarkdownPre({ children }: React.ComponentPropsWithoutRef<'pre'>) {
-  const { getStyles, labels } = useMarkdownBodyContext();
+  const { getStyles, unstyled, labels } = useMarkdownBodyContext();
   const code = children as React.ReactElement<{ className?: string; children?: React.ReactNode }>;
   const text = React.Children.toArray(code.props.children).join('').replace(/\n$/, '');
   const language = /language-(\S+)/.exec(code.props.className ?? '')?.[1];
@@ -110,7 +117,7 @@ function MarkdownPre({ children }: React.ComponentPropsWithoutRef<'pre'>) {
   return (
     <Box {...getStyles('codeBlock')}>
       <Box {...getStyles('codeHeader')}>
-        <Text component="span" size="xs" c="dimmed" ff="monospace">
+        <Text component="span" size="xs" unstyled={unstyled} {...getStyles('codeLanguage')}>
           {language}
         </Text>
         <CopyButton value={text} timeout={1500}>
@@ -119,6 +126,7 @@ function MarkdownPre({ children }: React.ComponentPropsWithoutRef<'pre'>) {
               variant="subtle"
               color="gray"
               size="sm"
+              unstyled={unstyled}
               aria-label={copied ? labels.copied : labels.copyCode}
               onClick={copy}
               {...getStyles('copy')}
@@ -128,7 +136,7 @@ function MarkdownPre({ children }: React.ComponentPropsWithoutRef<'pre'>) {
           )}
         </CopyButton>
       </Box>
-      <Code block {...getStyles('pre')}>
+      <Code block unstyled={unstyled} {...getStyles('pre')}>
         {text}
       </Code>
     </Box>
@@ -196,8 +204,8 @@ export const MarkdownBody = factory<MarkdownBodyFactory>((_props) => {
   );
 
   return (
-    <MarkdownBodyProvider value={{ getStyles, labels: { ...defaultLabels, ...labels } }}>
-      <Typography ref={ref} {...getStyles('root')} {...others}>
+    <MarkdownBodyProvider value={{ getStyles, unstyled, labels: { ...defaultLabels, ...labels } }}>
+      <Typography ref={ref} unstyled={unstyled} {...getStyles('root')} {...others}>
         {blocks.map((block, index) => (
           <React.Fragment key={index}>
             {/* react-markdown puts a newline between top-level elements */}

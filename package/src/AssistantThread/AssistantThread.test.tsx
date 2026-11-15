@@ -11,6 +11,7 @@ import {
   AssistantThreadStylesNames,
 } from './AssistantThread';
 import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
+import { itHasStaticVarsResolver } from '../../../test-utils/it-has-static-vars-resolver';
 
 const at = (minute: number) => new Date(2026, 10, 15, 9, minute);
 
@@ -43,6 +44,35 @@ const answer: AssistantMessage = {
 
 const defaultProps: AssistantThreadProps = { messages: [prompt, answer] };
 
+const busyProps: AssistantThreadProps = {
+  messages: [
+    prompt,
+    answer,
+    { ...answer, id: 'a2', status: 'streaming', parts: [] },
+    { ...answer, id: 'a3', status: 'error', error: 'Rate limited', parts: [] },
+  ],
+  onRegenerate: () => {},
+  onEdit: () => {},
+};
+
+const selectorNames = [
+  'stepLabel',
+  'stepChevron',
+  'stepBadge',
+  'stepCaption',
+  'stepCode',
+  'editor',
+  'editorInput',
+  'editorActions',
+];
+
+const selectorClassNames = Object.fromEntries(
+  selectorNames.map((name) => [name, `mantine-AssistantThread-${name}`])
+);
+
+const getRoot = (container: HTMLElement) =>
+  container.querySelector<HTMLElement>('.mantine-AssistantThread-root')!;
+
 beforeEach(() => {
   markdownRenders.length = 0;
 });
@@ -63,7 +93,7 @@ function setup(initial: AssistantMessage[], props: Partial<AssistantThreadProps>
 describe('AssistantThread', () => {
   tests.itSupportsSystemProps<AssistantThreadProps, AssistantThreadStylesNames>({
     component: AssistantThread,
-    props: defaultProps,
+    props: busyProps,
     styleProps: true,
     extend: true,
     variant: true,
@@ -79,11 +109,20 @@ describe('AssistantThread', () => {
       'bubble',
       'answer',
       'text',
+      'thinking',
       'step',
       'stepHeader',
+      'stepLabel',
+      'stepChevron',
+      'error',
+      'retry',
       'actions',
     ],
   });
+
+  tests.axe([<AssistantThread {...defaultProps} />, <AssistantThread {...busyProps} />]);
+
+  itHasStaticVarsResolver({ component: AssistantThread });
 
   itSupportsAttributes({
     component: AssistantThread,
@@ -132,9 +171,9 @@ describe('AssistantThread', () => {
 
     const tool = screen.getByRole('button', { name: /search_docs/ });
     expect(tool).toHaveTextContent('Done');
-    expect(screen.getByText('Done').closest('.mantine-Badge-root')).toHaveStyle({
-      marginInlineStart: 'auto',
-    });
+    expect(screen.getByText('Done').closest('.mantine-Badge-root')).toHaveClass(
+      'mantine-AssistantThread-stepBadge'
+    );
     await userEvent.click(tool);
     expect(await screen.findByText(/"query": "debounce"/)).toBeInTheDocument();
     expect(screen.getByText(/"hits": 2/)).toBeInTheDocument();
@@ -257,5 +296,91 @@ describe('AssistantThread', () => {
     expect(
       screen.getByRole('button', { name: 'Copy: Use useDebouncedValue and wait.' })
     ).toBeInTheDocument();
+  });
+
+  it('sets no theming variables by default', () => {
+    const { container } = render(<AssistantThread {...defaultProps} />);
+    const root = getRoot(container);
+    expect(root.style.getPropertyValue('--assistant-thread-prompt-radius')).toBe('');
+    expect(root.style.getPropertyValue('--assistant-thread-max-width')).toBe('');
+    expect(root.style.getPropertyValue('--assistant-thread-prompt-max-width')).toBe('');
+  });
+
+  it('sets the prompt radius variable from radius', () => {
+    const { container } = render(<AssistantThread {...defaultProps} radius="xs" />);
+    expect(getRoot(container).style.getPropertyValue('--assistant-thread-prompt-radius')).toBe(
+      'var(--mantine-radius-xs)'
+    );
+  });
+
+  it('sets variables from vars', () => {
+    const { container } = render(
+      <AssistantThread
+        {...defaultProps}
+        vars={() => ({
+          root: {
+            '--assistant-thread-max-width': '40rem',
+            '--assistant-thread-prompt-max-width': '60%',
+          },
+        })}
+      />
+    );
+    const root = getRoot(container);
+    expect(root.style.getPropertyValue('--assistant-thread-max-width')).toBe('40rem');
+    expect(root.style.getPropertyValue('--assistant-thread-prompt-max-width')).toBe('60%');
+  });
+
+  it('puts the selectors of open steps and of the prompt editor on their elements', async () => {
+    const { container } = render(
+      <AssistantThread {...defaultProps} onEdit={() => {}} classNames={selectorClassNames} />
+    );
+    await userEvent.click(screen.getByRole('button', { name: /search_docs/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Edit: Write a debounce hook' }));
+
+    const has = (selector: string) =>
+      container.querySelector(`.mantine-AssistantThread-${selector}`);
+    expect(screen.getByText('search_docs')).toHaveAttribute('data-tool');
+    expect(has('stepChevron')).toBeInTheDocument();
+    expect(has('stepBadge')).toHaveTextContent('Done');
+    expect(has('stepCaption')).toHaveTextContent('Input');
+    expect(has('stepCode')).toBeInTheDocument();
+    expect(has('editor')).toBeInTheDocument();
+    expect(has('editorInput')).toBe(screen.getByRole('textbox', { name: 'Edit message' }));
+    expect(has('editorActions')).toContainElement(screen.getByRole('button', { name: 'Send' }));
+  });
+
+  it('retries from the retry button', async () => {
+    const onRegenerate = jest.fn();
+    render(<AssistantThread {...busyProps} onRegenerate={onRegenerate} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Retry' }));
+    expect(onRegenerate).toHaveBeenCalledWith(busyProps.messages[3]);
+  });
+
+  it('passes unstyled to the components it renders', async () => {
+    const { container } = render(<AssistantThread {...busyProps} unstyled />);
+    await userEvent.click(screen.getByRole('button', { name: /search_docs/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Edit: Write a debounce hook' }));
+
+    const nested = '.mantine-MessageActions-root, .mantine-MarkdownBody-root';
+    const names = [
+      'Alert',
+      'Badge',
+      'Button',
+      'Code',
+      'MarkdownBody',
+      'MessageActions',
+      'Text',
+      'Textarea',
+    ];
+
+    for (const name of names) {
+      const elements = [...container.querySelectorAll(`.mantine-${name}-root`)].filter(
+        (element) => !element.parentElement!.closest(nested)
+      );
+      expect(elements.length).toBeGreaterThan(0);
+      for (const element of elements) {
+        expect([...element.classList].filter((cls) => !cls.startsWith('mantine-'))).toEqual([]);
+      }
+    }
   });
 });
