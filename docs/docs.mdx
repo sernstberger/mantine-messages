@@ -368,7 +368,7 @@ objects between renders.
 ## Composer
 
 `Composer` grows with its text up to `maxRows`. Enter sends, Shift+Enter adds a line. `onSend`
-gets a draft: `{ text, format, attachments, replyToId }`, with the text trimmed.
+gets a draft: `{ text, format, mode, replyToId }`, with the text trimmed.
 After sending, by Enter or with the button, the cursor stays in the box. With `replyTo`, the reply
 bar describes the box (`aria-describedby`), so screen readers say whom the message answers when
 the box gets focus.
