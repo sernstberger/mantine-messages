@@ -23,7 +23,7 @@ export type MessageListStylesNames = 'root' | 'list' | 'divider' | 'unread' | 'l
 
 export interface MessageListLabels {
   /** Line above the first unread item */
-  unread: string;
+  newMessages: string;
 }
 
 export interface MessageListItemContext<T extends MessageBase> {
@@ -108,7 +108,7 @@ const defaultProps = {
   autoScroll: true,
 } satisfies Partial<MessageListProps>;
 
-const defaultLabels: MessageListLabels = { unread: 'New messages' };
+const defaultLabels: MessageListLabels = { newMessages: 'New messages' };
 
 /** A scrolling list of items; `<MessageList<T>>` types `renderItem` with your item type */
 export const MessageList = genericFactory<MessageListFactory>((_props) => {
@@ -212,7 +212,7 @@ export const MessageList = genericFactory<MessageListFactory>((_props) => {
               </Box>
               {item.id === unreadAfterId && next && (
                 <Divider
-                  label={allLabels.unread}
+                  label={allLabels.newMessages}
                   labelPosition="center"
                   color="red"
                   {...getStyles('unread')}

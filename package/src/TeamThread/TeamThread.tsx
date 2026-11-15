@@ -356,7 +356,7 @@ export const TeamThread = factory<TeamThreadFactory>((_props) => {
       onLoadOlder={onLoadOlder}
       hasOlder={hasOlder}
       loadingOlder={loadingOlder}
-      labels={{ unread: allLabels.newMessages }}
+      labels={{ newMessages: allLabels.newMessages }}
       unstyled={unstyled}
       classNames={Object.fromEntries(listParts.map((part) => [part, listStyles[part].className]))}
       styles={Object.fromEntries(listParts.map((part) => [part, listStyles[part].style]))}

@@ -72,7 +72,8 @@ under its bubble; pass `onToggleReaction` and `onOpenAttachment` to make them in
 
 Pass `onLoadOlder`, `hasOlder` and `loadingOlder` to load history as the user scrolls up; the view
 stays where it was while older messages are added above. `unreadAfterId` draws a "New messages"
-line after the last read message.
+line after the last read message; its text is `labels.newMessages`, the same key on `MessageList`,
+`ChatThread`, `TeamThread` and `ThreadPanel`, so one translation object fits them all.
 
 ## Building your own layout
 

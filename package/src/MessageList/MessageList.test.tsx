@@ -113,7 +113,7 @@ describe('MessageList', () => {
   });
 
   it('draws the unread line after the given item, but not after the last', () => {
-    const { rerender } = renderList({ unreadAfterId: 'b', labels: { unread: 'Unread' } });
+    const { rerender } = renderList({ unreadAfterId: 'b', labels: { newMessages: 'Unread' } });
     const line = screen.getByText('Unread');
     expect(screen.getByTestId('b').compareDocumentPosition(line)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING

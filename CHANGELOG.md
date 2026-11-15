@@ -52,6 +52,8 @@ will be 0.1.0.
 
 ### Changed
 
+- `MessageList`: `labels.unread` is now `labels.newMessages`, the key `ChatThread`, `TeamThread`
+  and `ThreadPanel` already use
 - `MessageList` is built with Mantine's `genericFactory`, so `<MessageList<T>>` is typed without a
   cast and `MessageListFactory` carries the generic `signature`; `MessageListBase` is no longer
   exported (use `MessageList`)
