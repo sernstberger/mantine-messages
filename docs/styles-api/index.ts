@@ -1,4 +1,12 @@
-import type { ComposerFactory, InboxFactory, ChatThreadFactory } from 'mantine-messages';
+import type {
+  AttachmentsFactory,
+  ChatThreadFactory,
+  ComposerFactory,
+  InboxFactory,
+  MessageActionsFactory,
+  MessageListFactory,
+  ReactionsFactory,
+} from 'mantine-messages';
 import type { StylesApiData } from '../components/styles-api.types';
 
 export const InboxStylesApi: StylesApiData<InboxFactory> = {
@@ -21,31 +29,33 @@ export const InboxStylesApi: StylesApiData<InboxFactory> = {
   ],
 };
 
-export const ThreadStylesApi: StylesApiData<ChatThreadFactory> = {
+export const ChatThreadStylesApi: StylesApiData<ChatThreadFactory> = {
   selectors: {
     root: 'Root element, a Mantine ScrollArea',
-    list: 'Column of messages inside the scroll area, a live log',
-    divider: 'Date divider between days, a Mantine Divider',
-    group: 'Consecutive messages from one author',
-    avatar: 'Avatar of another person',
-    messages: 'Column of bubbles inside a group',
-    author: 'Name of another person',
-    row: 'One message and its reply button',
-    content: 'Column with the bubble and, for a reply, what it answers',
-    bubble: 'One message',
+    list: 'Column of messages, a live log',
+    divider: 'Date divider',
+    unread: '"New messages" line',
+    loader: 'Loader at the top while older messages load',
+    item: 'Wrapper of one message, scrolled to by jumps',
+    row: 'One message: avatar column and content',
+    avatar: 'Avatar on the last message of a group',
+    avatarSpace: 'Space under the avatar for other messages of a group',
+    content: 'Author, quote, bubble, files, reactions and time',
+    author: 'Name on the first message of a group',
     quoteLabel: 'Caption above a reply, for example "You replied to Maya"',
     quote: 'Faded copy of the answered message; a click scrolls to it',
-    replyButton: 'Reply button, shown on hover and focus when `onReply` is set',
-    meta: 'Time under a group',
+    line: 'Bubble and its actions',
+    bubble: 'One message',
+    actions: 'MessageActions beside the bubble, shown on hover and focus',
+    reactions: 'Reactions under the bubble',
+    attachments: 'Attachments under the bubble',
+    meta: 'Time under the last message of a group',
     status: 'Status of your last message',
   },
   vars: {},
   modifiers: [
-    {
-      modifier: 'data-own',
-      selector: ['group', 'bubble'],
-      condition: 'Written by `currentUserId`',
-    },
+    { modifier: 'data-own', selector: ['row', 'bubble'], condition: 'Written by `currentUserId`' },
+    { modifier: 'data-group-start', selector: 'row', condition: 'First message of a group' },
     {
       modifier: 'data-status',
       selector: ['bubble', 'status'],
@@ -64,6 +74,45 @@ export const ThreadStylesApi: StylesApiData<ChatThreadFactory> = {
   ],
 };
 
+export const MessageListStylesApi: StylesApiData<MessageListFactory> = {
+  selectors: {
+    root: 'Root element, a Mantine ScrollArea',
+    list: 'Column of items, a live log',
+    divider: 'Date divider',
+    unread: '"New messages" line',
+    loader: 'Loader floating at the top while older items load',
+    item: 'Wrapper of one item, scrolled to by jumps',
+  },
+  vars: {},
+};
+
+export const MessageActionsStylesApi: StylesApiData<MessageActionsFactory> = {
+  selectors: { root: 'Root element', action: 'One action button, or the More button' },
+  vars: {},
+  modifiers: [{ modifier: 'data-menu-open', selector: 'root', condition: 'The More menu is open' }],
+};
+
+export const ReactionsStylesApi: StylesApiData<ReactionsFactory> = {
+  selectors: { root: 'Root element', reaction: 'One emoji and its count' },
+  vars: {},
+  modifiers: [
+    {
+      modifier: 'data-active',
+      selector: 'reaction',
+      condition: 'The current user reacted with it',
+    },
+  ],
+};
+
+export const AttachmentsStylesApi: StylesApiData<AttachmentsFactory> = {
+  selectors: {
+    root: 'Root element',
+    image: 'Image thumbnail',
+    file: 'File chip with name and size',
+  },
+  vars: {},
+};
+
 export const ComposerStylesApi: StylesApiData<ComposerFactory> = {
   selectors: {
     root: 'Root element',
@@ -78,6 +127,10 @@ export const ComposerStylesApi: StylesApiData<ComposerFactory> = {
 
 export const STYLES_API_DATA = {
   Inbox: InboxStylesApi,
-  ChatThread: ThreadStylesApi,
+  ChatThread: ChatThreadStylesApi,
   Composer: ComposerStylesApi,
+  MessageList: MessageListStylesApi,
+  MessageActions: MessageActionsStylesApi,
+  Reactions: ReactionsStylesApi,
+  Attachments: AttachmentsStylesApi,
 };

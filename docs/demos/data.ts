@@ -33,6 +33,7 @@ export const messages: ChatMessage[] = [
     authorId: 'maya',
     body: 'Can you send me the deposit invoice when you get a chance? Finance wants it before Friday.',
     createdAt: at(1, 17, 12),
+    reactions: [{ emoji: '👍', userIds: ['me'] }],
   },
   {
     id: 'm5',
@@ -54,6 +55,15 @@ export const messages: ChatMessage[] = [
     body: 'Sending it over now. It also has the menu options they suggested.',
     createdAt: minutesAgo(11),
     status: 'delivered',
+    attachments: [
+      {
+        id: 'a1',
+        name: 'deposit-invoice.pdf',
+        url: '#',
+        mimeType: 'application/pdf',
+        size: 184320,
+      },
+    ],
   },
 ];
 

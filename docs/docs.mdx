@@ -53,6 +53,33 @@ const [replyTo, setReplyTo] = useState<Message | null>(null);
 />
 ```
 
+## Actions, reactions and files
+
+`actions` sets the buttons beside each message: built-ins (`'reply'`, `'react'`, `'thread'`,
+`'edit'`, `'copy'`) show when their handler is set, and custom items `{ id, label, icon, onClick }`
+always show. After three, the rest go in a menu. Reactions and attachments on a message render
+under its bubble; pass `onToggleReaction` and `onOpenAttachment` to make them interactive.
+
+## Long threads
+
+Pass `onLoadOlder`, `hasOlder` and `loadingOlder` to load history as the user scrolls up; the view
+stays where it was while older messages are added above. `unreadAfterId` draws a "New messages"
+line after the last read message.
+
+## Building your own layout
+
+`MessageList` is the engine under `ChatThread`: give it any items with `id`, `authorId` and
+`createdAt` and a `renderItem`. It adds date dividers, groups (with `groupWith`), the unread line,
+scrolling and jumps.
+
+```tsx
+<MessageList
+  items={notes}
+  groupWith={(previous, note) => previous.authorId === note.authorId}
+  renderItem={(note, { groupStart }) => <NoteRow note={note} showName={groupStart} />}
+/>
+```
+
 ## Inbox
 
 `Inbox` lists conversations with a preview of the last message, its time and an unread count.

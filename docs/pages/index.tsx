@@ -13,8 +13,24 @@ export default function HomePage() {
       <PageHeader data={PACKAGE_DATA} />
       <DocsTabs
         docgen={docgen}
-        componentsProps={['Inbox', 'ChatThread', 'Composer']}
-        componentsStyles={['Inbox', 'ChatThread', 'Composer']}
+        componentsProps={[
+          'Inbox',
+          'ChatThread',
+          'Composer',
+          'MessageList',
+          'MessageActions',
+          'Reactions',
+          'Attachments',
+        ]}
+        componentsStyles={[
+          'Inbox',
+          'ChatThread',
+          'Composer',
+          'MessageList',
+          'MessageActions',
+          'Reactions',
+          'Attachments',
+        ]}
         stylesApiData={STYLES_API_DATA}
       >
         <Docs />

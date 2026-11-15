@@ -14,4 +14,7 @@ will be 0.1.0.
 - `Composer`: text box that grows, Enter to send, a reply bar with cancel; `onSend` gets a draft
   `{ text, format, attachments, replyToId }`
 - Types: `MessageBase`, `ChatMessage`, `SystemEvent`, `Conversation`, `MessagesUser`
-- Helpers: `groupMessages`, `getPreview`, `stripMarkdown`, `truncate`
+- Helpers: `getPreview`, `stripMarkdown`, `truncate`
+- `MessageList` and `useMessageList`: the engine for any message layout
+- `MessageActions`, `Reactions`, `Attachments`
+- `ChatThread`: actions, reactions, attachments, a "New messages" line, loading older messages

@@ -14,6 +14,31 @@ export function Messenger() {
   const title = sampleConversations.find((c) => c.id === selected)?.title;
 
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
+  const toggle = (id: string, emoji: string) =>
+    setMessages((current) =>
+      current.map((message) => {
+        if (message.id !== id) {
+          return message;
+        }
+
+        const reactions = message.reactions ?? [];
+        const existing = reactions.find((reaction) => reaction.emoji === emoji);
+        const next = existing
+          ? reactions.map((reaction) =>
+              reaction.emoji === emoji
+                ? {
+                    ...reaction,
+                    userIds: reaction.userIds.includes('me')
+                      ? reaction.userIds.filter((id) => id !== 'me')
+                      : [...reaction.userIds, 'me'],
+                  }
+                : reaction
+            )
+          : [...reactions, { emoji, userIds: ['me'] }];
+
+        return { ...message, reactions: next };
+      })
+    );
   const count = useRef(0);
   const add = (message: Omit<ChatMessage, 'id' | 'createdAt'>) => {
     count.current += 1;
@@ -54,6 +79,9 @@ export function Messenger() {
             users={sampleUsers}
             currentUserId="me"
             onReply={setReplyTo}
+            onReact={(message) => toggle(message.id, '❤️')}
+            onToggleReaction={(message, emoji) => toggle(message.id, emoji)}
+            unreadAfterId="m4"
             style={{ flex: 1 }}
           />
           <Box p="sm">
@@ -89,9 +117,20 @@ const longThread: ChatMessage[] = Array.from({ length: 80 }, (_, index) => ({
   createdAt: new Date(Date.now() - (80 - index) * 7 * 60 * 1000),
 }));
 
-/** Opens at the newest message. Scroll up, then send: it jumps down because you sent it */
+/** Opens at the newest message; scroll to the top to load older ones, 20 at a time */
 export function LongThread() {
-  const [messages, setMessages] = useState(longThread);
+  const [count, setCount] = useState(40);
+  const [loading, setLoading] = useState(false);
+  const [extra, setExtra] = useState<ChatMessage[]>([]);
+  const messages = [...longThread.slice(longThread.length - count), ...extra];
+
+  const loadOlder = () => {
+    setLoading(true);
+    setTimeout(() => {
+      setCount((current) => Math.min(current + 20, longThread.length));
+      setLoading(false);
+    }, 800);
+  };
 
   return (
     <Box p="xl" maw={480}>
@@ -101,11 +140,14 @@ export function LongThread() {
           users={sampleUsers}
           currentUserId="me"
           style={{ flex: 1 }}
+          onLoadOlder={loadOlder}
+          hasOlder={count < longThread.length}
+          loadingOlder={loading}
         />
         <Composer
           m="sm"
           onSend={({ text: body }) =>
-            setMessages((current) => [
+            setExtra((current) => [
               ...current,
               { id: `long-new-${current.length}`, authorId: 'me', body, createdAt: new Date() },
             ])
