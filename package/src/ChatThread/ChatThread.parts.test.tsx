@@ -23,10 +23,22 @@ const messages: ChatMessage[] = [
     reactions: [{ emoji: '👍', userIds: ['me'] }],
     attachments: [{ id: 'f', name: 'menu.pdf', url: '/menu.pdf' }],
   },
-  { id: 'b', authorId: 'me', body: 'Yes!', createdAt: at(1), replyToId: 'a', status: 'read' },
+  {
+    id: 'b',
+    authorId: 'me',
+    body: 'Yes!',
+    createdAt: at(1),
+    replyToId: 'a',
+    status: 'read',
+  },
 ];
 
-const defaultProps: ChatThreadProps = { messages, users, currentUserId: 'me', locale: 'en-US' };
+const defaultProps: ChatThreadProps = {
+  messages,
+  users,
+  currentUserId: 'me',
+  locale: 'en-US',
+};
 
 const customRow: ChatThreadProps['renderMessage'] = (message, context) => (
   <ChatThread.Message
@@ -39,7 +51,7 @@ const customRow: ChatThreadProps['renderMessage'] = (message, context) => (
     <ChatThread.Quote classNames={{ quoteLabel: 'custom-label' }} />
     <ChatThread.Bubble
       className="custom-bubble"
-      actions={<ChatThread.Actions actions={['copy']} className="custom-actions" />}
+      rightSection={<ChatThread.Actions actions={['copy']} className="custom-actions" />}
     >
       <em>{message.body.toUpperCase()}</em>
     </ChatThread.Bubble>
@@ -103,7 +115,7 @@ describe('ChatThread parts', () => {
         onReply={() => {}}
         renderMessage={(message, context) => (
           <ChatThread.Message message={message} context={context}>
-            <ChatThread.Bubble actions={null} />
+            <ChatThread.Bubble rightSection={null} />
           </ChatThread.Message>
         )}
       />
@@ -117,7 +129,9 @@ describe('ChatThread parts', () => {
     const view = (list: ChatMessage[]) => (
       <ChatThread {...defaultProps} messages={list} renderMessage={renderMessage} />
     );
-    const { rerender } = rtlRender(view(messages), { wrapper: MantineProvider });
+    const { rerender } = rtlRender(view(messages), {
+      wrapper: MantineProvider,
+    });
     expect(renderMessage).toHaveBeenCalledTimes(2);
     rerender(view(messages));
     expect(renderMessage).toHaveBeenCalledTimes(2);
@@ -144,7 +158,11 @@ describe('ChatThread parts', () => {
 
   for (const [name, Part] of Object.entries(parts)) {
     tests.itThrowsContextError(
-      { component: Part, props: {}, error: 'ChatThread component was not found in tree' },
+      {
+        component: Part,
+        props: {},
+        error: 'ChatThread component was not found in tree',
+      },
       `ChatThread.${name} throws outside ChatThread`
     );
 

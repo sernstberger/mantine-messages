@@ -108,6 +108,8 @@ Public surface
 
 The package is not published, so these ship without aliases.
 
+- `ChatThread.Bubble` and `TeamThread.Message`: the `actions` slot is now `rightSection`, so `actions`
+  always means the list of buttons (`ChatThread.Actions`, `TeamThread.Actions`, the threads)
 - `ThreadPanel` is a frame with parts, like Mantine's `Modal`: the panel keeps `title` (a prop
   now, "Thread" by default; it was `labels.title`), `subtitle`, `titleOrder`, `onClose`,
   `withCloseButton`, `closeButtonProps`, `withFocusManagement` and `labels.close`;
@@ -148,6 +150,12 @@ The package is not published, so these ship without aliases.
 - `ThreadPanel`: the title is a heading (`Title`), `h2` by default
 
 ### Fixed
+
+- `ChatThread`, `TeamThread`: `attributes` for `list`, `divider`, `unread`, `loader` and `item`
+  reach the inner list (only `className` and `style` did)
+- `ChatThread`, `Message`: the avatar follows `--chat-thread-avatar-size` and `--message-avatar-size`,
+  so a `vars` override moves the avatar and its column together
+- `TeamThread`: the hover toolbar shows on touch screens (`hover: none`), as in `ChatThread`
 
 Accessibility
 

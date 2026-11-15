@@ -22,7 +22,13 @@ const message = (
   authorId: string,
   minute: number,
   extra: Partial<ChatMessage> = {}
-): ChatMessage => ({ id, authorId, body: `Body ${id}`, createdAt: at(minute), ...extra });
+): ChatMessage => ({
+  id,
+  authorId,
+  body: `Body ${id}`,
+  createdAt: at(minute),
+  ...extra,
+});
 
 const event = (id: string, minute: number): SystemEvent => ({
   id,
@@ -124,9 +130,31 @@ describe('TeamThread', () => {
       'var(--message-avatar-size-lg)'
     );
     expect(container.querySelector('.mantine-Message-avatar')).toHaveStyle({
-      '--avatar-size': 'var(--avatar-size-lg)',
+      '--avatar-size': 'var(--message-avatar-size)',
     });
   });
+
+  it('moves the avatar with the column when vars overrides the size', () => {
+    const { container } = render(
+      <TeamThread {...busyProps} vars={() => ({ root: { '--message-avatar-size': '50px' } })} />
+    );
+    expect(container.querySelector('.mantine-Message-avatar')).toHaveStyle({
+      '--avatar-size': 'var(--message-avatar-size)',
+    });
+  });
+
+  it.each(['list', 'divider', 'unread', 'loader', 'item'])(
+    'passes the attributes of %s to the inner list',
+    (part) => {
+      const { container } = render(
+        <TeamThread {...busyProps} attributes={{ [part]: { 'data-test': part } }} />
+      );
+      expect(container.querySelector(`.mantine-TeamThread-${part}`)).toHaveAttribute(
+        'data-test',
+        part
+      );
+    }
+  );
 
   it('keeps 36 as the default avatar size', () => {
     const { container } = render(<TeamThread {...defaultProps} />);
@@ -235,7 +263,10 @@ describe('TeamThread', () => {
   });
 
   it('marks internal notes and edited messages, with custom labels', () => {
-    const note = message('a', 'maya', 1, { visibility: 'internal', editedAt: at(2) });
+    const note = message('a', 'maya', 1, {
+      visibility: 'internal',
+      editedAt: at(2),
+    });
     const { rerender } = render(<TeamThread {...defaultProps} items={[note]} />);
     expect(row('a')).toHaveAttribute('data-internal');
     expect(screen.getByText('Internal note')).toBeInTheDocument();
@@ -279,7 +310,9 @@ describe('TeamThread', () => {
     expect(onOpenThread).toHaveBeenCalledWith(other);
     expect(screen.getByRole('button', { name: 'Copy: Body o' })).toBeInTheDocument();
     expect(
-      screen.getByRole('toolbar', { name: "Actions for Maya Lindqvist's message" })
+      screen.getByRole('toolbar', {
+        name: "Actions for Maya Lindqvist's message",
+      })
     ).toBeInTheDocument();
 
     expect(screen.getAllByRole('button', { name: /^More actions/ })).toHaveLength(1);
@@ -294,7 +327,9 @@ describe('TeamThread', () => {
       <TeamThread {...defaultProps} items={list} onReact={onReact} selectedId="b" />
     );
     // Testing Library's render: Mantine's wraps the first render in a fragment, so rerender remounts
-    const { rerender } = rtlRender(view(items, jest.fn()), { wrapper: MantineProvider });
+    const { rerender } = rtlRender(view(items, jest.fn()), {
+      wrapper: MantineProvider,
+    });
 
     formatted.mockClear();
     const onReact = jest.fn();
@@ -357,7 +392,11 @@ describe('TeamThread', () => {
         loadingOlder
         hasOlder
         onLoadOlder={() => {}}
-        labels={{ newMessages: 'Unread', log: '#launch', loadingOlder: 'Fetching' }}
+        labels={{
+          newMessages: 'Unread',
+          log: '#launch',
+          loadingOlder: 'Fetching',
+        }}
       />
     );
     expect(screen.getByText('Unread')).toBeInTheDocument();

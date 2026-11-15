@@ -45,7 +45,12 @@ const items: TeamThreadItem[] = [
   { id: 'b', authorId: 'me', body: 'On it', createdAt: at(2) },
 ];
 
-const defaultProps: TeamThreadProps = { items, users, currentUserId: 'me', locale: 'en-US' };
+const defaultProps: TeamThreadProps = {
+  items,
+  users,
+  currentUserId: 'me',
+  locale: 'en-US',
+};
 
 const customRow: TeamThreadProps['renderMessage'] = (item, context) =>
   'kind' in item ? (
@@ -55,7 +60,7 @@ const customRow: TeamThreadProps['renderMessage'] = (item, context) =>
       message={item}
       context={context}
       className="custom-row"
-      actions={<TeamThread.Actions actions={['copy']} className="custom-actions" />}
+      rightSection={<TeamThread.Actions actions={['copy']} className="custom-actions" />}
     >
       <TeamThread.Author className="custom-author" />
       <TeamThread.Text className="custom-text">
@@ -137,7 +142,7 @@ describe('TeamThread parts', () => {
         onReact={() => {}}
         renderMessage={(item, context) =>
           'kind' in item ? null : (
-            <TeamThread.Message message={item} context={context} actions={null} />
+            <TeamThread.Message message={item} context={context} rightSection={null} />
           )
         }
       />
@@ -186,7 +191,11 @@ describe('TeamThread parts', () => {
 
   for (const [name, Part] of Object.entries(parts)) {
     tests.itThrowsContextError(
-      { component: Part, props: {}, error: 'TeamThread component was not found in tree' },
+      {
+        component: Part,
+        props: {},
+        error: 'TeamThread component was not found in tree',
+      },
       `TeamThread.${name} throws outside TeamThread`
     );
 

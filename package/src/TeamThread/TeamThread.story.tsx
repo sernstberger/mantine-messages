@@ -38,7 +38,7 @@ export function CustomTeamRows() {
               <TeamThread.Message
                 message={item}
                 context={context}
-                actions={<TeamThread.Actions actions={['react', 'copy']} />}
+                rightSection={<TeamThread.Actions actions={['react', 'copy']} />}
               >
                 <TeamThread.Author />
                 {item.id === 'team-m1' && (

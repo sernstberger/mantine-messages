@@ -15,7 +15,12 @@ const users: MessagesUser[] = [
 ];
 
 const messages: ChatMessage[] = [
-  { id: 'a', authorId: 'maya', body: 'Hi there', createdAt: new Date(2026, 10, 15, 9) },
+  {
+    id: 'a',
+    authorId: 'maya',
+    body: 'Hi there',
+    createdAt: new Date(2026, 10, 15, 9),
+  },
   {
     id: 'b',
     authorId: 'me',
@@ -36,7 +41,12 @@ const busyMessages: ChatMessage[] = [
     attachments: [{ id: 'f', name: 'menu.pdf', url: '/menu.pdf' }],
     reactions: [{ emoji: '👍', userIds: ['me'] }],
   },
-  { id: 'a2', authorId: 'maya', body: 'Lunch?', createdAt: new Date(2026, 10, 15, 9, 1) },
+  {
+    id: 'a2',
+    authorId: 'maya',
+    body: 'Lunch?',
+    createdAt: new Date(2026, 10, 15, 9, 1),
+  },
   {
     id: 'b',
     authorId: 'me',
@@ -144,8 +154,18 @@ describe('ChatThread', () => {
 
   it('sizes the avatar with avatarSize', () => {
     const { container } = render(<ChatThread {...busyProps} avatarSize="lg" />);
-    expect(container.querySelector('.mantine-Avatar-root')).toHaveStyle({
-      '--avatar-size': 'var(--avatar-size-lg)',
+    expect(getRoot(container).style.getPropertyValue('--chat-thread-avatar-size')).toBe(
+      'var(--chat-thread-avatar-size-lg)'
+    );
+  });
+
+  it('moves the avatar with the avatar column when vars overrides the size', () => {
+    const { container } = render(
+      <ChatThread {...busyProps} vars={() => ({ root: { '--chat-thread-avatar-size': '50px' } })} />
+    );
+    expect(getRoot(container).style.getPropertyValue('--chat-thread-avatar-size')).toBe('50px');
+    expect(container.querySelector('.mantine-ChatThread-avatar')).toHaveStyle({
+      '--avatar-size': 'var(--chat-thread-avatar-size)',
     });
   });
 
@@ -189,6 +209,19 @@ describe('ChatThread', () => {
     name: 'ChatThread',
     selector: 'bubble',
   });
+
+  it.each(['list', 'divider', 'unread', 'loader', 'item'])(
+    'passes the attributes of %s to the inner list',
+    (part) => {
+      const { container } = render(
+        <ChatThread {...busyProps} attributes={{ [part]: { 'data-test': part } }} />
+      );
+      expect(container.querySelector(`.mantine-ChatThread-${part}`)).toHaveAttribute(
+        'data-test',
+        part
+      );
+    }
+  );
 
   it('passes handlersRef to the inner MessageList', () => {
     const scrollIntoView = jest.spyOn(Element.prototype, 'scrollIntoView');
@@ -235,7 +268,9 @@ describe('ChatThread', () => {
       <ChatThread {...defaultProps} messages={list} renderBody={renderBody} onReply={onReply} />
     );
     // Testing Library's render: Mantine's wraps the first render in a fragment, so rerender remounts
-    const { rerender } = rtlRender(view(messages, first), { wrapper: MantineProvider });
+    const { rerender } = rtlRender(view(messages, first), {
+      wrapper: MantineProvider,
+    });
     expect(renderBody).toHaveBeenCalledTimes(2);
 
     const second = jest.fn();

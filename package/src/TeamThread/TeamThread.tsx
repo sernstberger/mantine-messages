@@ -128,10 +128,16 @@ export interface TeamThreadProps
   /** IANA time zone for times and date dividers, from `MessagesProvider` (the runtime's without one) by default */
   timeZone?: string;
 
-  /** Longest gap, in milliseconds, between two messages of one group, 5 minutes by default */
+  /**
+   * Longest gap, in milliseconds, between two messages of one group
+   * @default 5 * 60 * 1000
+   */
   groupWindow?: number;
 
-  /** Keep the newest message in view, `true` by default */
+  /**
+   * Keep the newest message in view
+   * @default true
+   */
   autoScroll?: boolean;
 
   /** Renders the text of a message, for example markdown with `MarkdownBody`; the plain `body` by default */
@@ -143,7 +149,10 @@ export interface TeamThreadProps
    */
   renderMessage?: (item: TeamThreadItem, context: TeamThreadMessageContext) => React.ReactNode;
 
-  /** Actions on hover; a built-in shows only when its handler is set, `['react', 'thread', 'edit', 'copy']` by default */
+  /**
+   * Actions on hover; a built-in shows only when its handler is set
+   * @default ['react', 'thread', 'edit', 'copy']
+   */
   actions?: MessageAction[];
 
   /** Called with a message whose thread the user opens, from its summary or the thread action */
@@ -427,7 +436,12 @@ export const TeamThreadAttachments = factory<TeamThreadAttachmentsFactory>((_pro
       locale={ctx.dates.locale}
       unstyled={ctx.unstyled}
       onOpen={onOpenAttachment && ((attachment) => onOpenAttachment(message, attachment))}
-      {...ctx.getStyles('attachments', { className, style, classNames, styles })}
+      {...ctx.getStyles('attachments', {
+        className,
+        style,
+        classNames,
+        styles,
+      })}
       {...others}
     />
   );
@@ -470,7 +484,12 @@ export const TeamThreadReactions = factory<TeamThreadReactionsFactory>((_props) 
       currentUserId={ctx.currentUserId}
       unstyled={ctx.unstyled}
       onToggleReaction={onToggleReaction && ((emoji) => onToggleReaction(message, emoji))}
-      {...ctx.getStyles('reactions', { className, style, classNames, styles })}
+      {...ctx.getStyles('reactions', {
+        className,
+        style,
+        classNames,
+        styles,
+      })}
       {...others}
     />
   );
@@ -678,7 +697,7 @@ export interface TeamThreadMessageProps
   context: TeamThreadMessageContext;
 
   /** After the content: `<TeamThread.Actions />` by default, `null` for none */
-  actions?: React.ReactNode;
+  rightSection?: React.ReactNode;
 
   /**
    * Content beside the avatar: `TeamThread.Author`, `TeamThread.Text`, `TeamThread.Attachments`,
@@ -709,7 +728,7 @@ export const TeamThreadMessage = factory<TeamThreadMessageFactory>((_props) => {
     mod,
     message,
     context,
-    actions,
+    rightSection,
     children,
     ...others
   } = useProps('TeamThreadMessage', null, _props);
@@ -756,7 +775,7 @@ export const TeamThreadMessage = factory<TeamThreadMessageFactory>((_props) => {
             </>
           )}
         </Message.Body>
-        {actions === undefined ? <TeamThreadActions /> : actions}
+        {rightSection === undefined ? <TeamThreadActions /> : rightSection}
       </Message>
     </TeamThreadMessageProvider>
   );
@@ -958,6 +977,12 @@ export const TeamThread = factory<TeamThreadFactory>((_props) => {
         unstyled={unstyled}
         classNames={Object.fromEntries(listParts.map((part) => [part, listStyles[part].className]))}
         styles={Object.fromEntries(listParts.map((part) => [part, listStyles[part].style]))}
+        attributes={Object.fromEntries(
+          listParts.map((part) => {
+            const { className: _className, style: _style, ...rest } = listStyles[part];
+            return [part, rest];
+          })
+        )}
         {...getStyles('root')}
         {...others}
         renderItem={renderItem}

@@ -77,7 +77,7 @@ export const ChatThreadStylesApi: StylesApiData<ChatThreadFactory> = {
       '--chat-thread-own-bg': 'Background of your bubbles, from `color`',
       '--chat-thread-own-color': 'Text color of your bubbles, from `color` and `autoContrast`',
       '--chat-thread-avatar-size':
-        'Width and height of avatars and the space beside grouped messages, from `avatarSize`',
+        'Width and height of avatars and the space beside grouped messages, from `avatarSize`; the avatar reads it, so a `vars` override moves both',
       '--chat-thread-row-max-width': 'Largest width of a message row, 80% by default',
     },
   },
@@ -210,7 +210,7 @@ export const MessageStylesApi: StylesApiData<MessageFactory> = {
   vars: {
     root: {
       '--message-avatar-size':
-        'Width and height of `Message.Avatar` and width of the first column, from `avatarSize`',
+        'Width and height of `Message.Avatar` and width of the first column, from `avatarSize`; the avatar reads it, so a `vars` override moves both',
     },
   },
   modifiers: [{ modifier: 'data-compact', selector: 'root', condition: '`compact` is set' }],

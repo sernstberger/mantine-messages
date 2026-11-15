@@ -65,7 +65,12 @@ export const MessageAvatar = factory<MessageAvatarFactory>((_props) => {
       size={ctx.avatarSize}
       radius={radius ?? 'md'}
       unstyled={ctx.unstyled}
-      {...ctx.getStyles('avatar', { className, style, classNames, styles })}
+      {...ctx.getStyles('avatar', {
+        className,
+        classNames,
+        styles,
+        style: [{ '--avatar-size': 'var(--message-avatar-size)' }, style],
+      })}
       {...others}
     />
   );
