@@ -132,7 +132,7 @@ describe('ChatThread parts', () => {
     'ChatThread.Message throws outside ChatThread'
   );
 
-  for (const [name, Part] of Object.entries({
+  const parts: Record<string, React.ComponentType> = {
     Avatar: ChatThread.Avatar,
     Quote: ChatThread.Quote,
     Bubble: ChatThread.Bubble,
@@ -140,7 +140,9 @@ describe('ChatThread parts', () => {
     Attachments: ChatThread.Attachments,
     Reactions: ChatThread.Reactions,
     Meta: ChatThread.Meta,
-  })) {
+  };
+
+  for (const [name, Part] of Object.entries(parts)) {
     tests.itThrowsContextError(
       { component: Part, props: {}, error: 'ChatThread component was not found in tree' },
       `ChatThread.${name} throws outside ChatThread`

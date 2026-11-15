@@ -1,4 +1,4 @@
-import { Box, Paper, ScrollArea, Text } from '@mantine/core';
+import { Badge, Box, Button, Paper, ScrollArea, Text } from '@mantine/core';
 import React, { useRef, useState } from 'react';
 import { Composer, type ComposerDraft, type ComposerMode } from './Composer/Composer';
 import { Inbox } from './Inbox/Inbox';
@@ -433,6 +433,106 @@ export function MarkdownInChat() {
               <MarkdownBody>{message.body}</MarkdownBody>
             ) : (
               message.body
+            )
+          }
+        />
+      </Paper>
+    </Box>
+  );
+}
+
+const customChatMessages: ChatMessage[] = [
+  ...sampleMessages,
+  {
+    id: 'm8',
+    authorId: 'me',
+    format: 'markdown',
+    body: 'Menu options are **A** or **B**, see the invoice.',
+    createdAt: new Date(now - 60 * 1000),
+    status: 'failed',
+  },
+];
+
+/** renderMessage with the parts: markdown bodies, reply and copy only, and Retry on failed messages */
+export function CustomChatRows() {
+  const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
+
+  return (
+    <Box p="xl" maw={520}>
+      <Paper withBorder radius="lg" h={560} style={{ display: 'flex', flexDirection: 'column' }}>
+        <ChatThread
+          messages={customChatMessages}
+          users={sampleUsers}
+          currentUserId="me"
+          style={{ flex: 1 }}
+          onReply={setReplyTo}
+          renderMessage={(message, context) => (
+            <ChatThread.Message message={message} context={context}>
+              <ChatThread.Quote />
+              <ChatThread.Bubble actions={<ChatThread.Actions actions={['reply', 'copy']} />}>
+                {message.format === 'markdown' ? (
+                  <MarkdownBody>{message.body}</MarkdownBody>
+                ) : (
+                  message.body
+                )}
+              </ChatThread.Bubble>
+              <ChatThread.Attachments />
+              <ChatThread.Reactions />
+              <ChatThread.Meta />
+              {message.status === 'failed' && (
+                <Button variant="subtle" color="red" size="compact-xs">
+                  Retry
+                </Button>
+              )}
+            </ChatThread.Message>
+          )}
+        />
+        {replyTo && (
+          <Text size="xs" c="dimmed" px="md" pb="sm">
+            Replying to: {replyTo.body}
+          </Text>
+        )}
+      </Paper>
+    </Box>
+  );
+}
+
+/** renderMessage with the parts: a Pinned badge, markdown text, and react and copy only */
+export function CustomTeamRows() {
+  const items = sampleTeamItems.filter((item) => 'kind' in item || !item.threadId);
+
+  return (
+    <Box p="xl" maw={640}>
+      <Paper withBorder radius="md" h={560} style={{ display: 'flex', flexDirection: 'column' }}>
+        <TeamThread
+          items={items}
+          users={sampleUsers}
+          currentUserId="me"
+          style={{ flex: 1 }}
+          onReact={() => {}}
+          onOpenThread={() => {}}
+          renderMessage={(item, context) =>
+            'kind' in item ? (
+              <TeamThread.Event event={item} />
+            ) : (
+              <TeamThread.Message
+                message={item}
+                context={context}
+                actions={<TeamThread.Actions actions={['react', 'copy']} />}
+              >
+                <TeamThread.Author />
+                {item.thread && (
+                  <Badge size="xs" variant="light" mb={4}>
+                    Pinned
+                  </Badge>
+                )}
+                <TeamThread.Text>
+                  <MarkdownBody>{item.body}</MarkdownBody>
+                </TeamThread.Text>
+                <TeamThread.Attachments />
+                <TeamThread.Reactions />
+                <TeamThread.ThreadSummary />
+              </TeamThread.Message>
             )
           }
         />

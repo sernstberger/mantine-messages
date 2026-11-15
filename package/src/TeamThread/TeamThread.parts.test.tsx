@@ -175,14 +175,16 @@ describe('TeamThread parts', () => {
     'TeamThread.Event throws outside TeamThread'
   );
 
-  for (const [name, Part] of Object.entries({
+  const parts: Record<string, React.ComponentType> = {
     Author: TeamThread.Author,
     Text: TeamThread.Text,
     Attachments: TeamThread.Attachments,
     Reactions: TeamThread.Reactions,
     ThreadSummary: TeamThread.ThreadSummary,
     Actions: TeamThread.Actions,
-  })) {
+  };
+
+  for (const [name, Part] of Object.entries(parts)) {
     tests.itThrowsContextError(
       { component: Part, props: {}, error: 'TeamThread component was not found in tree' },
       `TeamThread.${name} throws outside TeamThread`
