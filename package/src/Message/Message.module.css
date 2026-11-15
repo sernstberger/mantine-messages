@@ -1,6 +1,12 @@
 .root {
+  --message-avatar-size-xs: rem(16px);
+  --message-avatar-size-sm: rem(26px);
+  --message-avatar-size-md: rem(38px);
+  --message-avatar-size-lg: rem(56px);
+  --message-avatar-size-xl: rem(84px);
+
   display: grid;
-  grid-template-columns: rem(36px) minmax(0, 1fr);
+  grid-template-columns: var(--message-avatar-size, rem(36px)) minmax(0, 1fr);
   column-gap: var(--mantine-spacing-sm);
   align-items: start;
 }

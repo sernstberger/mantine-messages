@@ -7,6 +7,7 @@ import {
   factory,
   Factory,
   GetStylesApi,
+  MantineSize,
   StylesApiProps,
   Text,
   UnstyledButton,
@@ -62,6 +63,9 @@ export type TeamThreadStylesNames =
   | 'attachments'
   | 'reactions'
   | 'threadSummary'
+  | 'threadAvatars'
+  | 'threadCount'
+  | 'threadLastReply'
   | 'repliesDivider'
   | 'event';
 
@@ -152,6 +156,9 @@ export interface TeamThreadProps
 
   /** Gets `{ jumpTo }` of the inner `MessageList`, to scroll to a message and flash it */
   controlRef?: React.Ref<MessageListControl>;
+
+  /** Width and height of avatars, numbers are converted to rem @default 36 */
+  avatarSize?: MantineSize | (string & {}) | number;
 }
 
 export type TeamThreadFactory = Factory<{
@@ -170,11 +177,12 @@ const defaultLabels: TeamThreadLabels = {
   loadingOlder: 'Loading older messages',
 };
 
-const defaultProps: Partial<TeamThreadProps> = {
+const defaultProps = {
   groupWindow: 5 * 60 * 1000,
   autoScroll: true,
   actions: ['react', 'thread', 'edit', 'copy'],
-};
+  avatarSize: 36,
+} satisfies Partial<TeamThreadProps>;
 
 const listParts = ['list', 'divider', 'unread', 'loader', 'item'] as const;
 
@@ -189,6 +197,7 @@ interface TeamRowShared {
   actions: MessageAction[];
   locale?: string;
   unstyled?: boolean;
+  avatarSize: TeamThreadProps['avatarSize'];
   threadParentId?: string;
   onOpenThread?: (message: ChatMessage) => void;
   onReact?: (message: ChatMessage) => void;
@@ -226,28 +235,43 @@ const TeamRow = memo(function TeamRow({
   const renderThreadSummary = (summary: MessageThreadSummary) => {
     const content = (
       <>
-        <Avatar.Group spacing={6} aria-hidden>
+        <Avatar.Group
+          spacing={6}
+          aria-hidden
+          unstyled={shared.unstyled}
+          {...getStyles('threadAvatars')}
+        >
           {summary.participantIds.slice(0, 3).map((id) => (
             <Avatar
               key={id}
               size={20}
               radius="sm"
+              unstyled={shared.unstyled}
               src={usersById.get(id)?.avatar}
               name={nameOf(id)}
             />
           ))}
         </Avatar.Group>
-        <Text component="span" size="xs" fw={700} c="var(--mantine-color-anchor)">
+        <Text component="span" size="xs" unstyled={shared.unstyled} {...getStyles('threadCount')}>
           {labels.replies(summary.count)}
         </Text>
-        <Text component="span" size="xs" c="dimmed">
+        <Text
+          component="span"
+          size="xs"
+          unstyled={shared.unstyled}
+          {...getStyles('threadLastReply')}
+        >
           {labels.lastReply(formatRelative(summary.lastReplyAt, locale))}
         </Text>
       </>
     );
 
     return onOpenThread ? (
-      <UnstyledButton onClick={() => onOpenThread(message)} {...getStyles('threadSummary')}>
+      <UnstyledButton
+        onClick={() => onOpenThread(message)}
+        unstyled={shared.unstyled}
+        {...getStyles('threadSummary')}
+      >
         {content}
       </UnstyledButton>
     ) : (
@@ -260,6 +284,7 @@ const TeamRow = memo(function TeamRow({
       compact={!groupStart}
       mod={{ internal, selected, highlighted, 'message-id': message.id }}
       unstyled={shared.unstyled}
+      avatarSize={shared.avatarSize}
       {...getStyles('row')}
     >
       {groupStart ? (
@@ -274,14 +299,14 @@ const TeamRow = memo(function TeamRow({
       <Message.Body {...getStyles('body')}>
         {groupStart && (
           <Message.Meta {...getStyles('meta')}>
-            <Text component="span" size="sm" fw={700} {...getStyles('author')}>
+            <Text component="span" size="sm" unstyled={shared.unstyled} {...getStyles('author')}>
               {name}
             </Text>
             <Text
               component="time"
               dateTime={date.toISOString()}
               size="xs"
-              c="dimmed"
+              unstyled={shared.unstyled}
               {...getStyles('time')}
             >
               {time}
@@ -289,7 +314,7 @@ const TeamRow = memo(function TeamRow({
           </Message.Meta>
         )}
         {internal && (
-          <Text component="div" size="xs" fw={600} {...getStyles('noteLabel')}>
+          <Text component="div" size="xs" unstyled={shared.unstyled} {...getStyles('noteLabel')}>
             <LockIcon size={12} />
             {labels.internal}
           </Text>
@@ -297,7 +322,7 @@ const TeamRow = memo(function TeamRow({
         <Box {...getStyles('text')}>
           {message.body}
           {message.editedAt !== undefined && (
-            <Text component="span" size="xs" c="dimmed" {...getStyles('edited')}>
+            <Text component="span" size="xs" unstyled={shared.unstyled} {...getStyles('edited')}>
               {labels.edited}
             </Text>
           )}
@@ -306,6 +331,7 @@ const TeamRow = memo(function TeamRow({
           <Attachments
             attachments={message.attachments}
             locale={locale}
+            unstyled={shared.unstyled}
             onOpen={onOpenAttachment && ((attachment) => onOpenAttachment(message, attachment))}
             {...getStyles('attachments')}
           />
@@ -314,6 +340,7 @@ const TeamRow = memo(function TeamRow({
           <Reactions
             reactions={message.reactions}
             currentUserId={currentUserId}
+            unstyled={shared.unstyled}
             onToggle={onToggleReaction && ((emoji) => onToggleReaction(message, emoji))}
             {...getStyles('reactions')}
           />
@@ -326,6 +353,7 @@ const TeamRow = memo(function TeamRow({
         preview={() => getCachedPreview(message)}
         author={name}
         own={own}
+        unstyled={shared.unstyled}
         onReact={onReact && (() => onReact(message))}
         onThread={onOpenThread && !threadParentId ? () => onOpenThread(message) : undefined}
         onEdit={onEdit && own ? () => onEdit(message) : undefined}
@@ -366,6 +394,7 @@ export const TeamThread = factory<TeamThreadFactory>((_props) => {
     loadingOlder,
     labels,
     controlRef,
+    avatarSize,
     ...others
   } = props;
 
@@ -408,9 +437,10 @@ export const TeamThread = factory<TeamThreadFactory>((_props) => {
       labels: allLabels,
       usersById,
       currentUserId,
-      actions: actions!,
+      actions,
       locale,
       unstyled,
+      avatarSize,
       threadParentId,
       onOpenThread: has[0] ? (message) => handlers.current.onOpenThread!(message) : undefined,
       onReact: has[1] ? (message) => handlers.current.onReact!(message) : undefined,
@@ -434,6 +464,7 @@ export const TeamThread = factory<TeamThreadFactory>((_props) => {
       currentUserId,
       actions,
       locale,
+      avatarSize,
       threadParentId,
       ...has,
     ]
@@ -448,7 +479,7 @@ export const TeamThread = factory<TeamThreadFactory>((_props) => {
         const time = formatTime(date, shared.locale);
 
         return (
-          <Text size="xs" c="dimmed" ta="center" title={time} {...styled('event')}>
+          <Text size="xs" title={time} unstyled={shared.unstyled} {...styled('event')}>
             {item.text}
             <VisuallyHidden>
               {' '}
@@ -471,6 +502,7 @@ export const TeamThread = factory<TeamThreadFactory>((_props) => {
             <Divider
               label={text.replies(replyCount)}
               labelPosition="left"
+              unstyled={shared.unstyled}
               {...styled('repliesDivider')}
             />
           )}
