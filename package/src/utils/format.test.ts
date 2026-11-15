@@ -1,4 +1,13 @@
-import { formatDay, formatShort, formatTime, formatBytes, formatRelative } from './format';
+import {
+  formatBytes,
+  formatDay,
+  formatRelative,
+  formatShort,
+  formatTime,
+  getDateTimeFormat,
+  getNumberFormat,
+  getRelativeTimeFormat,
+} from './format';
 
 const now = new Date(2026, 10, 15, 12, 0);
 
@@ -63,5 +72,33 @@ describe('formatRelative', () => {
 
   it('measures from the current time by default', () => {
     expect(formatRelative(new Date(), 'en-US')).toBe('now');
+  });
+});
+
+describe('formatter cache', () => {
+  it('builds one formatter per locale and options', () => {
+    const built = jest.spyOn(Intl, 'DateTimeFormat');
+    formatTime(new Date(2026, 10, 15, 9, 5), 'fr-CA');
+    formatTime(new Date(2026, 10, 15, 10, 5), 'fr-CA');
+    formatTime(new Date(2026, 10, 15, 11, 5), 'fr-CA');
+    expect(built).toHaveBeenCalledTimes(1);
+    formatTime(new Date(2026, 10, 15, 11, 5), 'it-IT');
+    expect(built).toHaveBeenCalledTimes(2);
+    built.mockRestore();
+  });
+
+  it('keeps formatters with different options apart', () => {
+    expect(getDateTimeFormat('en-US', { weekday: 'long' })).toBe(
+      getDateTimeFormat('en-US', { weekday: 'long' })
+    );
+    expect(getDateTimeFormat('en-US', { weekday: 'long' })).not.toBe(
+      getDateTimeFormat('en-US', { weekday: 'short' })
+    );
+    expect(getRelativeTimeFormat(undefined, { numeric: 'auto' })).toBe(
+      getRelativeTimeFormat(undefined, { numeric: 'auto' })
+    );
+    expect(getNumberFormat('de-DE', { maximumFractionDigits: 1 })).toBe(
+      getNumberFormat('de-DE', { maximumFractionDigits: 1 })
+    );
   });
 });

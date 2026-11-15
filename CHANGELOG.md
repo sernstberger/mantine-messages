@@ -72,6 +72,8 @@ will be 0.1.0.
   `dir="rtl"`
 - Sizes in the CSS modules use `rem()`, so spacing follows the root font size and
   `theme.scale` (same pixels at the default 16px root); 1px borders and focus outlines stay in px
+- Times, dates, relative times and file sizes reuse one `Intl` formatter per locale and options
+  instead of building one per call (about 50 times cheaper per message)
 
 ### Fixed
 
