@@ -12,13 +12,14 @@ import '@mantine/core/styles.css';
 import 'mantine-messages/styles.css';
 ```
 
-Markdown and the assistant live in their own entries, `mantine-messages/markdown` and
-`mantine-messages/assistant`, with two optional peers. Install them only if you use those entries;
-`mantine-messages` itself never imports them:
+`mantine-messages` has one entry and no dependency on a markdown library. To show markdown (in
+`MarkdownBody`, and in the answers of `AssistantThread`), install a markdown engine yourself and
+give it to the package through an adapter, as `@mantine/code-highlight` does for highlighters; see
+Markdown below. The examples use react-markdown and remark-gfm:
 
 <InstallScript packages="react-markdown remark-gfm" />
 
-The one `styles.css` covers every entry.
+The one `styles.css` covers the whole package.
 
 ## Usage
 
@@ -239,16 +240,34 @@ column. Its parts share one Styles API.
 
 ## Markdown
 
-`MarkdownBody` from `mantine-messages/markdown` renders GitHub flavoured markdown (tables, task
-lists, strikethrough) with Mantine `Typography` styles. It is safe by default: raw HTML shows as
-text and never becomes elements, `javascript:` links are dropped, links open in a new tab with
-`rel="noreferrer"`, and code blocks show their language and a copy button.
+`MarkdownBody` renders markdown with Mantine `Typography` styles. The package does not bundle a
+markdown engine: an adapter turns the text into elements. Without one, `MarkdownBody` shows the
+text as it is, with its line breaks, so nothing is lost and nothing needs installing. Install
+`react-markdown` and `remark-gfm` (see above), create the adapter once at module level and wrap
+your app in `MarkdownAdapterProvider`:
+
+```tsx
+import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { createReactMarkdownAdapter, MarkdownAdapterProvider } from 'mantine-messages';
+
+const adapter = createReactMarkdownAdapter(Markdown, { remarkPlugins: [remarkGfm] });
+
+function Root({ children }: { children: React.ReactNode }) {
+  return <MarkdownAdapterProvider adapter={adapter}>{children}</MarkdownAdapterProvider>;
+}
+```
+
+With react-markdown the result renders GitHub flavoured markdown (tables, task lists,
+strikethrough). It is safe by default: raw HTML shows as text and never becomes elements,
+`javascript:` links are dropped, links open in a new tab with `rel="noreferrer"`, and code blocks
+show their language and a copy button. `MarkdownBody` keeps all of that, its labels and its Styles
+API whatever the engine is. Pass `adapter` to one `MarkdownBody` to use another engine there.
 
 `ChatThread` shows `body` as plain text. Render markdown messages with `renderBody`:
 
 ```tsx
-import { ChatThread } from 'mantine-messages';
-import { MarkdownBody } from 'mantine-messages/markdown';
+import { ChatThread, MarkdownBody } from 'mantine-messages';
 
 <ChatThread
   messages={messages}
@@ -260,23 +279,29 @@ import { MarkdownBody } from 'mantine-messages/markdown';
 />
 ```
 
-Replace a built-in renderer with `components`, for example code blocks highlighted by
-`@mantine/code-highlight`: `<MarkdownBody components={{ pre: HighlightedPre }}>`. Add remark
-plugins with `remarkPlugins`; they run after remark-gfm.
+Replace a built-in renderer with `components` of `createReactMarkdownAdapter`, for example code
+blocks highlighted by `@mantine/code-highlight`:
+`createReactMarkdownAdapter(Markdown, { remarkPlugins: [remarkGfm], components: { pre: HighlightedPre } })`.
+Other remark plugins go in `remarkPlugins`, after `remarkGfm`.
 
-`MarkdownBody` parses its text block by block (blocks end at blank lines outside code fences, and
-lists stay whole) and keeps each parsed block while its text is the same. A streamed answer
-re-parses only its last block per token instead of the whole answer, and a re-render with the
-same text parses nothing. Keep `components` and `remarkPlugins` stable (module level or
-`useMemo`): a new object parses everything again. With `remarkPlugins` the text is parsed whole,
-since a plugin can change where blocks end; text with link reference or footnote definitions is
-parsed whole too.
+To use another engine, write an adapter: an object with `render(markdown, renderers)`, which
+returns the elements of one block of text and may use the Mantine `renderers` (`a`, `code` and
+`pre`) that `MarkdownBody` passes in, and an optional `splitBlocks`. `plainTextMarkdownAdapter` is
+the default, and the shortest example.
+
+`MarkdownBody` renders its text block by block (blocks end at blank lines outside code fences, and
+lists stay whole) and keeps each rendered block while its text and adapter are the same. A streamed
+answer re-parses only its last block per token instead of the whole answer, and a re-render with
+the same text renders nothing again. Keep the adapter stable (module level or `useMemo`): a new
+object renders everything again. When a remark plugin can change where blocks end, pass
+`splitBlocks: false` to `createReactMarkdownAdapter`, and the text is rendered whole; text with link
+reference or footnote definitions is rendered whole too.
 
 ## Assistant
 
-`AssistantThread` from `mantine-messages/assistant` is a chat with a model: prompts are compact
-bubbles on the right, answers are full width. It renders text with `MarkdownBody`, so it needs the
-same two peers.
+`AssistantThread` is a chat with a model: prompts are compact bubbles on the right, answers are
+full width. It renders text with `MarkdownBody`, so answers show as plain text until you wrap the
+app in a `MarkdownAdapterProvider` (see Markdown above); the demo below does.
 
 Each `AssistantMessage` has a `role` (`'user'` or `'assistant'`) and `parts`, rendered in order:
 `text` (markdown), `reasoning` and `tool`. Reasoning and tools are collapsible steps; a tool shows
