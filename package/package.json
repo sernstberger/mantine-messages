@@ -25,16 +25,6 @@
     "README.md",
     "LICENSE"
   ],
-  "typesVersions": {
-    "*": {
-      "markdown": [
-        "./dist/types/markdown.d.ts"
-      ],
-      "assistant": [
-        "./dist/types/assistant.d.ts"
-      ]
-    }
-  },
   "exports": {
     ".": {
       "import": {
@@ -46,26 +36,6 @@
         "default": "./dist/cjs/index.cjs"
       }
     },
-    "./markdown": {
-      "import": {
-        "types": "./dist/types/markdown.d.mts",
-        "default": "./dist/esm/markdown.mjs"
-      },
-      "require": {
-        "types": "./dist/types/markdown.d.ts",
-        "default": "./dist/cjs/markdown.cjs"
-      }
-    },
-    "./assistant": {
-      "import": {
-        "types": "./dist/types/assistant.d.mts",
-        "default": "./dist/esm/assistant.mjs"
-      },
-      "require": {
-        "types": "./dist/types/assistant.d.ts",
-        "default": "./dist/cjs/assistant.cjs"
-      }
-    },
     "./styles.css": "./dist/styles.css",
     "./styles.layer.css": "./dist/styles.layer.css"
   },
@@ -74,17 +44,7 @@
     "@mantine/core": "^9.8.0",
     "@mantine/hooks": "^9.8.0",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "react-markdown": "^10.0.0",
-    "remark-gfm": "^4.0.0"
-  },
-  "peerDependenciesMeta": {
-    "react-markdown": {
-      "optional": true
-    },
-    "remark-gfm": {
-      "optional": true
-    }
+    "react-dom": "^19.2.0"
   },
   "bugs": "https://github.com/sernstberger/mantine-messages/issues"
 }

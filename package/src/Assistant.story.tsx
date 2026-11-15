@@ -4,8 +4,19 @@ import { getAssistantText } from './AssistantThread/assistant-text';
 import { AssistantThread } from './AssistantThread/AssistantThread';
 import { Composer, type ComposerDraft } from './Composer/Composer';
 import type { AssistantMessage, AssistantPart } from './types';
+import { MarkdownAdapterProvider } from './MarkdownBody/MarkdownAdapterProvider';
+import { markdownAdapter } from '../../.storybook/markdown-adapter';
 
-export default { title: 'Assistant' };
+export default {
+  title: 'Assistant',
+  decorators: [
+    (Story: React.ComponentType) => (
+      <MarkdownAdapterProvider adapter={markdownAdapter}>
+        <Story />
+      </MarkdownAdapterProvider>
+    ),
+  ],
+};
 
 const ANSWER = [
   'Debounce the **value**, not the handler. This hook waits until the value stops changing:',

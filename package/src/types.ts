@@ -54,7 +54,7 @@ export interface MessageThreadSummary {
 export interface ChatMessage extends MessageBase {
   body: string;
 
-  /** How `body` is written, `'text'` by default; markdown needs `mantine-messages/markdown` */
+  /** How `body` is written, `'text'` by default; markdown needs `MarkdownBody` and a `MarkdownAdapterProvider` */
   format?: 'text' | 'markdown';
 
   /** Plain text for inbox previews, quotes and labels; derived from `body` when missing */

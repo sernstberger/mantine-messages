@@ -9,10 +9,8 @@ import { createGenerateScopedName } from 'hash-css-selector';
 
 const outputDir = path.join(process.cwd(), './package/dist');
 
-const entries = ['index', 'markdown', 'assistant'];
-
 export default {
-  input: entries.map((entry) => path.join(process.cwd(), `./package/src/${entry}.ts`)),
+  input: path.join(process.cwd(), './package/src/index.ts'),
   output: [
     {
       format: 'es',
