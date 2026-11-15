@@ -20,8 +20,10 @@ maintainer could list it or take parts upstream. Unpublished until the standards
 - Commits: `[mantine-messages] Component: message`.
 - Docs site: text before each demo, no markdown pipe tables.
 - Components: `factory()` / `genericFactory`, `useProps`, Styles API with `attributes`, `varsResolver` and
-  `--<component-kebab>-*` variables, `data-*` modifiers, `[data-x]` not `:where()` for state rules, labels props
+  `--<component-kebab>-*` variables, `data-*` modifiers, labels props
   for all text. Compound parts follow Lightbox (`X.Part` statics, `createSafeContext`).
+- CSS: state rules (`[data-x]`) that must beat the light/dark/hover rules use `[data-x]` without `:where()`; `:where()` is fine
+  everywhere else.
 - Never write the text `ock` followed by `(` in any file (esbuild-jest hands such files to Babel).
 
 ## Gates

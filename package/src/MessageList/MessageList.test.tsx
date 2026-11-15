@@ -1,4 +1,4 @@
-import { Divider, Loader, MantineProvider } from '@mantine/core';
+import { Divider, Loader, MantineProvider, ScrollArea } from '@mantine/core';
 import { tests } from '@mantine-tests/core';
 import { render, screen } from '@testing-library/react';
 import React from 'react';
@@ -155,6 +155,13 @@ describe('MessageList', () => {
         expect(element).not.toHaveClass(Component.classes.root);
       }
     }
+  });
+
+  it('passes unstyled to its scroll area', () => {
+    const { container } = renderList({ unstyled: true });
+    const root = container.querySelector('.mantine-ScrollArea-root')!;
+    expect(root).toBeInTheDocument();
+    expect(root).not.toHaveClass(ScrollArea.classes.root);
   });
 
   it('names the log, from labels or aria-label', () => {

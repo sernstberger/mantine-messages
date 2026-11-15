@@ -363,3 +363,34 @@ MessagesShell.List = MessagesShellList;
 MessagesShell.Main = MessagesShellMain;
 MessagesShell.Aside = MessagesShellAside;
 MessagesShell.AsideToggle = MessagesShellAsideToggle;
+
+export namespace MessagesShell {
+  export type Props = MessagesShellProps;
+  export type StylesNames = MessagesShellStylesNames;
+  export type Factory = MessagesShellFactory;
+  export type CssVariables = MessagesShellCssVariables;
+
+  export namespace List {
+    export type Props = MessagesShellListProps;
+    export type StylesNames = MessagesShellStylesNames;
+    export type Factory = MessagesShellListFactory;
+  }
+
+  export namespace Main {
+    export type Props = MessagesShellMainProps;
+    export type StylesNames = MessagesShellStylesNames;
+    export type Factory = MessagesShellMainFactory;
+  }
+
+  export namespace Aside {
+    export type Props = MessagesShellAsideProps;
+    export type StylesNames = MessagesShellStylesNames;
+    export type Factory = MessagesShellAsideFactory;
+  }
+
+  export namespace AsideToggle {
+    export type Props = MessagesShellAsideToggleProps;
+    export type StylesNames = MessagesShellStylesNames;
+    export type Factory = MessagesShellAsideToggleFactory;
+  }
+}

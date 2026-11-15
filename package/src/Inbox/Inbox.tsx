@@ -428,3 +428,11 @@ export const Inbox = factory<InboxFactory>((_props) => {
 Inbox.displayName = 'Inbox';
 Inbox.classes = classes;
 Inbox.varsResolver = varsResolver;
+
+export namespace Inbox {
+  export type Props = InboxProps;
+  export type StylesNames = InboxStylesNames;
+  export type Factory = InboxFactory;
+  export type CssVariables = InboxCssVariables;
+  export type Labels = InboxLabels;
+}

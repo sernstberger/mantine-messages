@@ -160,3 +160,10 @@ export const Attachments = factory<AttachmentsFactory>((_props) => {
 Attachments.displayName = 'Attachments';
 Attachments.classes = classes;
 Attachments.varsResolver = varsResolver;
+
+export namespace Attachments {
+  export type Props = AttachmentsProps;
+  export type StylesNames = AttachmentsStylesNames;
+  export type Factory = AttachmentsFactory;
+  export type CssVariables = AttachmentsCssVariables;
+}

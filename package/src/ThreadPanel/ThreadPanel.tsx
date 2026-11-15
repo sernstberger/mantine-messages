@@ -322,3 +322,22 @@ ThreadPanel.displayName = 'ThreadPanel';
 ThreadPanel.classes = classes;
 ThreadPanel.Replies = ThreadPanelReplies;
 ThreadPanel.Footer = ThreadPanelFooter;
+
+export namespace ThreadPanel {
+  export type Props = ThreadPanelProps;
+  export type StylesNames = ThreadPanelStylesNames;
+  export type Factory = ThreadPanelFactory;
+  export type Labels = ThreadPanelLabels;
+
+  export namespace Replies {
+    export type Props = ThreadPanelRepliesProps;
+    export type StylesNames = ThreadPanelRepliesStylesNames;
+    export type Factory = ThreadPanelRepliesFactory;
+  }
+
+  export namespace Footer {
+    export type Props = ThreadPanelFooterProps;
+    export type StylesNames = ThreadPanelFooterStylesNames;
+    export type Factory = ThreadPanelFooterFactory;
+  }
+}

@@ -147,6 +147,7 @@ describe('TeamThread', () => {
     const nested =
       '.mantine-MessageActions-root, .mantine-Attachments-root, .mantine-Reactions-root';
     const children = [
+      'ScrollArea-root',
       'Avatar-root',
       'AvatarGroup-group',
       'Text-root',

@@ -367,7 +367,7 @@ export function Team() {
           </Box>
         </MessagesShell.Main>
         {parent && (
-          <MessagesShell.Aside w={360} aria-label="Thread">
+          <MessagesShell.Aside w={360} aria-label="Thread pane">
             <ThreadPanel
               style={{ flex: 1 }}
               subtitle={nameOf(channel)}
@@ -484,7 +484,7 @@ export function CustomChatRows() {
               <ChatThread.Reactions />
               <ChatThread.Meta />
               {message.status === 'failed' && (
-                <Button variant="subtle" color="red" size="compact-xs">
+                <Button variant="light" color="red" size="compact-xs">
                   Retry
                 </Button>
               )}

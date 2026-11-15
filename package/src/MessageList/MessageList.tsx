@@ -202,6 +202,7 @@ export const MessageList = genericFactory<MessageListFactory>((_props) => {
       ref={ref}
       viewportRef={viewportRef}
       onScrollPositionChange={onScrollPositionChange}
+      unstyled={unstyled}
       {...getStyles('root')}
       {...others}
     >
@@ -271,3 +272,10 @@ export const MessageList = genericFactory<MessageListFactory>((_props) => {
 
 MessageList.displayName = 'MessageList';
 MessageList.classes = classes;
+
+export namespace MessageList {
+  export type Props = MessageListProps;
+  export type StylesNames = MessageListStylesNames;
+  export type Factory = MessageListFactory;
+  export type Labels = MessageListLabels;
+}

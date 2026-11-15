@@ -216,3 +216,28 @@ Message.varsResolver = varsResolver;
 Message.Avatar = MessageAvatar;
 Message.Body = MessageBody;
 Message.Meta = MessageMeta;
+
+export namespace Message {
+  export type Props = MessageProps;
+  export type StylesNames = MessageStylesNames;
+  export type Factory = MessageFactory;
+  export type CssVariables = MessageCssVariables;
+
+  export namespace Avatar {
+    export type Props = MessageAvatarProps;
+    export type StylesNames = MessageStylesNames;
+    export type Factory = MessageAvatarFactory;
+  }
+
+  export namespace Body {
+    export type Props = MessageBodyProps;
+    export type StylesNames = MessageStylesNames;
+    export type Factory = MessageBodyFactory;
+  }
+
+  export namespace Meta {
+    export type Props = MessageMetaProps;
+    export type StylesNames = MessageStylesNames;
+    export type Factory = MessageMetaFactory;
+  }
+}

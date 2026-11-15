@@ -704,3 +704,11 @@ export const AssistantThread = factory<AssistantThreadFactory>((_props) => {
 AssistantThread.displayName = 'AssistantThread';
 AssistantThread.classes = classes;
 AssistantThread.varsResolver = varsResolver;
+
+export namespace AssistantThread {
+  export type Props = AssistantThreadProps;
+  export type StylesNames = AssistantThreadStylesNames;
+  export type Factory = AssistantThreadFactory;
+  export type CssVariables = AssistantThreadCssVariables;
+  export type Labels = AssistantThreadLabels;
+}

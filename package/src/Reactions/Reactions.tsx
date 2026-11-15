@@ -173,3 +173,11 @@ export const Reactions = factory<ReactionsFactory>((_props) => {
 Reactions.displayName = 'Reactions';
 Reactions.classes = classes;
 Reactions.varsResolver = varsResolver;
+
+export namespace Reactions {
+  export type Props = ReactionsProps;
+  export type StylesNames = ReactionsStylesNames;
+  export type Factory = ReactionsFactory;
+  export type CssVariables = ReactionsCssVariables;
+  export type Labels = ReactionsLabels;
+}

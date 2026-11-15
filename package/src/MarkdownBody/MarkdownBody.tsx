@@ -209,3 +209,10 @@ export const MarkdownBody = factory<MarkdownBodyFactory>((_props) => {
 
 MarkdownBody.displayName = 'MarkdownBody';
 MarkdownBody.classes = classes;
+
+export namespace MarkdownBody {
+  export type Props = MarkdownBodyProps;
+  export type StylesNames = MarkdownBodyStylesNames;
+  export type Factory = MarkdownBodyFactory;
+  export type Labels = MarkdownBodyLabels;
+}

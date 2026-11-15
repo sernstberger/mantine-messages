@@ -456,3 +456,11 @@ export const Composer = factory<ComposerFactory>((_props) => {
 Composer.displayName = 'Composer';
 Composer.classes = classes;
 Composer.varsResolver = varsResolver;
+
+export namespace Composer {
+  export type Props = ComposerProps;
+  export type StylesNames = ComposerStylesNames;
+  export type Factory = ComposerFactory;
+  export type CssVariables = ComposerCssVariables;
+  export type Labels = ComposerLabels;
+}

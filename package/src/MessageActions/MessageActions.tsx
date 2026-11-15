@@ -381,3 +381,10 @@ export const MessageActions = factory<MessageActionsFactory>((_props) => {
 
 MessageActions.displayName = 'MessageActions';
 MessageActions.classes = classes;
+
+export namespace MessageActions {
+  export type Props = MessageActionsProps;
+  export type StylesNames = MessageActionsStylesNames;
+  export type Factory = MessageActionsFactory;
+  export type Labels = MessageActionsLabels;
+}

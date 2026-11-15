@@ -958,3 +958,59 @@ ChatThread.Actions = ChatThreadActions;
 ChatThread.Attachments = ChatThreadAttachments;
 ChatThread.Reactions = ChatThreadReactions;
 ChatThread.Meta = ChatThreadMeta;
+
+export namespace ChatThread {
+  export type Props = ChatThreadProps;
+  export type StylesNames = ChatThreadStylesNames;
+  export type Factory = ChatThreadFactory;
+  export type CssVariables = ChatThreadCssVariables;
+  export type Labels = ChatThreadLabels;
+
+  export namespace Message {
+    export type Props = ChatThreadMessageProps;
+    export type StylesNames = ChatThreadMessageStylesNames;
+    export type Factory = ChatThreadMessageFactory;
+  }
+
+  export namespace Avatar {
+    export type Props = ChatThreadAvatarProps;
+    export type StylesNames = ChatThreadAvatarStylesNames;
+    export type Factory = ChatThreadAvatarFactory;
+  }
+
+  export namespace Quote {
+    export type Props = ChatThreadQuoteProps;
+    export type StylesNames = ChatThreadQuoteStylesNames;
+    export type Factory = ChatThreadQuoteFactory;
+  }
+
+  export namespace Bubble {
+    export type Props = ChatThreadBubbleProps;
+    export type StylesNames = ChatThreadBubbleStylesNames;
+    export type Factory = ChatThreadBubbleFactory;
+  }
+
+  export namespace Actions {
+    export type Props = ChatThreadActionsProps;
+    export type StylesNames = ChatThreadActionsStylesNames;
+    export type Factory = ChatThreadActionsFactory;
+  }
+
+  export namespace Attachments {
+    export type Props = ChatThreadAttachmentsProps;
+    export type StylesNames = ChatThreadAttachmentsStylesNames;
+    export type Factory = ChatThreadAttachmentsFactory;
+  }
+
+  export namespace Reactions {
+    export type Props = ChatThreadReactionsProps;
+    export type StylesNames = ChatThreadReactionsStylesNames;
+    export type Factory = ChatThreadReactionsFactory;
+  }
+
+  export namespace Meta {
+    export type Props = ChatThreadMetaProps;
+    export type StylesNames = ChatThreadMetaStylesNames;
+    export type Factory = ChatThreadMetaFactory;
+  }
+}

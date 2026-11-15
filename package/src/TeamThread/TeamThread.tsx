@@ -962,3 +962,58 @@ TeamThread.Reactions = TeamThreadReactions;
 TeamThread.ThreadSummary = TeamThreadThreadSummary;
 TeamThread.Actions = TeamThreadActions;
 TeamThread.Event = TeamThreadEvent;
+
+export namespace TeamThread {
+  export type Props = TeamThreadProps;
+  export type StylesNames = TeamThreadStylesNames;
+  export type Factory = TeamThreadFactory;
+  export type Labels = TeamThreadLabels;
+
+  export namespace Message {
+    export type Props = TeamThreadMessageProps;
+    export type StylesNames = TeamThreadMessageStylesNames;
+    export type Factory = TeamThreadMessageFactory;
+  }
+
+  export namespace Author {
+    export type Props = TeamThreadAuthorProps;
+    export type StylesNames = TeamThreadAuthorStylesNames;
+    export type Factory = TeamThreadAuthorFactory;
+  }
+
+  export namespace Text {
+    export type Props = TeamThreadTextProps;
+    export type StylesNames = TeamThreadTextStylesNames;
+    export type Factory = TeamThreadTextFactory;
+  }
+
+  export namespace Attachments {
+    export type Props = TeamThreadAttachmentsProps;
+    export type StylesNames = TeamThreadAttachmentsStylesNames;
+    export type Factory = TeamThreadAttachmentsFactory;
+  }
+
+  export namespace Reactions {
+    export type Props = TeamThreadReactionsProps;
+    export type StylesNames = TeamThreadReactionsStylesNames;
+    export type Factory = TeamThreadReactionsFactory;
+  }
+
+  export namespace ThreadSummary {
+    export type Props = TeamThreadThreadSummaryProps;
+    export type StylesNames = TeamThreadThreadSummaryStylesNames;
+    export type Factory = TeamThreadThreadSummaryFactory;
+  }
+
+  export namespace Actions {
+    export type Props = TeamThreadActionsProps;
+    export type StylesNames = TeamThreadActionsStylesNames;
+    export type Factory = TeamThreadActionsFactory;
+  }
+
+  export namespace Event {
+    export type Props = TeamThreadEventProps;
+    export type StylesNames = TeamThreadEventStylesNames;
+    export type Factory = TeamThreadEventFactory;
+  }
+}
