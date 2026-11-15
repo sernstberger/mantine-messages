@@ -1,5 +1,10 @@
-export { Thread } from './Thread/Thread';
-export type { ThreadProps, ThreadFactory, ThreadStylesNames, ThreadLabels } from './Thread/Thread';
+export { ChatThread } from './ChatThread/ChatThread';
+export type {
+  ChatThreadProps,
+  ChatThreadFactory,
+  ChatThreadStylesNames,
+  ChatThreadLabels,
+} from './ChatThread/ChatThread';
 export { Inbox } from './Inbox/Inbox';
 export type { InboxProps, InboxFactory, InboxStylesNames } from './Inbox/Inbox';
 export { Composer } from './Composer/Composer';

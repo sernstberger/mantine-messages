@@ -2,7 +2,7 @@ import { MantineProvider } from '@mantine/core';
 import { fireEvent, render } from '@testing-library/react';
 import React from 'react';
 import type { ChatMessage, MessagesUser } from '../types';
-import { Thread } from './Thread';
+import { ChatThread } from './ChatThread';
 
 const users: MessagesUser[] = [
   { id: 'me', name: 'You' },
@@ -43,14 +43,17 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-function setup(messages = start, props: Partial<React.ComponentProps<typeof Thread>> = {}) {
-  const view = render(<Thread messages={messages} users={users} currentUserId="me" {...props} />, {
-    wrapper: MantineProvider,
-  });
+function setup(messages = start, props: Partial<React.ComponentProps<typeof ChatThread>> = {}) {
+  const view = render(
+    <ChatThread messages={messages} users={users} currentUserId="me" {...props} />,
+    {
+      wrapper: MantineProvider,
+    }
+  );
   const viewport = view.container.querySelector<HTMLDivElement>('.mantine-ScrollArea-viewport')!;
 
   const rerender = (next: ChatMessage[]) =>
-    view.rerender(<Thread messages={next} users={users} currentUserId="me" {...props} />);
+    view.rerender(<ChatThread messages={next} users={users} currentUserId="me" {...props} />);
 
   /** The user scrolls to `top` after the pinned time of the last automatic scroll */
   const userScrollsTo = (top: number) => {
@@ -62,7 +65,7 @@ function setup(messages = start, props: Partial<React.ComponentProps<typeof Thre
   return { rerender, userScrollsTo, viewport };
 }
 
-describe('Thread scrolling', () => {
+describe('ChatThread scrolling', () => {
   it('opens at the newest message without animating', () => {
     setup();
     expect(scrollTo).toHaveBeenCalledTimes(1);

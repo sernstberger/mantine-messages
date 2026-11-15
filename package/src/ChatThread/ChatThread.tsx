@@ -20,10 +20,10 @@ import type { ChatMessage, MessageStatus, MessagesUser } from '../types';
 import { formatDay, formatTime } from '../utils/format';
 import { getPreview, truncate } from '../utils/preview';
 import { groupMessages } from '../utils/group-messages';
-import classes from './Thread.module.css';
+import classes from './ChatThread.module.css';
 import { useStickToBottom } from './use-stick-to-bottom';
 
-export type ThreadStylesNames =
+export type ChatThreadStylesNames =
   | 'root'
   | 'list'
   | 'divider'
@@ -40,7 +40,7 @@ export type ThreadStylesNames =
   | 'meta'
   | 'status';
 
-export interface ThreadLabels extends Record<MessageStatus, string> {
+export interface ChatThreadLabels extends Record<MessageStatus, string> {
   /** Accessible label of the reply button */
   reply: string;
 
@@ -51,7 +51,8 @@ export interface ThreadLabels extends Record<MessageStatus, string> {
   repliedTo: (names: { author: string; original: string; own: boolean; toOwn: boolean }) => string;
 }
 
-export interface ThreadProps extends BoxProps, StylesApiProps<ThreadFactory>, ElementProps<'div'> {
+export interface ChatThreadProps
+  extends BoxProps, StylesApiProps<ChatThreadFactory>, ElementProps<'div'> {
   /** Messages, oldest first */
   messages: ChatMessage[];
 
@@ -80,16 +81,16 @@ export interface ThreadProps extends BoxProps, StylesApiProps<ThreadFactory>, El
   onReply?: (message: ChatMessage) => void;
 
   /** Text for statuses and buttons, for translation */
-  labels?: Partial<ThreadLabels>;
+  labels?: Partial<ChatThreadLabels>;
 }
 
-export type ThreadFactory = Factory<{
-  props: ThreadProps;
+export type ChatThreadFactory = Factory<{
+  props: ChatThreadProps;
   ref: HTMLDivElement;
-  stylesNames: ThreadStylesNames;
+  stylesNames: ChatThreadStylesNames;
 }>;
 
-const defaultLabels: ThreadLabels = {
+const defaultLabels: ChatThreadLabels = {
   sending: 'Sending',
   sent: 'Sent',
   delivered: 'Delivered',
@@ -115,14 +116,14 @@ function ReplyIcon({ size = 16 }: { size?: number }) {
   );
 }
 
-const defaultProps: Partial<ThreadProps> = {
+const defaultProps: Partial<ChatThreadProps> = {
   groupWindow: 5 * 60 * 1000,
   withAuthors: true,
   autoScroll: true,
 };
 
-export const Thread = factory<ThreadFactory>((_props) => {
-  const props = useProps('Thread', defaultProps, _props);
+export const ChatThread = factory<ChatThreadFactory>((_props) => {
+  const props = useProps('ChatThread', defaultProps, _props);
   const {
     classNames,
     className,
@@ -145,8 +146,8 @@ export const Thread = factory<ThreadFactory>((_props) => {
     ...others
   } = props;
 
-  const getStyles = useStyles<ThreadFactory>({
-    name: 'Thread',
+  const getStyles = useStyles<ChatThreadFactory>({
+    name: 'ChatThread',
     classes,
     props,
     className,
@@ -310,5 +311,5 @@ export const Thread = factory<ThreadFactory>((_props) => {
   );
 });
 
-Thread.displayName = 'Thread';
-Thread.classes = classes;
+ChatThread.displayName = 'ChatThread';
+ChatThread.classes = classes;

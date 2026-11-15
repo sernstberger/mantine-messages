@@ -7,7 +7,7 @@ const getComponentPath = (componentPath: string) =>
 generateDeclarations({
   componentsPaths: [
     getComponentPath('Inbox/Inbox.tsx'),
-    getComponentPath('Thread/Thread.tsx'),
+    getComponentPath('ChatThread/ChatThread.tsx'),
     getComponentPath('Composer/Composer.tsx'),
   ],
   tsConfigPath: path.join(process.cwd(), 'tsconfig.json'),

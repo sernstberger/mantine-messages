@@ -1,4 +1,4 @@
-import type { ComposerFactory, InboxFactory, ThreadFactory } from 'mantine-messages';
+import type { ComposerFactory, InboxFactory, ChatThreadFactory } from 'mantine-messages';
 import type { StylesApiData } from '../components/styles-api.types';
 
 export const InboxStylesApi: StylesApiData<InboxFactory> = {
@@ -21,7 +21,7 @@ export const InboxStylesApi: StylesApiData<InboxFactory> = {
   ],
 };
 
-export const ThreadStylesApi: StylesApiData<ThreadFactory> = {
+export const ThreadStylesApi: StylesApiData<ChatThreadFactory> = {
   selectors: {
     root: 'Root element, a Mantine ScrollArea',
     list: 'Column of messages inside the scroll area, a live log',
@@ -78,6 +78,6 @@ export const ComposerStylesApi: StylesApiData<ComposerFactory> = {
 
 export const STYLES_API_DATA = {
   Inbox: InboxStylesApi,
-  Thread: ThreadStylesApi,
+  ChatThread: ThreadStylesApi,
   Composer: ComposerStylesApi,
 };

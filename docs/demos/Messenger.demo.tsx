@@ -1,13 +1,13 @@
 import { Box, Paper, ScrollArea } from '@mantine/core';
 import { MantineDemo } from '@mantinex/demo';
-import { Composer, Inbox, ChatMessage, Thread } from 'mantine-messages';
+import { Composer, Inbox, ChatMessage, ChatThread } from 'mantine-messages';
 import React, { useState } from 'react';
 import { conversations, messages as initialMessages, users } from './data';
 
 const code = `
 import { useState } from 'react';
 import { Paper, ScrollArea } from '@mantine/core';
-import { Composer, Inbox, Thread } from 'mantine-messages';
+import { Composer, Inbox, ChatThread } from 'mantine-messages';
 import { conversations, messages as initialMessages, users } from './data';
 
 function Demo() {
@@ -26,7 +26,7 @@ function Demo() {
         <Inbox conversations={conversations} value={selected} onChange={setSelected} />
       </ScrollArea>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <Thread messages={messages} users={users} currentUserId="me" style={{ flex: 1 }} />
+        <ChatThread messages={messages} users={users} currentUserId="me" style={{ flex: 1 }} />
         <Composer onSend={send} m="sm" />
       </div>
     </Paper>
@@ -50,7 +50,7 @@ function Demo() {
         <Inbox conversations={conversations} value={selected} onChange={setSelected} />
       </ScrollArea>
       <Box style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <Thread messages={messages} users={users} currentUserId="me" style={{ flex: 1 }} />
+        <ChatThread messages={messages} users={users} currentUserId="me" style={{ flex: 1 }} />
         <Composer onSend={send} m="sm" />
       </Box>
     </Paper>

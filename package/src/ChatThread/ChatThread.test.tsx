@@ -1,7 +1,7 @@
 import { render, screen, tests } from '@mantine-tests/core';
 import React from 'react';
 import type { ChatMessage, MessagesUser } from '../types';
-import { Thread, ThreadProps, ThreadStylesNames } from './Thread';
+import { ChatThread, ChatThreadProps, ChatThreadStylesNames } from './ChatThread';
 
 const users: MessagesUser[] = [
   { id: 'me', name: 'You' },
@@ -19,11 +19,11 @@ const messages: ChatMessage[] = [
   },
 ];
 
-const defaultProps: ThreadProps = { messages, users, currentUserId: 'me' };
+const defaultProps: ChatThreadProps = { messages, users, currentUserId: 'me' };
 
-describe('Thread', () => {
-  tests.itSupportsSystemProps<ThreadProps, ThreadStylesNames>({
-    component: Thread,
+describe('ChatThread', () => {
+  tests.itSupportsSystemProps<ChatThreadProps, ChatThreadStylesNames>({
+    component: ChatThread,
     props: defaultProps,
     styleProps: true,
     extend: true,
@@ -31,7 +31,7 @@ describe('Thread', () => {
     size: true,
     classes: true,
     refType: HTMLDivElement,
-    displayName: 'Thread',
+    displayName: 'ChatThread',
     stylesApiSelectors: [
       'root',
       'list',
@@ -48,7 +48,7 @@ describe('Thread', () => {
   });
 
   it('is a live log with a divider and every message', () => {
-    render(<Thread {...defaultProps} />);
+    render(<ChatThread {...defaultProps} />);
     expect(screen.getByRole('log')).toBeInTheDocument();
     expect(screen.getByRole('separator')).toBeInTheDocument();
     expect(screen.getByText('Hi there')).toBeInTheDocument();
@@ -56,28 +56,28 @@ describe('Thread', () => {
   });
 
   it('names other people but not the current user', () => {
-    render(<Thread {...defaultProps} />);
+    render(<ChatThread {...defaultProps} />);
     expect(screen.getByText('Maya Lindqvist')).toBeInTheDocument();
     expect(screen.queryByText('You')).not.toBeInTheDocument();
   });
 
   it('shows the status of the last own message, with custom labels', () => {
-    render(<Thread {...defaultProps} labels={{ read: 'Seen' }} />);
+    render(<ChatThread {...defaultProps} labels={{ read: 'Seen' }} />);
     expect(screen.getByText('Seen', { exact: false })).toHaveAttribute('data-status', 'read');
   });
 
   it('falls back to the author id when the user is unknown, and hides authors on request', () => {
     const { rerender } = render(
-      <Thread {...defaultProps} messages={[{ ...messages[0], authorId: 'ghost' }]} />
+      <ChatThread {...defaultProps} messages={[{ ...messages[0], authorId: 'ghost' }]} />
     );
     expect(screen.getByText('ghost')).toBeInTheDocument();
 
-    rerender(<Thread {...defaultProps} withAuthors={false} />);
+    rerender(<ChatThread {...defaultProps} withAuthors={false} />);
     expect(screen.queryByText('Maya Lindqvist')).not.toBeInTheDocument();
   });
 
   it('shows no status when own messages have none', () => {
-    render(<Thread {...defaultProps} messages={[{ ...messages[1], status: undefined }]} />);
+    render(<ChatThread {...defaultProps} messages={[{ ...messages[1], status: undefined }]} />);
     expect(screen.queryByText('Read', { exact: false })).not.toBeInTheDocument();
   });
 });

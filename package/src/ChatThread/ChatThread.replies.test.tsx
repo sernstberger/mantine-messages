@@ -2,7 +2,7 @@ import { MantineProvider } from '@mantine/core';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import type { ChatMessage, MessagesUser } from '../types';
-import { Thread } from './Thread';
+import { ChatThread } from './ChatThread';
 
 const users: MessagesUser[] = [
   { id: 'me', name: 'You' },
@@ -25,14 +25,14 @@ const messages: ChatMessage[] = [
   },
 ];
 
-const renderThread = (props: Partial<React.ComponentProps<typeof Thread>> = {}) =>
-  render(<Thread messages={messages} users={users} currentUserId="me" {...props} />, {
+const renderThread = (props: Partial<React.ComponentProps<typeof ChatThread>> = {}) =>
+  render(<ChatThread messages={messages} users={users} currentUserId="me" {...props} />, {
     wrapper: MantineProvider,
   });
 
 const bubble = (id: string) => document.querySelector(`[data-message-id="${id}"]`)!;
 
-describe('Thread replies', () => {
+describe('ChatThread replies', () => {
   it('shows the answered message above the reply, with a caption', () => {
     renderThread();
     expect(screen.getByText('You replied to Maya Lindqvist')).toBeInTheDocument();
@@ -51,7 +51,7 @@ describe('Thread replies', () => {
     expect(screen.getByText('Maya Lindqvist replied to you')).toBeInTheDocument();
 
     rerender(
-      <Thread
+      <ChatThread
         messages={[{ ...messages[0], authorId: 'me' }, messages[1]]}
         users={users}
         currentUserId="me"
@@ -60,7 +60,7 @@ describe('Thread replies', () => {
     expect(screen.getByText('You replied to yourself')).toBeInTheDocument();
 
     rerender(
-      <Thread
+      <ChatThread
         messages={[{ ...messages[0], authorId: 'me' }, messages[1]]}
         users={users}
         currentUserId="me"
@@ -121,7 +121,7 @@ describe('Thread replies', () => {
     expect(screen.queryByRole('button', { name: /^Reply/ })).not.toBeInTheDocument();
 
     rerender(
-      <Thread
+      <ChatThread
         messages={messages}
         users={users}
         currentUserId="me"
@@ -136,7 +136,7 @@ describe('Thread replies', () => {
   it('quotes and labels markdown as plain text, cutting long labels', () => {
     const long = `**Plan:** ${'word '.repeat(30)}`;
     render(
-      <Thread
+      <ChatThread
         messages={[{ ...messages[0], body: long, format: 'markdown' }, messages[1]]}
         users={users}
         currentUserId="me"
@@ -145,7 +145,8 @@ describe('Thread replies', () => {
       { wrapper: MantineProvider }
     );
     // getPreview gives "Plan: word word ..." (155 characters); truncate keeps 79 plus the ellipsis
-    const label = `Reply: ${('Plan: ' + 'word '.repeat(30).trim()).slice(0, 79)}…`;
+    const preview = `Plan: ${'word '.repeat(30).trim()}`;
+    const label = `Reply: ${preview.slice(0, 79)}…`;
     expect(screen.getByRole('button', { name: label })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /^Plan: word/ })).toBeInTheDocument();
   });

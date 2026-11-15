@@ -3,7 +3,7 @@ import React, { useRef, useState } from 'react';
 import { Composer } from './Composer/Composer';
 import { Inbox } from './Inbox/Inbox';
 import { sampleConversations, sampleMessages, sampleUsers } from './sample-data';
-import { Thread } from './Thread/Thread';
+import { ChatThread } from './ChatThread/ChatThread';
 import type { ChatMessage } from './types';
 
 export default { title: 'Messages' };
@@ -49,7 +49,7 @@ export function Messenger() {
           >
             {title}
           </Text>
-          <Thread
+          <ChatThread
             messages={messages}
             users={sampleUsers}
             currentUserId="me"
@@ -95,7 +95,12 @@ export function LongThread() {
   return (
     <Box p="xl" maw={480}>
       <Paper withBorder radius="lg" h={500} style={{ display: 'flex', flexDirection: 'column' }}>
-        <Thread messages={messages} users={sampleUsers} currentUserId="me" style={{ flex: 1 }} />
+        <ChatThread
+          messages={messages}
+          users={sampleUsers}
+          currentUserId="me"
+          style={{ flex: 1 }}
+        />
         <Composer
           m="sm"
           onSend={(body) =>
@@ -113,7 +118,7 @@ export function LongThread() {
 export function ThreadOnly() {
   return (
     <Box p="xl" maw={480}>
-      <Thread messages={sampleMessages} users={sampleUsers} currentUserId="me" />
+      <ChatThread messages={sampleMessages} users={sampleUsers} currentUserId="me" />
     </Box>
   );
 }
