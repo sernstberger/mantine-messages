@@ -13,6 +13,7 @@ export function Messenger() {
   const [messages, setMessages] = useState<Message[]>(sampleMessages);
   const title = sampleConversations.find((c) => c.id === selected)?.title;
 
+  const [replyTo, setReplyTo] = useState<Message | null>(null);
   const count = useRef(0);
   const add = (message: Omit<Message, 'id' | 'createdAt'>) => {
     count.current += 1;
@@ -22,7 +23,8 @@ export function Messenger() {
 
   // Maya answers a moment after you send, so the thread has something to follow
   const send = (body: string) => {
-    add({ authorId: 'me', body, status: 'sent' });
+    add({ authorId: 'me', body, status: 'sent', replyToId: replyTo?.id });
+    setReplyTo(null);
     setTimeout(
       () => add({ authorId: 'maya', body: replies[count.current % replies.length] }),
       1500
@@ -47,9 +49,24 @@ export function Messenger() {
           >
             {title}
           </Text>
-          <Thread messages={messages} users={sampleUsers} currentUserId="me" style={{ flex: 1 }} />
+          <Thread
+            messages={messages}
+            users={sampleUsers}
+            currentUserId="me"
+            onReply={setReplyTo}
+            style={{ flex: 1 }}
+          />
           <Box p="sm">
-            <Composer onSend={send} />
+            <Composer
+              onSend={send}
+              replyTo={
+                replyTo && {
+                  authorName: sampleUsers.find((user) => user.id === replyTo.authorId)!.name,
+                  body: replyTo.body,
+                }
+              }
+              onCancelReply={() => setReplyTo(null)}
+            />
           </Box>
         </Box>
       </Paper>

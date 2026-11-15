@@ -1,4 +1,5 @@
 import {
+  ActionIcon,
   Avatar,
   Box,
   BoxProps,
@@ -8,10 +9,13 @@ import {
   Factory,
   ScrollArea,
   StylesApiProps,
+  Text,
+  UnstyledButton,
   useProps,
   useStyles,
 } from '@mantine/core';
-import React, { useMemo, useRef } from 'react';
+import { useReducedMotion, useTimeout } from '@mantine/hooks';
+import React, { useMemo, useRef, useState } from 'react';
 import type { Message, MessageStatus, MessagesUser } from '../types';
 import { formatDay, formatTime } from '../utils/format';
 import { groupMessages } from '../utils/group-messages';
@@ -26,12 +30,24 @@ export type ThreadStylesNames =
   | 'avatar'
   | 'messages'
   | 'author'
+  | 'row'
+  | 'content'
   | 'bubble'
+  | 'quoteLabel'
+  | 'quote'
+  | 'replyButton'
   | 'meta'
   | 'status';
 
-export interface ThreadLabels {
-  status: Record<MessageStatus, string>;
+export interface ThreadLabels extends Record<MessageStatus, string> {
+  /** Accessible label of the reply button */
+  reply: string;
+
+  /** Quote of a message that is not in `messages`, for example not loaded yet */
+  unavailable: string;
+
+  /** Caption above a quoted message; `own` and `toOwn` say which side is the current user */
+  repliedTo: (names: { author: string; original: string; own: boolean; toOwn: boolean }) => string;
 }
 
 export interface ThreadProps extends BoxProps, StylesApiProps<ThreadFactory>, ElementProps<'div'> {
@@ -59,8 +75,11 @@ export interface ThreadProps extends BoxProps, StylesApiProps<ThreadFactory>, El
    */
   autoScroll?: boolean;
 
-  /** Text for statuses, for translation */
-  labels?: Partial<ThreadLabels['status']>;
+  /** Called when the user asks to reply to a message; shows a reply button beside each one */
+  onReply?: (message: Message) => void;
+
+  /** Text for statuses and buttons, for translation */
+  labels?: Partial<ThreadLabels>;
 }
 
 export type ThreadFactory = Factory<{
@@ -69,13 +88,31 @@ export type ThreadFactory = Factory<{
   stylesNames: ThreadStylesNames;
 }>;
 
-const defaultLabels: ThreadLabels['status'] = {
+const defaultLabels: ThreadLabels = {
   sending: 'Sending',
   sent: 'Sent',
   delivered: 'Delivered',
   read: 'Read',
   failed: 'Not sent',
+  reply: 'Reply',
+  unavailable: 'Original message not available',
+  repliedTo: ({ author, original, own, toOwn }) =>
+    `${own ? 'You' : author} replied to ${toOwn ? (own ? 'yourself' : 'you') : original}`,
 };
+
+function ReplyIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" aria-hidden="true">
+      <path
+        d="M9 14 4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 const defaultProps: Partial<ThreadProps> = {
   groupWindow: 5 * 60 * 1000,
@@ -101,6 +138,7 @@ export const Thread = factory<ThreadFactory>((_props) => {
     withAuthors,
     labels,
     autoScroll,
+    onReply,
     role = 'log',
     'aria-live': ariaLive = 'polite',
     ...others
@@ -120,7 +158,11 @@ export const Thread = factory<ThreadFactory>((_props) => {
 
   const items = useMemo(() => groupMessages(messages, groupWindow), [messages, groupWindow]);
   const usersById = useMemo(() => new Map(users.map((user) => [user.id, user])), [users]);
-  const statusLabels = { ...defaultLabels, ...labels };
+  const messagesById = useMemo(
+    () => new Map(messages.map((message) => [message.id, message])),
+    [messages]
+  );
+  const allLabels = { ...defaultLabels, ...labels };
   const lastOwn = [...messages].reverse().find((message) => message.authorId === currentUserId);
   const last = messages[messages.length - 1];
 
@@ -131,6 +173,55 @@ export const Thread = factory<ThreadFactory>((_props) => {
     lastId: last?.id,
     lastIsOwn: last?.authorId === currentUserId,
   });
+
+  // A click on a quote scrolls to the original message and flashes it
+  const reduceMotion = useReducedMotion();
+  const [highlighted, setHighlighted] = useState<string | null>(null);
+  const flash = useTimeout(() => setHighlighted(null), 1600);
+  const jumpTo = (id: string) => {
+    Array.from(viewportRef.current!.querySelectorAll<HTMLElement>('[data-message-id]'))
+      .find((element) => element.dataset.messageId === id)
+      ?.scrollIntoView({ block: 'center', behavior: reduceMotion ? 'auto' : 'smooth' });
+    flash.clear();
+    setHighlighted(id);
+    flash.start();
+  };
+
+  const nameOf = (userId: string) => usersById.get(userId)?.name ?? userId;
+
+  // The answered message: a caption, then a faded copy tucked under the reply's bubble
+  const renderQuote = (message: Message) => {
+    const original = messagesById.get(message.replyToId!);
+
+    if (!original) {
+      return (
+        <Box mod={{ unavailable: true }} {...getStyles('quote')}>
+          <Text size="xs" lineClamp={2}>
+            {allLabels.unavailable}
+          </Text>
+        </Box>
+      );
+    }
+
+    return (
+      <>
+        <Text size="xs" c="dimmed" {...getStyles('quoteLabel')}>
+          <ReplyIcon size={12} />
+          {allLabels.repliedTo({
+            author: nameOf(message.authorId),
+            original: nameOf(original.authorId),
+            own: message.authorId === currentUserId,
+            toOwn: original.authorId === currentUserId,
+          })}
+        </Text>
+        <UnstyledButton onClick={() => jumpTo(original.id)} {...getStyles('quote')}>
+          <Text size="xs" lineClamp={2}>
+            {original.body}
+          </Text>
+        </UnstyledButton>
+      </>
+    );
+  };
 
   return (
     <ScrollArea
@@ -155,7 +246,7 @@ export const Thread = factory<ThreadFactory>((_props) => {
 
           const own = item.authorId === currentUserId;
           const author = usersById.get(item.authorId);
-          const name = author?.name ?? item.authorId;
+          const name = nameOf(item.authorId);
 
           return (
             <Box key={item.key} mod={{ own }} {...getStyles('group')}>
@@ -163,26 +254,52 @@ export const Thread = factory<ThreadFactory>((_props) => {
                 <Avatar src={author?.avatar} name={name} size="sm" {...getStyles('avatar')} />
               )}
               <Box {...getStyles('messages')}>
-                {!own && withAuthors && <Box {...getStyles('author')}>{name}</Box>}
+                {!own && withAuthors && (
+                  <Text size="xs" c="dimmed" {...getStyles('author')}>
+                    {name}
+                  </Text>
+                )}
                 {item.messages.map((message) => (
-                  <Box
-                    key={message.id}
-                    mod={{ own, status: message.status }}
-                    title={formatTime(message.createdAt, locale)}
-                    {...getStyles('bubble')}
-                  >
-                    {message.body}
+                  <Box key={message.id} mod={{ own }} {...getStyles('row')}>
+                    <Box mod={{ own }} {...getStyles('content')}>
+                      {message.replyToId && renderQuote(message)}
+                      <Box
+                        mod={{
+                          own,
+                          status: message.status,
+                          'message-id': message.id,
+                          highlighted: highlighted === message.id,
+                        }}
+                        title={formatTime(message.createdAt, locale)}
+                        {...getStyles('bubble')}
+                      >
+                        {message.body}
+                      </Box>
+                    </Box>
+                    {onReply && (
+                      <ActionIcon
+                        variant="subtle"
+                        color="gray"
+                        size="sm"
+                        radius="xl"
+                        aria-label={`${allLabels.reply}: ${message.body}`}
+                        onClick={() => onReply(message)}
+                        {...getStyles('replyButton')}
+                      >
+                        <ReplyIcon />
+                      </ActionIcon>
+                    )}
                   </Box>
                 ))}
-                <Box {...getStyles('meta')}>
+                <Text component="div" size="xs" c="dimmed" {...getStyles('meta')}>
                   {formatTime(item.messages[item.messages.length - 1].createdAt, locale)}
                   {own && lastOwn?.status && item.messages.includes(lastOwn) && (
                     <Box component="span" mod={{ status: lastOwn.status }} {...getStyles('status')}>
                       {' · '}
-                      {statusLabels[lastOwn.status]}
+                      {allLabels[lastOwn.status]}
                     </Box>
                   )}
-                </Box>
+                </Text>
               </Box>
             </Box>
           );

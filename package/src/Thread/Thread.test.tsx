@@ -40,6 +40,7 @@ describe('Thread', () => {
       'avatar',
       'messages',
       'author',
+      'row',
       'bubble',
       'meta',
       'status',

@@ -1,15 +1,44 @@
 .root {
   display: flex;
-  align-items: flex-end;
-  gap: var(--mantine-spacing-xs);
-  padding: 4px 4px 4px var(--mantine-spacing-md);
+  flex-direction: column;
   border: 1px solid var(--mantine-color-default-border);
-  border-radius: calc(var(--mantine-radius-xl) * 1.5);
+  border-radius: var(--mantine-radius-xl);
   background-color: var(--mantine-color-body);
 
   &:focus-within {
     border-color: var(--mantine-primary-color-filled);
   }
+}
+
+/* "Replying to Maya" and the message, above the text box */
+.reply {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  margin: 6px 6px 0;
+  padding: 4px 4px 4px 10px;
+  border-inline-start: 3px solid var(--mantine-primary-color-filled);
+  border-radius: var(--mantine-radius-md);
+
+  @mixin light {
+    background-color: var(--mantine-color-gray-0);
+  }
+
+  @mixin dark {
+    background-color: var(--mantine-color-dark-6);
+  }
+}
+
+.replyText {
+  flex: 1;
+  min-width: 0;
+}
+
+.field {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--mantine-spacing-xs);
+  padding: 4px 4px 4px var(--mantine-spacing-md);
 }
 
 .input {

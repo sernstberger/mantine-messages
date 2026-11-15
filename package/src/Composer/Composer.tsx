@@ -2,19 +2,38 @@ import {
   ActionIcon,
   Box,
   BoxProps,
+  CloseButton,
   ElementProps,
   factory,
   Factory,
   StylesApiProps,
+  Text,
   Textarea,
   useProps,
   useStyles,
 } from '@mantine/core';
 import { useUncontrolled } from '@mantine/hooks';
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import classes from './Composer.module.css';
 
-export type ComposerStylesNames = 'root' | 'input' | 'send';
+export type ComposerStylesNames = 'root' | 'reply' | 'replyText' | 'field' | 'input' | 'send';
+
+/** The message being answered, shown above the text box */
+export interface ComposerReply {
+  authorName: string;
+  body: string;
+}
+
+export interface ComposerLabels {
+  /** Accessible label of the send button */
+  send: string;
+
+  /** Before the author's name in the reply bar */
+  replyingTo: string;
+
+  /** Accessible label of the button that cancels the reply */
+  cancelReply: string;
+}
 
 export interface ComposerProps
   extends BoxProps, StylesApiProps<ComposerFactory>, ElementProps<'div', 'onChange'> {
@@ -33,8 +52,14 @@ export interface ComposerProps
   /** `'Message'` by default */
   placeholder?: string;
 
-  /** Accessible label of the send button, `'Send'` by default */
-  sendLabel?: string;
+  /** The message being answered; shows a bar above the box and focuses it */
+  replyTo?: ComposerReply | null;
+
+  /** Called when the user cancels the reply, with the close button or Escape */
+  onCancelReply?: () => void;
+
+  /** Text for buttons and the reply bar, for translation */
+  labels?: Partial<ComposerLabels>;
 
   disabled?: boolean;
 
@@ -50,8 +75,13 @@ export type ComposerFactory = Factory<{
 
 const defaultProps: Partial<ComposerProps> = {
   placeholder: 'Message',
-  sendLabel: 'Send',
   maxRows: 6,
+};
+
+const defaultLabels: ComposerLabels = {
+  send: 'Send',
+  replyingTo: 'Replying to',
+  cancelReply: 'Cancel reply',
 };
 
 function SendIcon() {
@@ -83,7 +113,9 @@ export const Composer = factory<ComposerFactory>((_props) => {
     onChange,
     onSend,
     placeholder,
-    sendLabel,
+    replyTo,
+    onCancelReply,
+    labels,
     disabled,
     maxRows,
     ...others
@@ -103,6 +135,15 @@ export const Composer = factory<ComposerFactory>((_props) => {
 
   const [text, setText] = useUncontrolled({ value, defaultValue, finalValue: '', onChange });
   const canSend = !disabled && text.trim().length > 0;
+  const allLabels = { ...defaultLabels, ...labels };
+
+  // Choosing a message to answer puts the cursor in the box
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    if (replyTo) {
+      inputRef.current!.focus();
+    }
+  }, [replyTo]);
 
   const send = () => {
     if (canSend) {
@@ -113,34 +154,58 @@ export const Composer = factory<ComposerFactory>((_props) => {
 
   return (
     <Box ref={ref} {...getStyles('root')} {...others}>
-      <Textarea
-        autosize
-        minRows={1}
-        maxRows={maxRows}
-        variant="unstyled"
-        aria-label={placeholder}
-        placeholder={placeholder}
-        disabled={disabled}
-        value={text}
-        onChange={(event) => setText(event.currentTarget.value)}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
-            event.preventDefault();
-            send();
-          }
-        }}
-        {...getStyles('input')}
-      />
-      <ActionIcon
-        radius="xl"
-        size="lg"
-        aria-label={sendLabel}
-        disabled={!canSend}
-        onClick={send}
-        {...getStyles('send')}
-      >
-        <SendIcon />
-      </ActionIcon>
+      {replyTo && (
+        <Box {...getStyles('reply')}>
+          <Box {...getStyles('replyText')}>
+            <Text size="xs" c="dimmed">
+              {allLabels.replyingTo}{' '}
+              <Text component="span" inherit fw={600} c="var(--mantine-color-text)">
+                {replyTo.authorName}
+              </Text>
+            </Text>
+            <Text size="xs" truncate>
+              {replyTo.body}
+            </Text>
+          </Box>
+          <CloseButton size="sm" aria-label={allLabels.cancelReply} onClick={onCancelReply} />
+        </Box>
+      )}
+      <Box {...getStyles('field')}>
+        <Textarea
+          ref={inputRef}
+          autosize
+          minRows={1}
+          maxRows={maxRows}
+          variant="unstyled"
+          aria-label={placeholder}
+          placeholder={placeholder}
+          disabled={disabled}
+          value={text}
+          onChange={(event) => setText(event.currentTarget.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
+              event.preventDefault();
+              send();
+            }
+
+            if (event.key === 'Escape' && replyTo) {
+              event.preventDefault();
+              onCancelReply?.();
+            }
+          }}
+          {...getStyles('input')}
+        />
+        <ActionIcon
+          radius="xl"
+          size="lg"
+          aria-label={allLabels.send}
+          disabled={!canSend}
+          onClick={send}
+          {...getStyles('send')}
+        >
+          <SendIcon />
+        </ActionIcon>
+      </Box>
     </Box>
   );
 });

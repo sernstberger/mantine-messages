@@ -38,11 +38,23 @@
 
 .author {
   padding-inline: var(--mantine-spacing-sm);
-  font-size: var(--mantine-font-size-xs);
-  color: var(--mantine-color-dimmed);
+}
+
+/* One bubble and its reply button */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+
+  &:where([data-own]) {
+    flex-direction: row-reverse;
+  }
 }
 
 .bubble {
+  /* above the tucked-in quote */
+  position: relative;
   padding: 6px 12px;
   border-radius: var(--mantine-radius-lg);
   font-size: var(--mantine-font-size-sm);
@@ -72,12 +84,76 @@
   &:where([data-status='failed']) {
     outline: 1px solid var(--mantine-color-error);
   }
+
+  /* After a click on a quote that points here */
+  &:where([data-highlighted]) {
+    outline: 2px solid var(--mantine-primary-color-filled);
+    outline-offset: 2px;
+  }
+}
+
+/* A bubble with what it answers above it */
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+
+  &:where([data-own]) {
+    align-items: flex-end;
+  }
+}
+
+/* "You replied to Maya" */
+.quoteLabel {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  padding-inline: var(--mantine-spacing-sm);
+}
+
+/* Faded copy of the answered message, tucked under the reply's bubble */
+.quote {
+  max-width: 100%;
+  margin-bottom: -10px;
+  padding: 6px 12px 14px;
+  border-radius: var(--mantine-radius-lg);
+  color: var(--mantine-color-dimmed);
+  text-align: start;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  opacity: 0.8;
+
+  @mixin light {
+    background-color: var(--mantine-color-gray-0);
+  }
+
+  @mixin dark {
+    background-color: var(--mantine-color-dark-6);
+  }
+
+  &:where([data-unavailable]) {
+    font-style: italic;
+  }
+}
+
+/* Shown on hover and keyboard focus; always shown where there is no hover */
+.replyButton {
+  flex-shrink: 0;
+  opacity: 0;
+
+  :where(.row:hover, .row:focus-within) > & {
+    opacity: 1;
+  }
+
+  @media (hover: none) {
+    opacity: 1;
+  }
 }
 
 .meta {
   padding-inline: var(--mantine-spacing-sm);
-  font-size: var(--mantine-font-size-xs);
-  color: var(--mantine-color-dimmed);
 }
 
 .status {

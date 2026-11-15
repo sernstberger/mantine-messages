@@ -44,6 +44,7 @@ export const sampleMessages: Message[] = [
     id: 'm6',
     authorId: 'me',
     body: 'Sorry, totally slipped my mind.',
+    replyToId: 'm4',
     createdAt: minutesAgo(12),
     status: 'read',
   },

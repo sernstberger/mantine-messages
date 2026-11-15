@@ -27,3 +27,4 @@ window.ResizeObserver = ResizeObserver;
 
 // jsdom has window.scrollTo but no Element.scrollTo; tests that check scrolling replace this
 Element.prototype.scrollTo = function scrollTo() {};
+Element.prototype.scrollIntoView = function scrollIntoView() {};

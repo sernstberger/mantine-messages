@@ -43,28 +43,16 @@
 }
 
 .title {
-  overflow: hidden;
-  font-size: var(--mantine-font-size-sm);
   font-weight: 500;
-  white-space: nowrap;
-  text-overflow: ellipsis;
 
   :where([data-unread]) & {
     font-weight: 700;
   }
 }
 
-.time {
-  font-size: var(--mantine-font-size-xs);
-  color: var(--mantine-color-dimmed);
-}
-
 .preview {
-  overflow: hidden;
-  font-size: var(--mantine-font-size-sm);
+  /* not the c prop: an inline colour would beat the unread rule below */
   color: var(--mantine-color-dimmed);
-  white-space: nowrap;
-  text-overflow: ellipsis;
 
   :where([data-unread]) & {
     color: var(--mantine-color-text);
@@ -80,8 +68,5 @@
 }
 
 .empty {
-  padding: var(--mantine-spacing-xl) var(--mantine-spacing-md);
-  font-size: var(--mantine-font-size-sm);
-  color: var(--mantine-color-dimmed);
-  text-align: center;
+  padding-block: var(--mantine-spacing-xl);
 }

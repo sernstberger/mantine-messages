@@ -4,9 +4,11 @@ import {
   Box,
   BoxProps,
   ElementProps,
+  EmptyState,
   factory,
   Factory,
   StylesApiProps,
+  Text,
   UnstyledButton,
   useProps,
   useStyles,
@@ -99,7 +101,9 @@ export const Inbox = factory<InboxFactory>((_props) => {
 
   return (
     <Box ref={ref} {...getStyles('root')} {...others}>
-      {conversations.length === 0 && <Box {...getStyles('empty')}>{emptyLabel}</Box>}
+      {conversations.length === 0 && (
+        <EmptyState size="sm" title={emptyLabel} {...getStyles('empty')} />
+      )}
       {conversations.map((conversation) => {
         const unread = conversation.unreadCount ?? 0;
         const active = conversation.id === selected;
@@ -114,13 +118,17 @@ export const Inbox = factory<InboxFactory>((_props) => {
           >
             <Avatar src={conversation.avatar} name={conversation.title} {...getStyles('avatar')} />
             <Box {...getStyles('body')}>
-              <Box {...getStyles('title')}>{conversation.title}</Box>
+              <Text component="span" size="sm" truncate {...getStyles('title')}>
+                {conversation.title}
+              </Text>
               {conversation.lastMessage && (
-                <Box {...getStyles('time')}>
+                <Text component="span" size="xs" c="dimmed" {...getStyles('time')}>
                   {formatShort(conversation.lastMessage.createdAt, locale)}
-                </Box>
+                </Text>
               )}
-              <Box {...getStyles('preview')}>{conversation.lastMessage?.body}</Box>
+              <Text component="span" size="sm" truncate {...getStyles('preview')}>
+                {conversation.lastMessage?.body}
+              </Text>
               {unread > 0 && (
                 <Badge size="sm" circle={unread < 10} {...getStyles('unread')}>
                   {unread > 99 ? '99+' : unread}

@@ -39,7 +39,7 @@ describe('Composer', () => {
 
   it('sends with the button, which is disabled while the box is empty', async () => {
     const onSend = jest.fn();
-    render(<Composer onSend={onSend} sendLabel="Post" />);
+    render(<Composer onSend={onSend} labels={{ send: 'Post' }} />);
     const button = screen.getByRole('button', { name: 'Post' });
     expect(button).toBeDisabled();
 
@@ -63,5 +63,33 @@ describe('Composer', () => {
     render(<Composer value="draft" onChange={onChange} />);
     await userEvent.type(screen.getByRole('textbox'), '!');
     expect(onChange).toHaveBeenCalledWith('draft!');
+  });
+
+  it('shows who the reply is for and focuses the box', () => {
+    render(<Composer replyTo={{ authorName: 'Maya', body: 'Can you send it?' }} />);
+    expect(screen.getByText('Maya')).toBeInTheDocument();
+    expect(screen.getByText('Can you send it?')).toBeInTheDocument();
+    expect(screen.getByRole('textbox')).toHaveFocus();
+  });
+
+  it('cancels the reply with the close button or Escape', async () => {
+    const onCancelReply = jest.fn();
+    render(
+      <Composer
+        replyTo={{ authorName: 'Maya', body: 'Hi' }}
+        onCancelReply={onCancelReply}
+        labels={{ cancelReply: 'Stop replying' }}
+      />
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Stop replying' }));
+    await userEvent.type(screen.getByRole('textbox'), '{Escape}');
+    expect(onCancelReply).toHaveBeenCalledTimes(2);
+  });
+
+  it('ignores Escape when not replying', async () => {
+    const onCancelReply = jest.fn();
+    render(<Composer onCancelReply={onCancelReply} />);
+    await userEvent.type(screen.getByRole('textbox'), '{Escape}');
+    expect(onCancelReply).not.toHaveBeenCalled();
   });
 });
