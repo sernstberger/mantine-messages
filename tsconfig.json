@@ -23,6 +23,7 @@
     "resolveJsonModule": true,
     "declarationDir": "package/dist/types",
     "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "strict": true
   }
 }
