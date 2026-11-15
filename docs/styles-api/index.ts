@@ -227,7 +227,11 @@ export const MessagesShellStylesApi: StylesApiData<MessagesShellFactory> = {
     asideToggle: '`MessagesShell.AsideToggle`, shown while the aside is collapsed',
   },
   vars: {
-    root: { '--shell-radius': 'Corner radius, from `radius`' },
+    root: {
+      '--messages-shell-radius': 'Corner radius, from `radius`',
+      '--messages-shell-list-width': 'Width of the list pane, 300px by default',
+      '--messages-shell-aside-width': 'Width of the aside, 280px by default',
+    },
   },
   modifiers: [
     { modifier: 'data-with-border', selector: 'root', condition: '`withBorder` is set' },

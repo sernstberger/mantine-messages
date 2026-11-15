@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import React, { useState } from 'react';
 import { MessagesShell, MessagesShellProps, MessagesShellStylesNames } from './MessagesShell';
 import { getRenderError } from '../../../test-utils/get-render-error';
+import { itHasStaticVarsResolver } from '../../../test-utils/it-has-static-vars-resolver';
 import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
 
 const panes = (
@@ -63,6 +64,61 @@ describe('MessagesShell', () => {
     stylesApiSelectors: ['root', 'list', 'main', 'aside'],
   });
 
+  describe('collapsed with the aside open', () => {
+    beforeEach(() => {
+      measureAs(800);
+      jest.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+        callback(0);
+        return 0;
+      });
+    });
+
+    afterEach(() => jest.restoreAllMocks());
+
+    tests.itSupportsSystemProps<MessagesShellProps, MessagesShellStylesNames>({
+      component: MessagesShell,
+      props: { ...defaultProps, defaultAsideOpened: true },
+      styleProps: true,
+      extend: true,
+      variant: true,
+      size: true,
+      classes: true,
+      refType: HTMLDivElement,
+      displayName: 'MessagesShell',
+      stylesApiSelectors: ['asideBackdrop', 'asideToggle'],
+    });
+  });
+
+  itHasStaticVarsResolver({ component: MessagesShell });
+
+  it('sets no theming variables by default', () => {
+    const { container } = render(<MessagesShell>{panes}</MessagesShell>);
+    const root = container.querySelector<HTMLElement>('.mantine-MessagesShell-root')!;
+    for (const name of ['radius', 'list-width', 'aside-width']) {
+      expect(root.style.getPropertyValue(`--messages-shell-${name}`)).toBe('');
+    }
+  });
+
+  it('sets variables from vars', () => {
+    const { container } = render(
+      <MessagesShell
+        vars={() => ({
+          root: {
+            '--messages-shell-list-width': '20rem',
+            '--messages-shell-aside-width': '15rem',
+            '--messages-shell-radius': '0',
+          },
+        })}
+      >
+        {panes}
+      </MessagesShell>
+    );
+    const root = container.querySelector<HTMLElement>('.mantine-MessagesShell-root')!;
+    expect(root.style.getPropertyValue('--messages-shell-list-width')).toBe('20rem');
+    expect(root.style.getPropertyValue('--messages-shell-aside-width')).toBe('15rem');
+    expect(root.style.getPropertyValue('--messages-shell-radius')).toBe('0');
+  });
+
   itSupportsAttributes({
     component: MessagesShell,
     props: defaultProps,
@@ -85,7 +141,7 @@ describe('MessagesShell', () => {
     expect(screen.getByRole('complementary', { name: 'Details' })).toBeVisible();
     const root = screen.getByRole('region', { name: 'Main' }).parentElement!;
     expect(root).toHaveAttribute('data-with-border');
-    expect(root).toHaveStyle({ '--shell-radius': 'var(--mantine-radius-lg)' });
+    expect(root).toHaveStyle({ '--messages-shell-radius': 'var(--mantine-radius-lg)' });
     expect(root).not.toHaveAttribute('data-aside-collapsed');
   });
 
@@ -140,6 +196,32 @@ describe('MessagesShell', () => {
     await userEvent.click(toggle);
     await userEvent.click(toggle);
     expect(aside()).not.toBeVisible();
+  });
+
+  it('closes the open aside on Escape while the focus is on the toggle', async () => {
+    measureAs(800);
+    const onKeyDown = jest.fn();
+    render(
+      <MessagesShell>
+        <MessagesShell.Main>
+          <MessagesShell.AsideToggle onKeyDown={onKeyDown} />
+        </MessagesShell.Main>
+        <MessagesShell.Aside>Details</MessagesShell.Aside>
+      </MessagesShell>
+    );
+    const toggle = await screen.findByRole('button', { name: 'Details' });
+
+    fireEvent.keyDown(toggle, { key: 'Escape' });
+    expect(aside()).not.toBeVisible();
+
+    await userEvent.click(toggle);
+    expect(aside()).toBeVisible();
+    fireEvent.keyDown(toggle, { key: 'a' });
+    expect(aside()).toBeVisible();
+    fireEvent.keyDown(toggle, { key: 'Escape' });
+    expect(aside()).not.toBeVisible();
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(onKeyDown).toHaveBeenCalledTimes(3);
   });
 
   it('ignores Escape while the aside has room', () => {

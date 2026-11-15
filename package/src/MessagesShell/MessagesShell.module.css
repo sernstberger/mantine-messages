@@ -3,7 +3,7 @@
   display: flex;
   min-height: 0;
   overflow: hidden;
-  border-radius: var(--shell-radius);
+  border-radius: var(--messages-shell-radius, var(--mantine-radius-default));
   background-color: var(--mantine-color-body);
 
   &[data-with-border] {
@@ -15,7 +15,7 @@
   display: flex;
   flex: none;
   flex-direction: column;
-  width: rem(300px);
+  width: var(--messages-shell-list-width, rem(300px));
   min-height: 0;
   overflow: hidden;
   border-inline-end: 1px solid var(--mantine-color-default-border);
@@ -34,7 +34,7 @@
   display: flex;
   flex: none;
   flex-direction: column;
-  width: rem(280px);
+  width: var(--messages-shell-aside-width, rem(280px));
   min-height: 0;
   overflow: hidden;
   border-inline-start: 1px solid var(--mantine-color-default-border);

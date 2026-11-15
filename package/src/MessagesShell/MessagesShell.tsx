@@ -26,7 +26,9 @@ export type MessagesShellStylesNames =
   | 'aside'
   | 'asideBackdrop'
   | 'asideToggle';
-export type MessagesShellCssVariables = { root: '--shell-radius' };
+export type MessagesShellCssVariables = {
+  root: '--messages-shell-radius' | '--messages-shell-list-width' | '--messages-shell-aside-width';
+};
 
 interface MessagesShellContextValue {
   getStyles: GetStylesApi<MessagesShellFactory>;
@@ -190,8 +192,18 @@ export type MessagesShellAsideToggleFactory = Factory<{
  * Put it anywhere inside the shell, for example in the header of `Main`
  */
 export const MessagesShellAsideToggle = factory<MessagesShellAsideToggleFactory>((_props) => {
-  const { classNames, className, style, styles, vars, ref, children, onClick, ...others } =
-    useProps('MessagesShellAsideToggle', {}, _props);
+  const {
+    classNames,
+    className,
+    style,
+    styles,
+    vars,
+    ref,
+    children,
+    onClick,
+    onKeyDown,
+    ...others
+  } = useProps('MessagesShellAsideToggle', {}, _props);
   const ctx = useMessagesShellContext();
 
   if (!ctx.asideCollapsed) {
@@ -209,6 +221,13 @@ export const MessagesShellAsideToggle = factory<MessagesShellAsideToggleFactory>
         onClick?.(event);
         ctx.setAsideOpened(!ctx.asideOpened);
       }}
+      onKeyDown={(event: React.KeyboardEvent<HTMLButtonElement>) => {
+        onKeyDown?.(event);
+
+        if (ctx.asideOpened && event.key === 'Escape') {
+          ctx.setAsideOpened(false);
+        }
+      }}
       {...ctx.getStyles('asideToggle', { className, style, classNames, styles })}
       {...others}
     >
@@ -225,7 +244,7 @@ export interface MessagesShellProps
   /** Draws a border around the shell */
   withBorder?: boolean;
 
-  /** Corner radius, `theme.defaultRadius` by default */
+  /** Key of `theme.radius` or any valid CSS value to set `border-radius`, numbers are converted to rem @default `theme.defaultRadius` */
   radius?: MantineRadius;
 
   /**
@@ -260,7 +279,11 @@ export type MessagesShellFactory = Factory<{
 const defaultProps = { asideBreakpoint: 960 } satisfies Partial<MessagesShellProps>;
 
 const varsResolver = createVarsResolver<MessagesShellFactory>((_theme, { radius }) => ({
-  root: { '--shell-radius': getRadius(radius) },
+  root: {
+    '--messages-shell-radius': radius === undefined ? undefined : getRadius(radius),
+    '--messages-shell-list-width': undefined,
+    '--messages-shell-aside-width': undefined,
+  },
 }));
 
 /**
