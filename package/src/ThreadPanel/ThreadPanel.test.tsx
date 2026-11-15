@@ -69,6 +69,13 @@ describe('ThreadPanel', () => {
     expect(screen.getByRole('textbox', { name: 'Message' })).toBeInTheDocument();
   });
 
+  it('titles the panel with a heading, h2 by default or the level given', () => {
+    const { rerender } = render(<ThreadPanel {...defaultProps} />);
+    expect(screen.getByRole('heading', { level: 2, name: 'Thread' })).toBeInTheDocument();
+    rerender(<ThreadPanel {...defaultProps} titleOrder={4} />);
+    expect(screen.getByRole('heading', { level: 4, name: 'Thread' })).toBeInTheDocument();
+  });
+
   it('closes with its button and takes custom labels', async () => {
     const onClose = jest.fn();
     render(

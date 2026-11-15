@@ -14,13 +14,7 @@
   }
 
   @mixin hover {
-    @mixin light {
-      background-color: var(--mantine-color-gray-0);
-    }
-
-    @mixin dark {
-      background-color: var(--mantine-color-dark-6);
-    }
+    background-color: var(--mantine-color-default-hover);
   }
 
   /* not :where(), and :hover too, so these beat the hover backgrounds above */

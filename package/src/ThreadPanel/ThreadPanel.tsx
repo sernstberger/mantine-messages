@@ -7,6 +7,8 @@ import {
   Factory,
   StylesApiProps,
   Text,
+  Title,
+  TitleOrder,
   useProps,
   useStyles,
 } from '@mantine/core';
@@ -48,6 +50,9 @@ export interface ThreadPanelProps
   /** `id` of the person looking */
   currentUserId: string;
 
+  /** Heading level of the title, `2` by default */
+  titleOrder?: TitleOrder;
+
   /** Under the title, for example the channel name */
   subtitle?: React.ReactNode;
 
@@ -80,10 +85,12 @@ export type ThreadPanelFactory = Factory<{
   stylesNames: ThreadPanelStylesNames;
 }>;
 
+const defaultProps: Partial<ThreadPanelProps> = { titleOrder: 2 };
+
 const defaultLabels = { title: 'Thread', close: 'Close thread' };
 
 export const ThreadPanel = factory<ThreadPanelFactory>((_props) => {
-  const props = useProps('ThreadPanel', {}, _props);
+  const props = useProps('ThreadPanel', defaultProps, _props);
   const {
     classNames,
     className,
@@ -96,6 +103,7 @@ export const ThreadPanel = factory<ThreadPanelFactory>((_props) => {
     replies,
     users,
     currentUserId,
+    titleOrder,
     subtitle,
     onClose,
     locale,
@@ -128,9 +136,9 @@ export const ThreadPanel = factory<ThreadPanelFactory>((_props) => {
     <Box ref={ref} role="complementary" aria-label={titleLabel} {...getStyles('root')} {...others}>
       <Box {...getStyles('header')}>
         <Box {...getStyles('heading')}>
-          <Text fw={700} {...getStyles('title')}>
+          <Title order={titleOrder} size="md" lh="md" {...getStyles('title')}>
             {titleLabel}
-          </Text>
+          </Title>
           {subtitle && (
             <Text size="xs" c="dimmed" truncate {...getStyles('subtitle')}>
               {subtitle}

@@ -46,3 +46,10 @@ will be 0.1.0.
 - Work queue split view in the docs and Storybook, on `MessagesShell`: email-client ticket rows
   with previews and unread state, the conversation, and the ticket details beside it (collapsed
   behind a Details button below 960px); shares its state with the table layout
+
+### Changed
+
+- `ThreadPanel`: the title is a heading (`Title`), `h2` by default; `titleOrder` sets the level
+- `Inbox`, `TeamThread`: row hover uses the theme's `--mantine-color-default-hover` (in dark mode
+  this is `dark-5`, a step lighter than before); `AssistantThread` step headers use
+  `@mixin hover`, so the hover background no longer sticks after a tap on touch screens

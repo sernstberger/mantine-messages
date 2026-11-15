@@ -88,7 +88,7 @@
   font-size: var(--mantine-font-size-sm);
   color: var(--mantine-color-dimmed);
 
-  &:hover {
+  @mixin hover {
     background-color: var(--mantine-color-default-hover);
   }
 
