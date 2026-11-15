@@ -4,6 +4,7 @@ import React from 'react';
 import type { Conversation } from '../types';
 import { Inbox, InboxProps, InboxStylesNames } from './Inbox';
 import { waitFor, within } from '@testing-library/react';
+import { itHasStaticVarsResolver } from '../../../test-utils/it-has-static-vars-resolver';
 import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
 
 const conversations: Conversation[] = [
@@ -17,11 +18,15 @@ const conversations: Conversation[] = [
 ];
 
 const defaultProps: InboxProps = { conversations };
+const busyProps: InboxProps = { conversations, withSearch: true, sections: true };
+
+const getRoot = (container: HTMLElement) =>
+  container.querySelector<HTMLElement>('.mantine-Inbox-root')!;
 
 describe('Inbox', () => {
   tests.itSupportsSystemProps<InboxProps, InboxStylesNames>({
     component: Inbox,
-    props: defaultProps,
+    props: busyProps,
     styleProps: true,
     extend: true,
     variant: true,
@@ -29,7 +34,95 @@ describe('Inbox', () => {
     classes: true,
     refType: HTMLDivElement,
     displayName: 'Inbox',
-    stylesApiSelectors: ['root', 'item', 'avatar', 'body', 'title', 'time', 'preview', 'unread'],
+    stylesApiSelectors: [
+      'root',
+      'search',
+      'section',
+      'sectionLabel',
+      'item',
+      'avatar',
+      'body',
+      'title',
+      'time',
+      'preview',
+      'unread',
+    ],
+  });
+
+  tests.axe([<Inbox {...defaultProps} />, <Inbox {...busyProps} />]);
+
+  itHasStaticVarsResolver({ component: Inbox });
+
+  it('sets no theming variables by default', () => {
+    const { container } = render(<Inbox {...defaultProps} />);
+    const root = getRoot(container);
+    for (const name of ['radius', 'active-bg', 'active-color', 'active-hover']) {
+      expect(root.style.getPropertyValue(`--inbox-${name}`)).toBe('');
+    }
+  });
+
+  it('sets the radius variable from radius', () => {
+    const { container } = render(<Inbox {...defaultProps} radius="xs" />);
+    expect(getRoot(container).style.getPropertyValue('--inbox-radius')).toBe(
+      'var(--mantine-radius-xs)'
+    );
+  });
+
+  it('sets the active variables from color', () => {
+    const { container } = render(<Inbox {...defaultProps} color="teal" />);
+    const root = getRoot(container);
+    expect(root.style.getPropertyValue('--inbox-active-bg')).toBe(
+      'var(--mantine-color-teal-light)'
+    );
+    expect(root.style.getPropertyValue('--inbox-active-color')).toBe(
+      'var(--mantine-color-teal-light-color)'
+    );
+    expect(root.style.getPropertyValue('--inbox-active-hover')).toBe(
+      'var(--mantine-color-teal-light-hover)'
+    );
+  });
+
+  it('sets the active variables from variant and autoContrast', () => {
+    const { container, rerender } = render(<Inbox {...defaultProps} variant="filled" />);
+    expect(getRoot(container).style.getPropertyValue('--inbox-active-bg')).toBe(
+      'var(--mantine-color-blue-filled)'
+    );
+    rerender(<Inbox {...defaultProps} variant="filled" color="yellow" autoContrast />);
+    expect(getRoot(container).style.getPropertyValue('--inbox-active-color')).toBe(
+      'var(--mantine-color-black)'
+    );
+  });
+
+  it('sets variables from vars', () => {
+    const { container } = render(
+      <Inbox {...defaultProps} vars={() => ({ root: { '--inbox-radius': '3px' } })} />
+    );
+    expect(getRoot(container).style.getPropertyValue('--inbox-radius')).toBe('3px');
+  });
+
+  it('passes radius to the search box and color to the unread badges', () => {
+    const { container } = render(<Inbox {...busyProps} radius="xl" color="teal" />);
+    expect(
+      container
+        .querySelector<HTMLElement>('.mantine-Input-wrapper')!
+        .style.getPropertyValue('--input-radius')
+    ).toBe('var(--mantine-radius-xl)');
+    expect(
+      container
+        .querySelector<HTMLElement>('.mantine-Badge-root')!
+        .style.getPropertyValue('--badge-bg')
+    ).toBe('var(--mantine-color-teal-filled)');
+  });
+
+  it('passes unstyled to the components it renders', () => {
+    const { container } = render(<Inbox {...busyProps} unstyled />);
+    for (const name of ['Avatar', 'Text', 'UnstyledButton', 'Badge', 'TextInput']) {
+      const elements = container.querySelectorAll(`.mantine-${name}-root`);
+      expect(elements.length).toBeGreaterThan(0);
+      for (const element of elements) {
+        expect([...element.classList].filter((cls) => !cls.startsWith('mantine-'))).toEqual([]);
+      }
+    }
   });
 
   itSupportsAttributes({ component: Inbox, props: defaultProps, name: 'Inbox', selector: 'item' });
