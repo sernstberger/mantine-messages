@@ -27,6 +27,7 @@ import {
   MessageList,
   type MessageListHandlers,
   type MessageListItemContext,
+  type MessageListRowsProps,
 } from '../MessageList/MessageList';
 import { Reactions } from '../Reactions/Reactions';
 import type { ChatMessage, MessageAttachment, MessagesUser, SystemEvent } from '../types';
@@ -182,6 +183,12 @@ export interface TeamThreadProps
 
   /** Gets `{ jumpTo }` of the inner `MessageList`, to scroll to a message and flash it */
   handlersRef?: React.Ref<MessageListHandlers>;
+
+  /**
+   * Renders the rows of the inner `MessageList`, every row by default; set it to window threads of
+   * thousands of messages (see "Long threads")
+   */
+  rowsComponent?: React.ComponentType<MessageListRowsProps>;
 
   /** Width and height of avatars, numbers are converted to rem @default 36 */
   avatarSize?: MantineSize | (string & {}) | number;

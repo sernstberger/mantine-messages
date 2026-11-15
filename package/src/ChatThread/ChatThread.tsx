@@ -30,6 +30,7 @@ import {
   MessageList,
   type MessageListHandlers,
   type MessageListItemContext,
+  type MessageListRowsProps,
 } from '../MessageList/MessageList';
 import { Reactions } from '../Reactions/Reactions';
 import type { ChatMessage, MessageAttachment, MessageStatus, MessagesUser } from '../types';
@@ -189,6 +190,12 @@ export interface ChatThreadProps
 
   /** Gets `{ jumpTo }` of the inner `MessageList`, to scroll to a message and flash it */
   handlersRef?: React.Ref<MessageListHandlers>;
+
+  /**
+   * Renders the rows of the inner `MessageList`, every row by default; set it to window threads of
+   * thousands of messages (see "Long threads")
+   */
+  rowsComponent?: React.ComponentType<MessageListRowsProps>;
 
   /** Key of `theme.radius` or any valid CSS value to set `border-radius` of bubbles and quotes, numbers are converted to rem @default 'lg' */
   radius?: MantineRadius;

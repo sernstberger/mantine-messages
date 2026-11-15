@@ -29,7 +29,11 @@ import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from '
 import { ChevronIcon, RegenerateIcon } from '../icons';
 import { MarkdownBody } from '../MarkdownBody/MarkdownBody';
 import { MessageActions, type MessageAction } from '../MessageActions/MessageActions';
-import { MessageList, type MessageListHandlers } from '../MessageList/MessageList';
+import {
+  MessageList,
+  type MessageListHandlers,
+  type MessageListRowsProps,
+} from '../MessageList/MessageList';
 import type { AssistantMessage, AssistantPart } from '../types';
 import { stripMarkdown } from '../utils/preview';
 import { formatJson, getAssistantText } from './assistant-text';
@@ -115,6 +119,12 @@ export interface AssistantThreadProps
 
   /** Gets `{ jumpTo }` of the inner `MessageList`, to scroll to a message and flash it */
   handlersRef?: React.Ref<MessageListHandlers>;
+
+  /**
+   * Renders the rows of the inner `MessageList`, every row by default; set it to window threads of
+   * thousands of messages (see "Long threads")
+   */
+  rowsComponent?: React.ComponentType<MessageListRowsProps>;
 
   /** Key of `theme.radius` or any valid CSS value to set `border-radius` of prompt bubbles, numbers are converted to rem @default 'xl' */
   radius?: MantineRadius;
