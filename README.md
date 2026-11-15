@@ -4,7 +4,18 @@ Messaging components for [Mantine](https://mantine.dev), for people talking to p
 `Inbox` of conversations, a `ChatThread` of messages and a `Composer` to write them, with the
 Mantine Styles API, light and dark themes, and keyboard and screen reader support.
 
-**Status:** early, not published yet.
+## Install
+
+```bash
+yarn add mantine-messages @mantine/core @mantine/hooks react react-dom
+```
+
+Peers: `@mantine/core` and `@mantine/hooks` ^9.8.0, `react` and `react-dom` ^19.2.0. Optional peers, only for
+`mantine-messages/markdown` and `mantine-messages/assistant`: `react-markdown` ^10 and `remark-gfm` ^4.
+
+```bash
+yarn add react-markdown remark-gfm
+```
 
 ## Components
 
@@ -27,6 +38,9 @@ components never fetch anything.
 
 ## Usage
 
+Import the styles once, after Mantine's: `mantine-messages/styles.css`, or
+`mantine-messages/styles.layer.css` if your app uses CSS layers.
+
 ```tsx
 import '@mantine/core/styles.css';
 import 'mantine-messages/styles.css';
@@ -43,9 +57,29 @@ function Messenger() {
 }
 ```
 
-## Development
+Markdown (needs the optional peers):
 
-This repo was created from [mantinedev/extension-template](https://github.com/mantinedev/extension-template).
+```tsx
+import { MarkdownBody } from 'mantine-messages/markdown';
+
+<MarkdownBody>{'Some **markdown** with `code`'}</MarkdownBody>;
+```
+
+Assistant chat (needs the optional peers):
+
+```tsx
+import { Composer } from 'mantine-messages';
+import { AssistantThread } from 'mantine-messages/assistant';
+
+<>
+  <AssistantThread messages={messages} onRegenerate={regenerate} />
+  <Composer onSend={(draft) => ask(draft.text)} streaming={streaming} onStop={stop} />
+</>;
+```
+
+See the [documentation](https://sernstberger.github.io/mantine-messages/) for every prop.
+
+## Development
 
 - `nvm use` then `yarn`: install dependencies
 - `npm run storybook`: Storybook on port 8281

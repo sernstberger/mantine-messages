@@ -46,3 +46,4 @@ will be 0.1.0.
 - Work queue split view in the docs and Storybook, on `MessagesShell`: email-client ticket rows
   with previews and unread state, the conversation, and the ticket details beside it (collapsed
   behind a Details button below 960px); shares its state with the table layout
+- Release readiness: a `files` allowlist, types bundled per entry for ESM and CJS (checked with `npm run check:exports`), no empty source maps, peers narrowed to Mantine ^9.8.0 and React ^19.2.0, and `docgen.json` documents `Message`, its parts and `MessagesShell`
