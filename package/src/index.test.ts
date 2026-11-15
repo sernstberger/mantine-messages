@@ -6,6 +6,7 @@ describe('mantine-messages', () => {
       'ChatThread',
       'Composer',
       'Inbox',
+      'MessageActions',
       'MessageList',
       'MessageListBase',
       'getPreview',

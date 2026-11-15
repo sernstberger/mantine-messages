@@ -30,3 +30,13 @@ export type {
 } from './MessageList/MessageList';
 export { useMessageList } from './MessageList/use-message-list';
 export type { UseMessageListOptions } from './MessageList/use-message-list';
+export { MessageActions } from './MessageActions/MessageActions';
+export type {
+  MessageActionsProps,
+  MessageActionsFactory,
+  MessageActionsStylesNames,
+  MessageActionsLabels,
+  MessageAction,
+  MessageActionItem,
+  MessageActionName,
+} from './MessageActions/MessageActions';
