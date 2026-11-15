@@ -35,12 +35,39 @@ const event = (id: string, minute: number): SystemEvent => ({
 const items: TeamThreadItem[] = [event('e', 0), message('a', 'maya', 1), message('b', 'maya', 2)];
 const defaultProps: TeamThreadProps = { items, users, currentUserId: 'me' };
 
+const busyItems: TeamThreadItem[] = [
+  event('e', 0),
+  message('a', 'maya', 1, {
+    attachments: [{ id: 'f', name: 'menu.pdf', url: '/menu.pdf' }],
+    reactions: [{ emoji: '👍', userIds: ['me'] }],
+    editedAt: at(2),
+    thread: { count: 2, lastReplyAt: at(3), participantIds: ['theo', 'me'] },
+  }),
+  message('b', 'maya', 2),
+  message('c', 'theo', 4, { visibility: 'internal' }),
+];
+
+const busyProps: TeamThreadProps = {
+  ...defaultProps,
+  items: busyItems,
+  unreadAfterId: 'a',
+  hasOlder: true,
+  loadingOlder: true,
+  onOpenThread: () => {},
+  onReact: () => {},
+};
+
+const getRoot = (container: HTMLElement) =>
+  container.querySelector<HTMLElement>('.mantine-TeamThread-root')!;
+
 const row = (id: string) => document.querySelector(`[data-message-id="${id}"]`)!;
 
 describe('TeamThread', () => {
+  tests.axe([<TeamThread {...defaultProps} />, <TeamThread {...busyProps} />]);
+
   tests.itSupportsSystemProps<TeamThreadProps, TeamThreadStylesNames>({
     component: TeamThread,
-    props: defaultProps,
+    props: busyProps,
     styleProps: true,
     extend: true,
     variant: true,
@@ -52,6 +79,8 @@ describe('TeamThread', () => {
       'root',
       'list',
       'divider',
+      'unread',
+      'loader',
       'item',
       'row',
       'avatar',
@@ -60,8 +89,16 @@ describe('TeamThread', () => {
       'meta',
       'author',
       'time',
+      'noteLabel',
       'text',
+      'edited',
       'actions',
+      'attachments',
+      'reactions',
+      'threadSummary',
+      'threadAvatars',
+      'threadCount',
+      'threadLastReply',
       'event',
     ],
   });
@@ -71,6 +108,69 @@ describe('TeamThread', () => {
     props: defaultProps,
     name: 'TeamThread',
     selector: 'row',
+  });
+
+  it('renders the replies divider of a thread with its selector', () => {
+    render(
+      <TeamThread {...defaultProps} threadParentId="a" classNames={{ repliesDivider: 'rd' }} />
+    );
+    expect(document.querySelector('.mantine-TeamThread-repliesDivider')).toHaveClass('rd');
+  });
+
+  it('sizes the avatar and the first column together with avatarSize', () => {
+    const { container } = render(<TeamThread {...busyProps} avatarSize="lg" />);
+    const message = container.querySelector<HTMLElement>('.mantine-Message-root')!;
+    expect(message.style.getPropertyValue('--message-avatar-size')).toBe(
+      'var(--message-avatar-size-lg)'
+    );
+    expect(container.querySelector('.mantine-Message-avatar')).toHaveStyle({
+      '--avatar-size': 'var(--avatar-size-lg)',
+    });
+  });
+
+  it('keeps 36 as the default avatar size', () => {
+    const { container } = render(<TeamThread {...defaultProps} />);
+    expect(
+      container
+        .querySelector<HTMLElement>('.mantine-Message-root')!
+        .style.getPropertyValue('--message-avatar-size')
+    ).toBe('calc(2.25rem * var(--mantine-scale))');
+  });
+
+  it('sets no variables on its root', () => {
+    const { container } = render(<TeamThread {...defaultProps} />);
+    expect(getRoot(container).getAttribute('style') ?? '').not.toContain('--team-thread');
+  });
+
+  it('passes unstyled to the components it renders', () => {
+    const { container } = render(<TeamThread {...busyProps} unstyled />);
+    const nested =
+      '.mantine-MessageActions-root, .mantine-Attachments-root, .mantine-Reactions-root';
+    const children = [
+      'Avatar-root',
+      'AvatarGroup-group',
+      'Text-root',
+      'UnstyledButton-root',
+      'MessageActions-root',
+      'Attachments-root',
+      'Reactions-root',
+    ].map((name) =>
+      [...container.querySelectorAll(`.mantine-${name}`)].filter(
+        (element) => !element.parentElement!.closest(nested)
+      )
+    );
+    for (const elements of children) {
+      expect(elements.length).toBeGreaterThan(0);
+      for (const element of elements) {
+        expect([...element.classList].filter((name) => !name.startsWith('mantine-'))).toEqual([]);
+      }
+    }
+  });
+
+  it('passes unstyled to the divider of a thread', () => {
+    render(<TeamThread {...defaultProps} threadParentId="a" unstyled />);
+    const divider = document.querySelector('.mantine-TeamThread-repliesDivider')!;
+    expect([...divider.classList].filter((name) => !name.startsWith('mantine-'))).toEqual([]);
   });
 
   it('passes controlRef to the inner MessageList', () => {

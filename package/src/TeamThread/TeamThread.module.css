@@ -47,13 +47,19 @@
 }
 
 .author {
+  font-weight: 700;
   color: var(--mantine-color-text);
+}
+
+.time {
+  color: var(--mantine-color-dimmed);
 }
 
 .noteLabel {
   display: flex;
   align-items: center;
   gap: rem(4px);
+  font-weight: 600;
   color: var(--mantine-color-yellow-light-color);
 }
 
@@ -65,6 +71,7 @@
 }
 
 .edited {
+  color: var(--mantine-color-dimmed);
   margin-inline-start: rem(4px);
 }
 
@@ -104,11 +111,22 @@
   }
 }
 
+.threadCount {
+  font-weight: 700;
+  color: var(--mantine-color-anchor);
+}
+
+.threadLastReply {
+  color: var(--mantine-color-dimmed);
+}
+
 .repliesDivider {
   margin: var(--mantine-spacing-xs) var(--mantine-spacing-md);
 }
 
 .event {
+  color: var(--mantine-color-dimmed);
+  text-align: center;
   margin-top: var(--mantine-spacing-xs);
   padding: rem(4px) var(--mantine-spacing-md);
 }

@@ -2,6 +2,7 @@ import { render, screen, tests } from '@mantine-tests/core';
 import React from 'react';
 import { Message, MessageProps, MessageStylesNames } from './Message';
 import { getRenderError } from '../../../test-utils/get-render-error';
+import { itHasStaticVarsResolver } from '../../../test-utils/it-has-static-vars-resolver';
 import { itSupportsAttributes } from '../../../test-utils/it-supports-attributes';
 
 const defaultProps: MessageProps = {
@@ -14,7 +15,12 @@ const defaultProps: MessageProps = {
   ],
 };
 
+const getRoot = (container: HTMLElement) =>
+  container.querySelector<HTMLElement>('.mantine-Message-root')!;
+
 describe('Message', () => {
+  tests.axe([<Message {...defaultProps} />, <Message compact {...defaultProps} />]);
+
   tests.itSupportsSystemProps<MessageProps, MessageStylesNames>({
     component: Message,
     props: defaultProps,
@@ -33,6 +39,58 @@ describe('Message', () => {
     props: defaultProps,
     name: 'Message',
     selector: 'avatar',
+  });
+
+  itHasStaticVarsResolver({ component: Message });
+
+  it('sets the avatar size variable, 36 by default, and sizes the avatar with it', () => {
+    const { container, rerender } = render(<Message {...defaultProps} />);
+    expect(getRoot(container).style.getPropertyValue('--message-avatar-size')).toBe(
+      'calc(2.25rem * var(--mantine-scale))'
+    );
+    expect(container.querySelector('.mantine-Message-avatar')).toHaveStyle({
+      '--avatar-size': 'calc(2.25rem * var(--mantine-scale))',
+    });
+
+    rerender(<Message {...defaultProps} avatarSize="lg" />);
+    expect(getRoot(container).style.getPropertyValue('--message-avatar-size')).toBe(
+      'var(--message-avatar-size-lg)'
+    );
+    expect(container.querySelector('.mantine-Message-avatar')).toHaveStyle({
+      '--avatar-size': 'var(--avatar-size-lg)',
+    });
+  });
+
+  it('sets the avatar size from a number', () => {
+    const { container } = render(<Message {...defaultProps} avatarSize={48} />);
+    expect(getRoot(container).style.getPropertyValue('--message-avatar-size')).toBe(
+      'calc(3rem * var(--mantine-scale))'
+    );
+  });
+
+  it('sets variables from vars', () => {
+    const { container } = render(
+      <Message {...defaultProps} vars={() => ({ root: { '--message-avatar-size': '20px' } })} />
+    );
+    expect(getRoot(container).style.getPropertyValue('--message-avatar-size')).toBe('20px');
+  });
+
+  it('gives Message.Avatar a radius, md by default', () => {
+    const { container } = render(
+      <Message>
+        <Message.Avatar name="Maya Lindqvist" />
+        <Message.Avatar name="Maya Lindqvist" radius="xl" />
+      </Message>
+    );
+    const [first, second] = container.querySelectorAll('.mantine-Message-avatar');
+    expect(first).toHaveStyle({ '--avatar-radius': 'var(--mantine-radius-md)' });
+    expect(second).toHaveStyle({ '--avatar-radius': 'var(--mantine-radius-xl)' });
+  });
+
+  it('passes unstyled to the avatar', () => {
+    const { container } = render(<Message {...defaultProps} unstyled />);
+    const avatar = container.querySelector('.mantine-Avatar-root')!;
+    expect([...avatar.classList].filter((name) => !name.startsWith('mantine-'))).toEqual([]);
   });
 
   it('renders an avatar with initials, a meta line and the text', () => {

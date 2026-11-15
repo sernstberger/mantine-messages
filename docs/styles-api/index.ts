@@ -170,7 +170,12 @@ export const MessageStylesApi: StylesApiData<MessageFactory> = {
     body: '`Message.Body`, the content column',
     meta: '`Message.Meta`: name and time, or a time in the avatar column shown on hover',
   },
-  vars: {},
+  vars: {
+    root: {
+      '--message-avatar-size':
+        'Width and height of `Message.Avatar` and width of the first column, from `avatarSize`',
+    },
+  },
   modifiers: [{ modifier: 'data-compact', selector: 'root', condition: '`compact` is set' }],
 };
 
@@ -196,6 +201,9 @@ export const TeamThreadStylesApi: StylesApiData<TeamThreadFactory> = {
     attachments: 'Attachments under the text',
     reactions: 'Reactions under the text',
     threadSummary: '"12 replies" with who answered and when; opens the thread',
+    threadAvatars: 'Avatars of who answered, in the thread summary',
+    threadCount: 'Reply count in the thread summary',
+    threadLastReply: '"Last reply 2 hours ago" in the thread summary',
     repliesDivider: 'Divider with the reply count after the parent, with `threadParentId`',
     event: 'A system event, such as "Maya joined"',
   },

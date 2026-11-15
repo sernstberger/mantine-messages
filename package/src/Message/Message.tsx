@@ -4,10 +4,14 @@ import {
   BoxProps,
   CompoundStylesApiProps,
   createSafeContext,
+  createVarsResolver,
   ElementProps,
   factory,
   Factory,
+  getSize,
   GetStylesApi,
+  MantineRadius,
+  MantineSize,
   StylesApiProps,
   useProps,
   useStyles,
@@ -19,6 +23,8 @@ export type MessageStylesNames = 'root' | 'avatar' | 'body' | 'meta';
 
 interface MessageContextValue {
   getStyles: GetStylesApi<MessageFactory>;
+  unstyled: boolean | undefined;
+  avatarSize: MessageProps['avatarSize'];
 }
 
 const [MessageProvider, useMessageContext] = createSafeContext<MessageContextValue>(
@@ -32,6 +38,9 @@ export interface MessageAvatarProps
 
   /** Image url; initials are shown when it is missing */
   src?: string | null;
+
+  /** Key of `theme.radius` or any valid CSS value to set `border-radius`, numbers are converted to rem @default 'md' */
+  radius?: MantineRadius;
 }
 
 export type MessageAvatarFactory = Factory<{
@@ -43,11 +52,8 @@ export type MessageAvatarFactory = Factory<{
 
 /** Avatar in the first column */
 export const MessageAvatar = factory<MessageAvatarFactory>((_props) => {
-  const { classNames, className, style, styles, vars, ref, name, src, ...others } = useProps(
-    'MessageAvatar',
-    {},
-    _props
-  );
+  const { classNames, className, style, styles, vars, ref, name, src, radius, ...others } =
+    useProps('MessageAvatar', {}, _props);
   const ctx = useMessageContext();
 
   return (
@@ -56,8 +62,9 @@ export const MessageAvatar = factory<MessageAvatarFactory>((_props) => {
       src={src}
       name={name}
       alt={name}
-      size={36}
-      radius="md"
+      size={ctx.avatarSize}
+      radius={radius ?? 'md'}
+      unstyled={ctx.unstyled}
       {...ctx.getStyles('avatar', { className, style, classNames, styles })}
       {...others}
     />
@@ -133,12 +140,20 @@ export interface MessageProps
   extends BoxProps, StylesApiProps<MessageFactory>, ElementProps<'div'> {
   /** A follow-up message of a group; sets `data-compact` for tighter spacing */
   compact?: boolean;
+
+  /** Width and height of `Message.Avatar` and the width of the first column, numbers are converted to rem @default 36 */
+  avatarSize?: MantineSize | (string & {}) | number;
 }
+
+export type MessageCssVariables = {
+  root: '--message-avatar-size';
+};
 
 export type MessageFactory = Factory<{
   props: MessageProps;
   ref: HTMLDivElement;
   stylesNames: MessageStylesNames;
+  vars: MessageCssVariables;
   staticComponents: {
     Avatar: typeof MessageAvatar;
     Body: typeof MessageBody;
@@ -146,9 +161,19 @@ export type MessageFactory = Factory<{
   };
 }>;
 
+const defaultProps = {
+  avatarSize: 36,
+} satisfies Partial<MessageProps>;
+
+const varsResolver = createVarsResolver<MessageFactory>((_theme, { avatarSize }) => ({
+  root: {
+    '--message-avatar-size': getSize(avatarSize, 'message-avatar-size'),
+  },
+}));
+
 /** One message as a row: an avatar column and a content column */
 export const Message = factory<MessageFactory>((_props) => {
-  const props = useProps('Message', {}, _props);
+  const props = useProps('Message', defaultProps, _props);
   const {
     classNames,
     className,
@@ -159,6 +184,7 @@ export const Message = factory<MessageFactory>((_props) => {
     attributes,
     ref,
     compact,
+    avatarSize,
     mod,
     ...others
   } = props;
@@ -174,10 +200,11 @@ export const Message = factory<MessageFactory>((_props) => {
     unstyled,
     vars,
     attributes,
+    varsResolver,
   });
 
   return (
-    <MessageProvider value={{ getStyles }}>
+    <MessageProvider value={{ getStyles, unstyled, avatarSize }}>
       <Box ref={ref} mod={[{ compact }, mod]} {...getStyles('root')} {...others} />
     </MessageProvider>
   );
@@ -185,6 +212,7 @@ export const Message = factory<MessageFactory>((_props) => {
 
 Message.displayName = 'Message';
 Message.classes = classes;
+Message.varsResolver = varsResolver;
 Message.Avatar = MessageAvatar;
 Message.Body = MessageBody;
 Message.Meta = MessageMeta;
