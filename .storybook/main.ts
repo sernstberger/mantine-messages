@@ -16,11 +16,25 @@ const config: StorybookConfig = {
   docs: {
     autodocs: false,
   },
+  // Telemetry also prints a notice and spawns the package manager during builds
+  core: { disableTelemetry: true },
   // The work-queue example in docs/demos imports 'mantine-messages' as an app does. Point that
   // at the source, so its story needs no build and gets the package's CSS modules. Only the bare
   // name: subpaths such as 'mantine-messages/markdown' are not aliased
   viteFinal: (viteConfig) =>
     mergeConfig(viteConfig, {
+      build: {
+        // The chunks over Vite's 500 kB default are Storybook's own docs renderer, loaded on demand
+        chunkSizeWarningLimit: 1500,
+        rollupOptions: {
+          onwarn(warning, warn) {
+            if (warning.code === 'EVAL' && warning.id?.includes('/@storybook/core/')) {
+              return;
+            }
+            warn(warning);
+          },
+        },
+      },
       resolve: {
         alias: [
           {
