@@ -51,3 +51,13 @@ export type {
   AttachmentsFactory,
   AttachmentsStylesNames,
 } from './Attachments/Attachments';
+
+export { Message } from './Message/Message';
+export type {
+  MessageProps,
+  MessageFactory,
+  MessageStylesNames,
+  MessageAvatarProps,
+  MessageBodyProps,
+  MessageMetaProps,
+} from './Message/Message';

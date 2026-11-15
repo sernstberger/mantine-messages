@@ -1,0 +1,38 @@
+/* Avatar column and content column */
+.root {
+  display: grid;
+  grid-template-columns: rem(36px) minmax(0, 1fr);
+  column-gap: var(--mantine-spacing-sm);
+  align-items: start;
+}
+
+.avatar {
+  grid-column: 1;
+}
+
+.body {
+  grid-column: 2;
+  min-width: 0;
+}
+
+/* Name and time above the text */
+.meta {
+  display: flex;
+  align-items: baseline;
+  gap: var(--mantine-spacing-xs);
+  min-width: 0;
+
+  /* Directly in the root: a small time in the avatar column, shown on hover and focus */
+  :where(.root) > & {
+    grid-column: 1;
+    justify-content: flex-end;
+    font-size: rem(10px);
+    color: var(--mantine-color-dimmed);
+    white-space: nowrap;
+    opacity: 0;
+  }
+
+  :where(.root:hover, .root:focus-within) > & {
+    opacity: 1;
+  }
+}
